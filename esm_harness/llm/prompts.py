@@ -10,9 +10,13 @@ INTERFACE = """\
 Write one self-contained Python program for closed-shell restricted Hartree–Fock (RHF).
 Define solve(mol) and return {"e_tot": float, "converged": bool}.
 mol is a built pyscf.gto.Mole with an even electron count and spin 0.
-You may import numpy, scipy, and pyscf.gto. Use mol.intor(...) for integrals
-and mol.energy_nuc() for the nuclear repulsion.
-Do not import pyscf.scf or pyscf.df, and do not call kernel().
+You may import numpy, scipy, pyscf.gto, and the pure standard-library modules
+math, cmath, itertools, functools, collections, typing, and dataclasses; any
+other import is rejected. Use mol.intor(...) for integrals and mol.energy_nuc()
+for the nuclear repulsion.
+Do not import pyscf.scf or pyscf.df, and do not call kernel(). File I/O, exec,
+and eval are rejected. Each timed call runs in a freshly loaded module with a
+fresh Mole, so nothing can be cached between calls.
 Reply with the complete program in one fenced python block.
 """
 

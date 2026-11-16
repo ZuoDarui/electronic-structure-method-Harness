@@ -143,3 +143,31 @@ def test_child_environment_drops_credentials(monkeypatch, tmp_path):
     assert "GITHUB_TOKEN" not in env
     assert env["HOME_SAFE"] == "kept"
     assert env["ESM_MEMORY_MB"] == "1"
+
+
+def test_module_state_does_not_carry_between_timed_calls(tmp_path):
+    from esm_harness.eval.submit import LocalSubmitter
+
+    cheat = (
+        "CACHE = {}\n"
+        "def solve(mol):\n"
+        "    if 'e' in CACHE:\n"
+        "        return {'e_tot': CACHE['e'], 'converged': True}\n"
+        "    CACHE['e'] = -9.0\n"
+        "    return {'e_tot': -1.0, 'converged': True}\n"
+    )
+    result = evaluate_program(
+        cheat,
+        cases=[H2],
+        references={"h2_sto3g": -1.0},
+        baseline_times={"h2_sto3g": 1.0},
+        baseline_energies={"h2_sto3g": -1.0},
+        submitter=LocalSubmitter(REPO_ROOT),
+        factors=FACTORS,
+        timeout_s=60,
+        memory_mb=4096,
+        work_root=tmp_path,
+        repeats=3,
+    )
+    assert result["status"] == "ok", result["stderr"]
+    assert result["cases"][0]["energy"] == -1.0

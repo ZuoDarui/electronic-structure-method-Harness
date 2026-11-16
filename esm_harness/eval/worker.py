@@ -77,11 +77,15 @@ def _build_mol(case: dict):
     )
 
 
-def _time_call(solve, mol, repeats: int):
-    solve(mol)
+def _time_call(program: Path, case: dict, repeats: int):
+    """Each call gets a freshly loaded module and a fresh Mole, so state kept in
+    module globals or on the molecule cannot carry over between timed calls."""
+    _load_solve(program)(_build_mol(case))
     samples = []
     result = None
     for _ in range(repeats):
+        solve = _load_solve(program)
+        mol = _build_mol(case)
         started = time.perf_counter()
         result = solve(mol)
         samples.append(time.perf_counter() - started)
@@ -98,16 +102,16 @@ def run_job(job_path: Path) -> None:
     try:
         _block_drivers(list(job.get("block_imports") or []))
         _limit_memory(job.get("memory_mb"))
-        solve = _load_solve(Path(job["program"]))
+        program = Path(job["program"])
+        _load_solve(program)
         repeats = int(job.get("repeats", 3))
         cases = []
         for case in job["cases"]:
-            mol = _build_mol(case)
             captured = []
             stdout = sys.stdout
             sys.stdout = _Collector(captured)
             try:
-                result, median = _time_call(solve, mol, repeats)
+                result, median = _time_call(program, case, repeats)
             finally:
                 sys.stdout = stdout
             if not isinstance(result, dict) or "e_tot" not in result:
