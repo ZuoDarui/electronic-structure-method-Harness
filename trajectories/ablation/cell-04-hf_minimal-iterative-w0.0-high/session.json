@@ -47,11 +47,9 @@
   },
   "model": "claude-opus-5.5",
   "subagent_model": "claude-opus-5-5-high",
-  "status": "awaiting_responses",
-  "generation": 2,
-  "pending": [
-    "cell-04-hf_minimal-iterative-w0.0-high-g02-s0"
-  ],
-  "stale_generations": 1,
-  "updated": "2026-11-16T03:55:44+00:00"
+  "status": "done",
+  "generation": 3,
+  "pending": [],
+  "stale_generations": 3,
+  "updated": "2026-11-16T04:08:34+00:00"
 }

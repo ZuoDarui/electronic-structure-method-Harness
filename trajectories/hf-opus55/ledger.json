@@ -18,11 +18,11 @@
     "fitness_err_ceiling": 1e-06
   },
   "models": {
-    "claude-opus-5-5-high": 2
+    "claude-opus-5-5-high": 4
   },
-  "calls": 2,
+  "calls": 4,
   "metered_calls": 0,
-  "unmetered_calls": 2,
+  "unmetered_calls": 4,
   "usage": {
     "input_tokens": 0,
     "cached_tokens": 0,
@@ -144,58 +144,172 @@
           }
         ]
       }
+    },
+    {
+      "generation": 2,
+      "calls": 1,
+      "best": {
+        "candidate_id": "hf-opus55-g02-s0",
+        "generation": 2,
+        "fitness": 13.394710089818805,
+        "max_abs_err": 4.405364961712621e-13,
+        "max_abs_err_vs_baseline": 1.8474111129762605e-13,
+        "geomean_time_ratio": 0.061456837512156186,
+        "status": "ok",
+        "cases": [
+          {
+            "id": "h2_sto3g",
+            "abs_err": 2.220446049250313e-16,
+            "abs_err_baseline": 2.220446049250313e-16,
+            "time_ratio": 0.04947585072360812
+          },
+          {
+            "id": "heh_sto3g",
+            "abs_err": 7.105427357601002e-15,
+            "abs_err_baseline": 8.881784197001252e-15,
+            "time_ratio": 0.047228598206872065
+          },
+          {
+            "id": "h2o_sto3g",
+            "abs_err": 2.842170943040401e-14,
+            "abs_err_baseline": 9.947598300641403e-14,
+            "time_ratio": 0.056840036011975854
+          },
+          {
+            "id": "h2_631g",
+            "abs_err": 1.021405182655144e-14,
+            "abs_err_baseline": 1.3322676295501878e-15,
+            "time_ratio": 0.08625095471670301
+          },
+          {
+            "id": "h2o_631g",
+            "abs_err": 7.105427357601002e-14,
+            "abs_err_baseline": 4.263256414560601e-14,
+            "time_ratio": 0.0814759534954619
+          },
+          {
+            "id": "nh3_631gs",
+            "abs_err": 1.4210854715202004e-13,
+            "abs_err_baseline": 1.1368683772161603e-13,
+            "time_ratio": 0.13624516277961846
+          },
+          {
+            "id": "ch4_ccpvdz",
+            "abs_err": 4.405364961712621e-13,
+            "abs_err_baseline": 1.8474111129762605e-13,
+            "time_ratio": 0.026039001869628826
+          }
+        ]
+      }
+    },
+    {
+      "generation": 3,
+      "calls": 1,
+      "best": {
+        "candidate_id": "hf-opus55-g03-s0",
+        "generation": 3,
+        "fitness": 13.407623520544858,
+        "max_abs_err": 4.405364961712621e-13,
+        "max_abs_err_vs_baseline": 1.8474111129762605e-13,
+        "geomean_time_ratio": 0.05988992164093645,
+        "status": "ok",
+        "cases": [
+          {
+            "id": "h2_sto3g",
+            "abs_err": 0.0,
+            "abs_err_baseline": 0.0,
+            "time_ratio": 0.04703900806313591
+          },
+          {
+            "id": "heh_sto3g",
+            "abs_err": 7.105427357601002e-15,
+            "abs_err_baseline": 8.881784197001252e-15,
+            "time_ratio": 0.04557473952939031
+          },
+          {
+            "id": "h2o_sto3g",
+            "abs_err": 1.1368683772161603e-13,
+            "abs_err_baseline": 4.263256414560601e-14,
+            "time_ratio": 0.054181340535235906
+          },
+          {
+            "id": "h2_631g",
+            "abs_err": 1.021405182655144e-14,
+            "abs_err_baseline": 1.3322676295501878e-15,
+            "time_ratio": 0.08315627856790825
+          },
+          {
+            "id": "h2o_631g",
+            "abs_err": 7.105427357601002e-14,
+            "abs_err_baseline": 4.263256414560601e-14,
+            "time_ratio": 0.07899601102632615
+          },
+          {
+            "id": "nh3_631gs",
+            "abs_err": 1.4210854715202004e-13,
+            "abs_err_baseline": 1.1368683772161603e-13,
+            "time_ratio": 0.13827483658431597
+          },
+          {
+            "id": "ch4_ccpvdz",
+            "abs_err": 4.405364961712621e-13,
+            "abs_err_baseline": 1.8474111129762605e-13,
+            "time_ratio": 0.026193935680200134
+          }
+        ]
+      }
     }
   ],
   "best": {
-    "candidate_id": "hf-opus55-g01-s0",
-    "generation": 1,
-    "fitness": 13.370203829348812,
-    "max_abs_err": 9.947598300641403e-14,
-    "max_abs_err_vs_baseline": 1.5631940186722204e-13,
-    "geomean_time_ratio": 0.06454402959425129,
+    "candidate_id": "hf-opus55-g03-s0",
+    "generation": 3,
+    "fitness": 13.407623520544858,
+    "max_abs_err": 4.405364961712621e-13,
+    "max_abs_err_vs_baseline": 1.8474111129762605e-13,
+    "geomean_time_ratio": 0.05988992164093645,
     "status": "ok",
     "cases": [
       {
         "id": "h2_sto3g",
-        "abs_err": 2.220446049250313e-16,
-        "abs_err_baseline": 2.220446049250313e-16,
-        "time_ratio": 0.04891687193951443
+        "abs_err": 0.0,
+        "abs_err_baseline": 0.0,
+        "time_ratio": 0.04703900806313591
       },
       {
         "id": "heh_sto3g",
-        "abs_err": 8.881784197001252e-16,
-        "abs_err_baseline": 2.6645352591003757e-15,
-        "time_ratio": 0.050805097963063955
+        "abs_err": 7.105427357601002e-15,
+        "abs_err_baseline": 8.881784197001252e-15,
+        "time_ratio": 0.04557473952939031
       },
       {
         "id": "h2o_sto3g",
-        "abs_err": 2.842170943040401e-14,
-        "abs_err_baseline": 9.947598300641403e-14,
-        "time_ratio": 0.056493346394593046
+        "abs_err": 1.1368683772161603e-13,
+        "abs_err_baseline": 4.263256414560601e-14,
+        "time_ratio": 0.054181340535235906
       },
       {
         "id": "h2_631g",
         "abs_err": 1.021405182655144e-14,
         "abs_err_baseline": 1.3322676295501878e-15,
-        "time_ratio": 0.08378897127709083
+        "time_ratio": 0.08315627856790825
       },
       {
         "id": "h2o_631g",
         "abs_err": 7.105427357601002e-14,
         "abs_err_baseline": 4.263256414560601e-14,
-        "time_ratio": 0.08448850302012022
+        "time_ratio": 0.07899601102632615
       },
       {
         "id": "nh3_631gs",
-        "abs_err": 8.526512829121202e-14,
-        "abs_err_baseline": 5.684341886080802e-14,
-        "time_ratio": 0.15217530380153896
+        "abs_err": 1.4210854715202004e-13,
+        "abs_err_baseline": 1.1368683772161603e-13,
+        "time_ratio": 0.13827483658431597
       },
       {
         "id": "ch4_ccpvdz",
-        "abs_err": 9.947598300641403e-14,
-        "abs_err_baseline": 1.5631940186722204e-13,
-        "time_ratio": 0.030853227871254905
+        "abs_err": 4.405364961712621e-13,
+        "abs_err_baseline": 1.8474111129762605e-13,
+        "time_ratio": 0.026193935680200134
       }
     ]
   }

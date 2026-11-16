@@ -1,6 +1,6 @@
 {
   "run_id": "cell-01-hf_spec-iterative-w0.5-high",
-  "status": "awaiting_responses",
+  "status": "done",
   "factors": {
     "model": "claude-opus-5.5",
     "prompt_id": "hf_spec",
@@ -18,11 +18,11 @@
     "fitness_err_ceiling": 1e-06
   },
   "models": {
-    "claude-opus-5-5-high": 2
+    "claude-opus-5-5-high": 4
   },
-  "calls": 2,
+  "calls": 4,
   "metered_calls": 0,
-  "unmetered_calls": 2,
+  "unmetered_calls": 4,
   "usage": {
     "input_tokens": 0,
     "cached_tokens": 0,
@@ -141,6 +141,120 @@
             "abs_err": 8.526512829121202e-14,
             "abs_err_baseline": 1.7053025658242404e-13,
             "time_ratio": 0.025552636554334467
+          }
+        ]
+      }
+    },
+    {
+      "generation": 2,
+      "calls": 1,
+      "best": {
+        "candidate_id": "cell-01-hf_spec-iterative-w0.5-high-g02-s0",
+        "generation": 2,
+        "fitness": 13.379734513344067,
+        "max_abs_err": 1.2789769243681803e-13,
+        "max_abs_err_vs_baseline": 1.2789769243681803e-13,
+        "geomean_time_ratio": 0.06332538352308806,
+        "status": "ok",
+        "cases": [
+          {
+            "id": "h2_sto3g",
+            "abs_err": 2.220446049250313e-16,
+            "abs_err_baseline": 2.220446049250313e-16,
+            "time_ratio": 0.05715515593019766
+          },
+          {
+            "id": "heh_sto3g",
+            "abs_err": 8.881784197001252e-16,
+            "abs_err_baseline": 8.881784197001252e-16,
+            "time_ratio": 0.057719211937545443
+          },
+          {
+            "id": "h2o_sto3g",
+            "abs_err": 2.842170943040401e-14,
+            "abs_err_baseline": 5.684341886080802e-14,
+            "time_ratio": 0.054773040007190646
+          },
+          {
+            "id": "h2_631g",
+            "abs_err": 9.547918011776346e-15,
+            "abs_err_baseline": 6.661338147750939e-16,
+            "time_ratio": 0.08163017467612664
+          },
+          {
+            "id": "h2o_631g",
+            "abs_err": 2.842170943040401e-14,
+            "abs_err_baseline": 0.0,
+            "time_ratio": 0.08388679943732381
+          },
+          {
+            "id": "nh3_631gs",
+            "abs_err": 9.947598300641403e-14,
+            "abs_err_baseline": 7.105427357601002e-14,
+            "time_ratio": 0.13299814010120056
+          },
+          {
+            "id": "ch4_ccpvdz",
+            "abs_err": 1.2789769243681803e-13,
+            "abs_err_baseline": 1.2789769243681803e-13,
+            "time_ratio": 0.024814882899174624
+          }
+        ]
+      }
+    },
+    {
+      "generation": 3,
+      "calls": 1,
+      "best": {
+        "candidate_id": "cell-01-hf_spec-iterative-w0.5-high-g03-s0",
+        "generation": 3,
+        "fitness": 13.372373222034929,
+        "max_abs_err": 1.1368683772161603e-13,
+        "max_abs_err_vs_baseline": 1.4210854715202004e-13,
+        "geomean_time_ratio": 0.06426459354766496,
+        "status": "ok",
+        "cases": [
+          {
+            "id": "h2_sto3g",
+            "abs_err": 2.220446049250313e-16,
+            "abs_err_baseline": 2.220446049250313e-16,
+            "time_ratio": 0.05585122871843859
+          },
+          {
+            "id": "heh_sto3g",
+            "abs_err": 8.881784197001252e-16,
+            "abs_err_baseline": 2.6645352591003757e-15,
+            "time_ratio": 0.0545629442648468
+          },
+          {
+            "id": "h2o_sto3g",
+            "abs_err": 1.4210854715202004e-14,
+            "abs_err_baseline": 9.947598300641403e-14,
+            "time_ratio": 0.05777529973488593
+          },
+          {
+            "id": "h2_631g",
+            "abs_err": 9.769962616701378e-15,
+            "abs_err_baseline": 8.881784197001252e-16,
+            "time_ratio": 0.093975220642254
+          },
+          {
+            "id": "h2o_631g",
+            "abs_err": 4.263256414560601e-14,
+            "abs_err_baseline": 1.4210854715202004e-14,
+            "time_ratio": 0.08119973294971825
+          },
+          {
+            "id": "nh3_631gs",
+            "abs_err": 5.684341886080802e-14,
+            "abs_err_baseline": 2.842170943040401e-14,
+            "time_ratio": 0.12597111593465052
+          },
+          {
+            "id": "ch4_ccpvdz",
+            "abs_err": 1.1368683772161603e-13,
+            "abs_err_baseline": 1.4210854715202004e-13,
+            "time_ratio": 0.02674796139847948
           }
         ]
       }
