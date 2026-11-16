@@ -7,5 +7,5 @@
 | cell-04-hf_minimal-iterative-w0.0-high (done) | hf_minimal | iterative | 0.0 | high | 4 | 0 | 0 | 12.000 | 1.8e-13 | 7.1e-14 | 0.1083 |
 | cell-05-hf_minimal-iterative-w2.0-high (done) | hf_minimal | iterative | 2.0 | high | 4 | 0 | 3 | 17.660 | 1.3e-12 | 1.3e-12 | 0.0559 |
 | cell-06-hf_minimal-iterative-w0.5-medium (done) | hf_minimal | iterative | 0.5 | medium | 4 | 0 | 1 | 13.170 | 1.3e-13 | 1.3e-13 | 0.0964 |
-| cell-07-hf_minimal-iterative-w0.5-max (awaiting_responses) | hf_minimal | iterative | 0.5 | max | 0 | 1 | - | - | - | - | - |
+| cell-07-hf_minimal-iterative-w0.5-max (done) | hf_minimal | iterative | 0.5 | max | 4 | 6 | 0 | 13.479 | 4.3e-13 | 1.7e-13 | 0.0519 |
 | hf-opus55 (done) | hf_minimal | iterative | 0.5 | high | 8 | 0 | 3 | 13.408 | 4.4e-13 | 1.8e-13 | 0.0599 |
