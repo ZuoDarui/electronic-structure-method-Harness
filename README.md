@@ -29,7 +29,7 @@ python -m esm_harness meta --cid <cid> --model claude-opus-5-5-high --agent-id <
 python -m esm_harness step --session trajectories/hf-opus55   # 打分并写下一代提示
 ```
 
-`init` 先在本机（或 Slurm）上把基线跑一遍，记下逐分子能量与耗时（`baseline.json`），之后所有耗时比都相对这次测量。会话在 `max_generations` 代后结束，或连续 `patience` 代没有提高最佳适应度时提前结束。调用失败用 `meta --error` 记下（写入 `calls.jsonl`），然后重发同一个提示。
+`init` 先在本机（或 Slurm）上把基线跑一遍，记下逐分子能量与耗时（`baseline.json`），之后所有耗时比都相对这次测量。会话在 `max_generations` 代后结束，或连续 `patience` 代没有提高最佳适应度时提前结束。调用失败用 `meta --error` 记下（写入 `calls.jsonl`），然后重发同一个提示；同一提示失败达到 `max_call_failures` 次（默认 3）后，该候选以 `call_failed` 记入轨迹（无适应度），会话继续下一代。
 
 消融：
 

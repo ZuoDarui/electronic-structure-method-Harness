@@ -131,3 +131,22 @@ def test_best_of_n_writes_one_prompt_per_sample(tmp_path):
     session = Session(tmp_path / "run")
     session.init(config, make_submitter(config, REPO_ROOT))
     assert [item["candidate_id"][-3:] for item in session.requests()] == ["-s0", "-s1", "-s2"]
+
+
+def test_repeated_call_failures_are_scored_and_the_search_moves_on(tmp_path):
+    config = _config(tmp_path, max_call_failures=2)
+    submitter = make_submitter(config, REPO_ROOT)
+    session = Session(tmp_path / "run")
+    session.init(config, submitter)
+    [request] = session.requests()
+    for _ in range(2):
+        with pytest.raises(SystemExit):
+            main(["meta", "--session", str(session.root), "--cid", request["candidate_id"],
+                  "--model", "claude-opus-5-5-high", "--error", "Activity task timed out"])
+    assert session.requests() == []
+    status = session.advance(submitter)
+    assert status["generation"] == 1
+    record = json.loads(session.trajectory.read_text(encoding="utf-8").splitlines()[0])
+    assert record["eval"]["status"] == "call_failed"
+    assert record["call_failures"] == 2
+    assert record["eval"]["fitness"] is None

@@ -175,6 +175,15 @@ class Session:
         state["status"] = "awaiting_responses"
         self.save(state)
 
+    def call_failures(self, cid: str) -> int:
+        return sum(
+            1 for call in read_records(self.root / "calls.jsonl") if call["candidate_id"] == cid and call.get("error")
+        )
+
+    def _gave_up(self, state: dict, cid: str) -> bool:
+        limit = int(state["config"].get("max_call_failures", 3))
+        return not self.path("responses", cid).is_file() and self.call_failures(cid) >= limit
+
     def requests(self) -> list[dict]:
         """What the driver must answer before the session can advance."""
         state = self.load()
@@ -187,14 +196,15 @@ class Session:
                 "meta": str(self.path("meta", cid)),
             }
             for cid in state["pending"]
-            if not self.path("responses", cid).is_file()
+            if not self.path("responses", cid).is_file() and not self._gave_up(state, cid)
         ]
 
     def _record(self, state: dict, cid: str, submitter, context: dict, baseline: dict) -> dict:
         factors = state["factors"]
         prompt = self.path("prompts", cid).read_text(encoding="utf-8")
-        response = self.path("responses", cid).read_text(encoding="utf-8")
-        meta = read_meta(self.path("meta", cid))
+        failed = self._gave_up(state, cid)
+        response = "" if failed else self.path("responses", cid).read_text(encoding="utf-8")
+        meta = {"model": state["subagent_model"]} if failed else read_meta(self.path("meta", cid))
         model = meta.get("model")
         if model != state["subagent_model"] and not state["config"].get("allow_any_model"):
             raise ValueError(
@@ -218,8 +228,8 @@ class Session:
             )
         else:
             evaluation = {
-                "status": "no_program",
-                "stderr": parse_error,
+                "status": "call_failed" if failed else "no_program",
+                "stderr": f"model call failed {self.call_failures(cid)} times; see calls.jsonl" if failed else parse_error,
                 "cases": [],
                 "submission": None,
                 "max_abs_err": None,
@@ -239,6 +249,7 @@ class Session:
             "factors": factors,
             "model": model,
             "agent_id": meta.get("agent_id"),
+            "call_failures": self.call_failures(cid),
             "usage": normalize_usage(meta.get("usage")),
             "usage_note": meta.get("usage_note"),
             "latency_s": meta.get("latency_s"),
