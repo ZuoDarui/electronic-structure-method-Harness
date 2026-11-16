@@ -1,0 +1,28 @@
+[project]
+name = "esm-harness"
+version = "0.1.0"
+description = "Harness for autonomously generating electronic-structure programs"
+requires-python = ">=3.11"
+dependencies = [
+  "numpy",
+  "scipy",
+  "pyscf",
+  "pyyaml",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[project.scripts]
+esm-harness = "esm_harness.cli:main"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["esm_harness*"]
