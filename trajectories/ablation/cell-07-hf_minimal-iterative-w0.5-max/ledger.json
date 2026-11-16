@@ -18,11 +18,11 @@
     "fitness_err_ceiling": 1e-06
   },
   "models": {
-    "claude-opus-5-5-max": 2
+    "claude-opus-5-5-max": 3
   },
-  "calls": 2,
+  "calls": 3,
   "metered_calls": 0,
-  "unmetered_calls": 2,
+  "unmetered_calls": 3,
   "usage": {
     "input_tokens": 0,
     "cached_tokens": 0,
@@ -92,6 +92,63 @@
       "generation": 1,
       "calls": 1,
       "best": null
+    },
+    {
+      "generation": 2,
+      "calls": 1,
+      "best": {
+        "candidate_id": "cell-07-hf_minimal-iterative-w0.5-max-g02-s0",
+        "generation": 2,
+        "fitness": 13.388641153582837,
+        "max_abs_err": 4.263256414560601e-13,
+        "max_abs_err_vs_baseline": 1.7053025658242404e-13,
+        "geomean_time_ratio": 0.062207338295685095,
+        "status": "ok",
+        "cases": [
+          {
+            "id": "h2_sto3g",
+            "abs_err": 2.220446049250313e-16,
+            "abs_err_baseline": 2.220446049250313e-16,
+            "time_ratio": 0.05793426096275571
+          },
+          {
+            "id": "heh_sto3g",
+            "abs_err": 8.881784197001252e-16,
+            "abs_err_baseline": 2.6645352591003757e-15,
+            "time_ratio": 0.042821774767723135
+          },
+          {
+            "id": "h2o_sto3g",
+            "abs_err": 7.105427357601002e-14,
+            "abs_err_baseline": 1.4210854715202004e-14,
+            "time_ratio": 0.055805303097073745
+          },
+          {
+            "id": "h2_631g",
+            "abs_err": 9.769962616701378e-15,
+            "abs_err_baseline": 8.881784197001252e-16,
+            "time_ratio": 0.09988594134197204
+          },
+          {
+            "id": "h2o_631g",
+            "abs_err": 9.947598300641403e-14,
+            "abs_err_baseline": 7.105427357601002e-14,
+            "time_ratio": 0.08198323874559726
+          },
+          {
+            "id": "nh3_631gs",
+            "abs_err": 1.3500311979441904e-13,
+            "abs_err_baseline": 1.0658141036401503e-13,
+            "time_ratio": 0.1387063732233118
+          },
+          {
+            "id": "ch4_ccpvdz",
+            "abs_err": 4.263256414560601e-13,
+            "abs_err_baseline": 1.7053025658242404e-13,
+            "time_ratio": 0.022923972326485183
+          }
+        ]
+      }
     }
   ],
   "best": {
