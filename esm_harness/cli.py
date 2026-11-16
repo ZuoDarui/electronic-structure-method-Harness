@@ -122,6 +122,42 @@ def _cmd_ablate_step(args: argparse.Namespace) -> int:
     return 0
 
 
+def _fmt(value, spec: str) -> str:
+    return "-" if value is None else format(value, spec)
+
+
+def _cmd_report(args: argparse.Namespace) -> int:
+    root = resolve(args.root)
+    lines = [
+        "| run | prompt | search | speed_weight | effort | calls | failed calls | best gen | "
+        "best fitness | max err vs PySCF | max err vs baseline | geomean time ratio |",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|",
+    ]
+    rows = []
+    for state_path in sorted(root.glob("**/session.json")):
+        session = Session(state_path.parent)
+        state = session.load()
+        factors = state["factors"]
+        ledger = json.loads(session.ledger_path.read_text(encoding="utf-8")) if session.ledger_path.is_file() else {}
+        calls_log = session.root / "calls.jsonl"
+        failed = 0
+        if calls_log.is_file():
+            failed = sum(1 for line in calls_log.read_text(encoding="utf-8").splitlines() if json.loads(line).get("error"))
+        best = ledger.get("best") or {}
+        rows.append({"run_id": state["run_id"], "status": state["status"], "factors": factors, "best": best})
+        lines.append(
+            f"| {state['run_id']} ({state['status']}) | {factors['prompt_id']} | {factors['search']} | "
+            f"{factors['speed_weight']} | {factors['reasoning_effort']} | {ledger.get('calls', 0)} | {failed} | "
+            f"{best.get('generation', '-')} | {_fmt(best.get('fitness'), '.3f')} | "
+            f"{_fmt(best.get('max_abs_err'), '.1e')} | {_fmt(best.get('max_abs_err_vs_baseline'), '.1e')} | "
+            f"{_fmt(best.get('geomean_time_ratio'), '.4f')} |"
+        )
+    (root / "REPORT.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (root / "summary.json").write_text(json.dumps(rows, indent=2) + "\n", encoding="utf-8")
+    print("\n".join(lines))
+    return 0
+
+
 def _cmd_reference(args: argparse.Namespace) -> int:
     cases = load_cases(resolve(args.suite))
     _print(write_references(cases, resolve(args.out)))
@@ -186,6 +222,10 @@ def build_parser() -> argparse.ArgumentParser:
     ablate_step = commands.add_parser("ablate-step", help="advance every ablation cell")
     ablate_step.add_argument("--grid", required=True)
     ablate_step.set_defaults(func=_cmd_ablate_step)
+
+    report = commands.add_parser("report", help="tabulate the best result of every session under a directory")
+    report.add_argument("--root", default="trajectories")
+    report.set_defaults(func=_cmd_report)
 
     reference = commands.add_parser("reference", help="cache PySCF RHF energies for the suite")
     reference.add_argument("--suite", default="benchmarks/hf_rhf.yaml")

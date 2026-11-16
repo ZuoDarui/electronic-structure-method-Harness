@@ -1,0 +1,607 @@
+[
+  {
+    "run_id": "cell-00-hf_minimal-iterative-w0.5-high",
+    "status": "done",
+    "factors": {
+      "model": "claude-opus-5.5",
+      "prompt_id": "hf_minimal",
+      "search": "iterative",
+      "speed_weight": 0.5,
+      "reasoning_effort": "high",
+      "population_n": 3,
+      "allowed_imports": [
+        "numpy",
+        "scipy",
+        "pyscf.gto"
+      ],
+      "max_abs_err": 1e-08,
+      "max_time_ratio": 1.0,
+      "fitness_err_ceiling": 1e-06
+    },
+    "best": {
+      "candidate_id": "cell-00-hf_minimal-iterative-w0.5-high-g02-s0",
+      "generation": 2,
+      "fitness": 13.385624584970566,
+      "max_abs_err": 4.263256414560601e-13,
+      "max_abs_err_vs_baseline": 1.7053025658242404e-13,
+      "geomean_time_ratio": 0.06258377811872363,
+      "status": "ok",
+      "cases": [
+        {
+          "id": "h2_sto3g",
+          "abs_err": 2.220446049250313e-16,
+          "abs_err_baseline": 2.220446049250313e-16,
+          "time_ratio": 0.044576565395491465
+        },
+        {
+          "id": "heh_sto3g",
+          "abs_err": 0.0,
+          "abs_err_baseline": 1.7763568394002505e-15,
+          "time_ratio": 0.04388003865218242
+        },
+        {
+          "id": "h2o_sto3g",
+          "abs_err": 2.842170943040401e-14,
+          "abs_err_baseline": 5.684341886080802e-14,
+          "time_ratio": 0.047560706070060556
+        },
+        {
+          "id": "h2_631g",
+          "abs_err": 1.021405182655144e-14,
+          "abs_err_baseline": 1.3322676295501878e-15,
+          "time_ratio": 0.09050245745464579
+        },
+        {
+          "id": "h2o_631g",
+          "abs_err": 1.2789769243681803e-13,
+          "abs_err_baseline": 9.947598300641403e-14,
+          "time_ratio": 0.09232231431094799
+        },
+        {
+          "id": "nh3_631gs",
+          "abs_err": 1.4210854715202004e-13,
+          "abs_err_baseline": 1.1368683772161603e-13,
+          "time_ratio": 0.16982426513509338
+        },
+        {
+          "id": "ch4_ccpvdz",
+          "abs_err": 4.263256414560601e-13,
+          "abs_err_baseline": 1.7053025658242404e-13,
+          "time_ratio": 0.02848680520597198
+        }
+      ]
+    }
+  },
+  {
+    "run_id": "cell-01-hf_spec-iterative-w0.5-high",
+    "status": "done",
+    "factors": {
+      "model": "claude-opus-5.5",
+      "prompt_id": "hf_spec",
+      "search": "iterative",
+      "speed_weight": 0.5,
+      "reasoning_effort": "high",
+      "population_n": 3,
+      "allowed_imports": [
+        "numpy",
+        "scipy",
+        "pyscf.gto"
+      ],
+      "max_abs_err": 1e-08,
+      "max_time_ratio": 1.0,
+      "fitness_err_ceiling": 1e-06
+    },
+    "best": {
+      "candidate_id": "cell-01-hf_spec-iterative-w0.5-high-g01-s0",
+      "generation": 1,
+      "fitness": 13.383342559992723,
+      "max_abs_err": 8.526512829121202e-14,
+      "max_abs_err_vs_baseline": 1.7053025658242404e-13,
+      "geomean_time_ratio": 0.0628700664285853,
+      "status": "ok",
+      "cases": [
+        {
+          "id": "h2_sto3g",
+          "abs_err": 2.220446049250313e-16,
+          "abs_err_baseline": 2.220446049250313e-16,
+          "time_ratio": 0.060548593906359534
+        },
+        {
+          "id": "heh_sto3g",
+          "abs_err": 0.0,
+          "abs_err_baseline": 1.7763568394002505e-15,
+          "time_ratio": 0.05360762084701448
+        },
+        {
+          "id": "h2o_sto3g",
+          "abs_err": 0.0,
+          "abs_err_baseline": 8.526512829121202e-14,
+          "time_ratio": 0.055837655047231274
+        },
+        {
+          "id": "h2_631g",
+          "abs_err": 1.021405182655144e-14,
+          "abs_err_baseline": 1.3322676295501878e-15,
+          "time_ratio": 0.08375075137198598
+        },
+        {
+          "id": "h2o_631g",
+          "abs_err": 2.842170943040401e-14,
+          "abs_err_baseline": 0.0,
+          "time_ratio": 0.08291037902952622
+        },
+        {
+          "id": "nh3_631gs",
+          "abs_err": 5.684341886080802e-14,
+          "abs_err_baseline": 2.842170943040401e-14,
+          "time_ratio": 0.12073031598724307
+        },
+        {
+          "id": "ch4_ccpvdz",
+          "abs_err": 8.526512829121202e-14,
+          "abs_err_baseline": 1.7053025658242404e-13,
+          "time_ratio": 0.025552636554334467
+        }
+      ]
+    }
+  },
+  {
+    "run_id": "cell-02-hf_show_baseline-iterative-w0.5-high",
+    "status": "done",
+    "factors": {
+      "model": "claude-opus-5.5",
+      "prompt_id": "hf_show_baseline",
+      "search": "iterative",
+      "speed_weight": 0.5,
+      "reasoning_effort": "high",
+      "population_n": 3,
+      "allowed_imports": [
+        "numpy",
+        "scipy",
+        "pyscf.gto"
+      ],
+      "max_abs_err": 1e-08,
+      "max_time_ratio": 1.0,
+      "fitness_err_ceiling": 1e-06
+    },
+    "best": {
+      "candidate_id": "cell-02-hf_show_baseline-iterative-w0.5-high-g02-s0",
+      "generation": 2,
+      "fitness": 13.47514217773578,
+      "max_abs_err": 9.947598300641403e-14,
+      "max_abs_err_vs_baseline": 1.5631940186722204e-13,
+      "geomean_time_ratio": 0.05232482498250842,
+      "status": "ok",
+      "cases": [
+        {
+          "id": "h2_sto3g",
+          "abs_err": 2.220446049250313e-16,
+          "abs_err_baseline": 2.220446049250313e-16,
+          "time_ratio": 0.04703550603640978
+        },
+        {
+          "id": "heh_sto3g",
+          "abs_err": 0.0,
+          "abs_err_baseline": 1.7763568394002505e-15,
+          "time_ratio": 0.035939133567402616
+        },
+        {
+          "id": "h2o_sto3g",
+          "abs_err": 0.0,
+          "abs_err_baseline": 7.105427357601002e-14,
+          "time_ratio": 0.05013327157430048
+        },
+        {
+          "id": "h2_631g",
+          "abs_err": 1.021405182655144e-14,
+          "abs_err_baseline": 1.3322676295501878e-15,
+          "time_ratio": 0.06583478553302238
+        },
+        {
+          "id": "h2o_631g",
+          "abs_err": 2.842170943040401e-14,
+          "abs_err_baseline": 0.0,
+          "time_ratio": 0.07948952413936836
+        },
+        {
+          "id": "nh3_631gs",
+          "abs_err": 8.526512829121202e-14,
+          "abs_err_baseline": 5.684341886080802e-14,
+          "time_ratio": 0.11380573958467648
+        },
+        {
+          "id": "ch4_ccpvdz",
+          "abs_err": 9.947598300641403e-14,
+          "abs_err_baseline": 1.5631940186722204e-13,
+          "time_ratio": 0.021276761862523953
+        }
+      ]
+    }
+  },
+  {
+    "run_id": "cell-03-hf_minimal-best_of_n-w0.5-high",
+    "status": "done",
+    "factors": {
+      "model": "claude-opus-5.5",
+      "prompt_id": "hf_minimal",
+      "search": "best_of_n",
+      "speed_weight": 0.5,
+      "reasoning_effort": "high",
+      "population_n": 3,
+      "allowed_imports": [
+        "numpy",
+        "scipy",
+        "pyscf.gto"
+      ],
+      "max_abs_err": 1e-08,
+      "max_time_ratio": 1.0,
+      "fitness_err_ceiling": 1e-06
+    },
+    "best": {
+      "candidate_id": "cell-03-hf_minimal-best_of_n-w0.5-high-g03-s1",
+      "generation": 3,
+      "fitness": 13.446825479293722,
+      "max_abs_err": 4.405364961712621e-13,
+      "max_abs_err_vs_baseline": 1.8474111129762605e-13,
+      "geomean_time_ratio": 0.05537367611195347,
+      "status": "ok",
+      "cases": [
+        {
+          "id": "h2_sto3g",
+          "abs_err": 2.220446049250313e-16,
+          "abs_err_baseline": 2.220446049250313e-16,
+          "time_ratio": 0.04845927178463124
+        },
+        {
+          "id": "heh_sto3g",
+          "abs_err": 1.687538997430238e-13,
+          "abs_err_baseline": 1.7053025658242404e-13,
+          "time_ratio": 0.04442018852311204
+        },
+        {
+          "id": "h2o_sto3g",
+          "abs_err": 1.2789769243681803e-13,
+          "abs_err_baseline": 4.263256414560601e-14,
+          "time_ratio": 0.055219326610863366
+        },
+        {
+          "id": "h2_631g",
+          "abs_err": 1.1324274851176597e-14,
+          "abs_err_baseline": 2.020605904817785e-14,
+          "time_ratio": 0.06697564705405654
+        },
+        {
+          "id": "h2o_631g",
+          "abs_err": 7.105427357601002e-14,
+          "abs_err_baseline": 4.263256414560601e-14,
+          "time_ratio": 0.07869103467518673
+        },
+        {
+          "id": "nh3_631gs",
+          "abs_err": 1.2789769243681803e-13,
+          "abs_err_baseline": 9.947598300641403e-14,
+          "time_ratio": 0.10552799859048076
+        },
+        {
+          "id": "ch4_ccpvdz",
+          "abs_err": 4.405364961712621e-13,
+          "abs_err_baseline": 1.8474111129762605e-13,
+          "time_ratio": 0.02414711389222778
+        }
+      ]
+    }
+  },
+  {
+    "run_id": "cell-04-hf_minimal-iterative-w0.0-high",
+    "status": "done",
+    "factors": {
+      "model": "claude-opus-5.5",
+      "prompt_id": "hf_minimal",
+      "search": "iterative",
+      "speed_weight": 0.0,
+      "reasoning_effort": "high",
+      "population_n": 3,
+      "allowed_imports": [
+        "numpy",
+        "scipy",
+        "pyscf.gto"
+      ],
+      "max_abs_err": 1e-08,
+      "max_time_ratio": 1.0,
+      "fitness_err_ceiling": 1e-06
+    },
+    "best": {
+      "candidate_id": "cell-04-hf_minimal-iterative-w0.0-high-g00-s0",
+      "generation": 0,
+      "fitness": 12.0,
+      "max_abs_err": 1.8474111129762605e-13,
+      "max_abs_err_vs_baseline": 7.105427357601002e-14,
+      "geomean_time_ratio": 0.10830437032764446,
+      "status": "ok",
+      "cases": [
+        {
+          "id": "h2_sto3g",
+          "abs_err": 2.220446049250313e-16,
+          "abs_err_baseline": 2.220446049250313e-16,
+          "time_ratio": 0.043494241291905184
+        },
+        {
+          "id": "heh_sto3g",
+          "abs_err": 8.881784197001252e-16,
+          "abs_err_baseline": 2.6645352591003757e-15,
+          "time_ratio": 0.06484792042939311
+        },
+        {
+          "id": "h2o_sto3g",
+          "abs_err": 8.526512829121202e-14,
+          "abs_err_baseline": 0.0,
+          "time_ratio": 0.07389243840153645
+        },
+        {
+          "id": "h2_631g",
+          "abs_err": 9.769962616701378e-15,
+          "abs_err_baseline": 8.881784197001252e-16,
+          "time_ratio": 0.10520206486439908
+        },
+        {
+          "id": "h2o_631g",
+          "abs_err": 7.105427357601002e-14,
+          "abs_err_baseline": 4.263256414560601e-14,
+          "time_ratio": 0.1645194434953726
+        },
+        {
+          "id": "nh3_631gs",
+          "abs_err": 5.684341886080802e-14,
+          "abs_err_baseline": 2.842170943040401e-14,
+          "time_ratio": 0.30929149613819407
+        },
+        {
+          "id": "ch4_ccpvdz",
+          "abs_err": 1.8474111129762605e-13,
+          "abs_err_baseline": 7.105427357601002e-14,
+          "time_ratio": 0.1566695463173708
+        }
+      ]
+    }
+  },
+  {
+    "run_id": "cell-05-hf_minimal-iterative-w2.0-high",
+    "status": "done",
+    "factors": {
+      "model": "claude-opus-5.5",
+      "prompt_id": "hf_minimal",
+      "search": "iterative",
+      "speed_weight": 2.0,
+      "reasoning_effort": "high",
+      "population_n": 3,
+      "allowed_imports": [
+        "numpy",
+        "scipy",
+        "pyscf.gto"
+      ],
+      "max_abs_err": 1e-08,
+      "max_time_ratio": 1.0,
+      "fitness_err_ceiling": 1e-06
+    },
+    "best": {
+      "candidate_id": "cell-05-hf_minimal-iterative-w2.0-high-g03-s0",
+      "generation": 3,
+      "fitness": 17.65983259580602,
+      "max_abs_err": 1.2858603071208563e-12,
+      "max_abs_err_vs_baseline": 1.2947420913178576e-12,
+      "geomean_time_ratio": 0.05588198665241825,
+      "status": "ok",
+      "cases": [
+        {
+          "id": "h2_sto3g",
+          "abs_err": 2.220446049250313e-16,
+          "abs_err_baseline": 2.220446049250313e-16,
+          "time_ratio": 0.04969317510637049
+        },
+        {
+          "id": "heh_sto3g",
+          "abs_err": 4.440892098500626e-15,
+          "abs_err_baseline": 6.217248937900877e-15,
+          "time_ratio": 0.03457568458505744
+        },
+        {
+          "id": "h2o_sto3g",
+          "abs_err": 5.684341886080802e-14,
+          "abs_err_baseline": 1.4210854715202004e-14,
+          "time_ratio": 0.05057288390946197
+        },
+        {
+          "id": "h2_631g",
+          "abs_err": 1.2858603071208563e-12,
+          "abs_err_baseline": 1.2947420913178576e-12,
+          "time_ratio": 0.06330443577046878
+        },
+        {
+          "id": "h2o_631g",
+          "abs_err": 5.684341886080802e-14,
+          "abs_err_baseline": 8.526512829121202e-14,
+          "time_ratio": 0.07653676623905975
+        },
+        {
+          "id": "nh3_631gs",
+          "abs_err": 1.5631940186722204e-13,
+          "abs_err_baseline": 1.2789769243681803e-13,
+          "time_ratio": 0.14130440186954576
+        },
+        {
+          "id": "ch4_ccpvdz",
+          "abs_err": 3.836930773104541e-13,
+          "abs_err_baseline": 1.2789769243681803e-13,
+          "time_ratio": 0.028606034916865555
+        }
+      ]
+    }
+  },
+  {
+    "run_id": "cell-06-hf_minimal-iterative-w0.5-medium",
+    "status": "done",
+    "factors": {
+      "model": "claude-opus-5.5",
+      "prompt_id": "hf_minimal",
+      "search": "iterative",
+      "speed_weight": 0.5,
+      "reasoning_effort": "medium",
+      "population_n": 3,
+      "allowed_imports": [
+        "numpy",
+        "scipy",
+        "pyscf.gto"
+      ],
+      "max_abs_err": 1e-08,
+      "max_time_ratio": 1.0,
+      "fitness_err_ceiling": 1e-06
+    },
+    "best": {
+      "candidate_id": "cell-06-hf_minimal-iterative-w0.5-medium-g01-s0",
+      "generation": 1,
+      "fitness": 13.169659744661468,
+      "max_abs_err": 1.2789769243681803e-13,
+      "max_abs_err_vs_baseline": 1.2789769243681803e-13,
+      "geomean_time_ratio": 0.09639321252627889,
+      "status": "ok",
+      "cases": [
+        {
+          "id": "h2_sto3g",
+          "abs_err": 2.220446049250313e-16,
+          "abs_err_baseline": 2.220446049250313e-16,
+          "time_ratio": 0.04998012356050207
+        },
+        {
+          "id": "heh_sto3g",
+          "abs_err": 4.440892098500626e-15,
+          "abs_err_baseline": 6.217248937900877e-15,
+          "time_ratio": 0.09595918205642522
+        },
+        {
+          "id": "h2o_sto3g",
+          "abs_err": 1.4210854715202004e-14,
+          "abs_err_baseline": 7.105427357601002e-14,
+          "time_ratio": 0.06924506676224051
+        },
+        {
+          "id": "h2_631g",
+          "abs_err": 1.021405182655144e-14,
+          "abs_err_baseline": 1.3322676295501878e-15,
+          "time_ratio": 0.15047409304152057
+        },
+        {
+          "id": "h2o_631g",
+          "abs_err": 5.684341886080802e-14,
+          "abs_err_baseline": 2.842170943040401e-14,
+          "time_ratio": 0.1133902808510995
+        },
+        {
+          "id": "nh3_631gs",
+          "abs_err": 9.947598300641403e-14,
+          "abs_err_baseline": 7.105427357601002e-14,
+          "time_ratio": 0.160726095538748
+        },
+        {
+          "id": "ch4_ccpvdz",
+          "abs_err": 1.2789769243681803e-13,
+          "abs_err_baseline": 1.2789769243681803e-13,
+          "time_ratio": 0.08490407198050372
+        }
+      ]
+    }
+  },
+  {
+    "run_id": "cell-07-hf_minimal-iterative-w0.5-max",
+    "status": "awaiting_responses",
+    "factors": {
+      "model": "claude-opus-5.5",
+      "prompt_id": "hf_minimal",
+      "search": "iterative",
+      "speed_weight": 0.5,
+      "reasoning_effort": "max",
+      "population_n": 3,
+      "allowed_imports": [
+        "numpy",
+        "scipy",
+        "pyscf.gto"
+      ],
+      "max_abs_err": 1e-08,
+      "max_time_ratio": 1.0,
+      "fitness_err_ceiling": 1e-06
+    },
+    "best": {}
+  },
+  {
+    "run_id": "hf-opus55",
+    "status": "done",
+    "factors": {
+      "model": "claude-opus-5.5",
+      "prompt_id": "hf_minimal",
+      "search": "iterative",
+      "speed_weight": 0.5,
+      "reasoning_effort": "high",
+      "population_n": 3,
+      "allowed_imports": [
+        "numpy",
+        "scipy",
+        "pyscf.gto"
+      ],
+      "max_abs_err": 1e-08,
+      "max_time_ratio": 1.0,
+      "fitness_err_ceiling": 1e-06
+    },
+    "best": {
+      "candidate_id": "hf-opus55-g03-s0",
+      "generation": 3,
+      "fitness": 13.407623520544858,
+      "max_abs_err": 4.405364961712621e-13,
+      "max_abs_err_vs_baseline": 1.8474111129762605e-13,
+      "geomean_time_ratio": 0.05988992164093645,
+      "status": "ok",
+      "cases": [
+        {
+          "id": "h2_sto3g",
+          "abs_err": 0.0,
+          "abs_err_baseline": 0.0,
+          "time_ratio": 0.04703900806313591
+        },
+        {
+          "id": "heh_sto3g",
+          "abs_err": 7.105427357601002e-15,
+          "abs_err_baseline": 8.881784197001252e-15,
+          "time_ratio": 0.04557473952939031
+        },
+        {
+          "id": "h2o_sto3g",
+          "abs_err": 1.1368683772161603e-13,
+          "abs_err_baseline": 4.263256414560601e-14,
+          "time_ratio": 0.054181340535235906
+        },
+        {
+          "id": "h2_631g",
+          "abs_err": 1.021405182655144e-14,
+          "abs_err_baseline": 1.3322676295501878e-15,
+          "time_ratio": 0.08315627856790825
+        },
+        {
+          "id": "h2o_631g",
+          "abs_err": 7.105427357601002e-14,
+          "abs_err_baseline": 4.263256414560601e-14,
+          "time_ratio": 0.07899601102632615
+        },
+        {
+          "id": "nh3_631gs",
+          "abs_err": 1.4210854715202004e-13,
+          "abs_err_baseline": 1.1368683772161603e-13,
+          "time_ratio": 0.13827483658431597
+        },
+        {
+          "id": "ch4_ccpvdz",
+          "abs_err": 4.405364961712621e-13,
+          "abs_err_baseline": 1.8474111129762605e-13,
+          "time_ratio": 0.026193935680200134
+        }
+      ]
+    }
+  }
+]

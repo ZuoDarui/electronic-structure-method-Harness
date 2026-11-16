@@ -1,6 +1,6 @@
 {
   "run_id": "hf-opus55",
-  "status": "awaiting_responses",
+  "status": "done",
   "factors": {
     "model": "claude-opus-5.5",
     "prompt_id": "hf_minimal",
@@ -18,11 +18,11 @@
     "fitness_err_ceiling": 1e-06
   },
   "models": {
-    "claude-opus-5-5-high": 4
+    "claude-opus-5-5-high": 8
   },
-  "calls": 4,
+  "calls": 8,
   "metered_calls": 0,
-  "unmetered_calls": 4,
+  "unmetered_calls": 8,
   "usage": {
     "input_tokens": 0,
     "cached_tokens": 0,
@@ -255,6 +255,234 @@
             "abs_err": 4.405364961712621e-13,
             "abs_err_baseline": 1.8474111129762605e-13,
             "time_ratio": 0.026193935680200134
+          }
+        ]
+      }
+    },
+    {
+      "generation": 4,
+      "calls": 1,
+      "best": {
+        "candidate_id": "hf-opus55-g04-s0",
+        "generation": 4,
+        "fitness": 12.311950253233885,
+        "max_abs_err": 1.311661890213145e-11,
+        "max_abs_err_vs_baseline": 1.3088197192701045e-11,
+        "geomean_time_ratio": 0.05729486316081898,
+        "status": "ok",
+        "cases": [
+          {
+            "id": "h2_sto3g",
+            "abs_err": 2.220446049250313e-16,
+            "abs_err_baseline": 2.220446049250313e-16,
+            "time_ratio": 0.047402749883784144
+          },
+          {
+            "id": "heh_sto3g",
+            "abs_err": 1.3509193763638905e-12,
+            "abs_err_baseline": 1.3526957332032907e-12,
+            "time_ratio": 0.03694026486913853
+          },
+          {
+            "id": "h2o_sto3g",
+            "abs_err": 8.526512829121202e-14,
+            "abs_err_baseline": 1.4210854715202004e-14,
+            "time_ratio": 0.05499094769753661
+          },
+          {
+            "id": "h2_631g",
+            "abs_err": 7.549516567451064e-15,
+            "abs_err_baseline": 1.3322676295501878e-15,
+            "time_ratio": 0.07643854082775038
+          },
+          {
+            "id": "h2o_631g",
+            "abs_err": 1.311661890213145e-11,
+            "abs_err_baseline": 1.3088197192701045e-11,
+            "time_ratio": 0.07815676044266572
+          },
+          {
+            "id": "nh3_631gs",
+            "abs_err": 1.0018652574217413e-11,
+            "abs_err_baseline": 9.990230864787009e-12,
+            "time_ratio": 0.1360682482892629
+          },
+          {
+            "id": "ch4_ccpvdz",
+            "abs_err": 4.547473508864641e-13,
+            "abs_err_baseline": 1.9895196601282805e-13,
+            "time_ratio": 0.025892818579351867
+          }
+        ]
+      }
+    },
+    {
+      "generation": 5,
+      "calls": 1,
+      "best": {
+        "candidate_id": "hf-opus55-g05-s0",
+        "generation": 5,
+        "fitness": 12.36805171937006,
+        "max_abs_err": 1.311661890213145e-11,
+        "max_abs_err_vs_baseline": 1.3088197192701045e-11,
+        "geomean_time_ratio": 0.05121374941605345,
+        "status": "ok",
+        "cases": [
+          {
+            "id": "h2_sto3g",
+            "abs_err": 2.220446049250313e-16,
+            "abs_err_baseline": 2.220446049250313e-16,
+            "time_ratio": 0.04728839751787367
+          },
+          {
+            "id": "heh_sto3g",
+            "abs_err": 1.3509193763638905e-12,
+            "abs_err_baseline": 1.3526957332032907e-12,
+            "time_ratio": 0.03279801921453416
+          },
+          {
+            "id": "h2o_sto3g",
+            "abs_err": 8.526512829121202e-14,
+            "abs_err_baseline": 1.4210854715202004e-14,
+            "time_ratio": 0.05101470354247241
+          },
+          {
+            "id": "h2_631g",
+            "abs_err": 7.549516567451064e-15,
+            "abs_err_baseline": 1.3322676295501878e-15,
+            "time_ratio": 0.07838244776310505
+          },
+          {
+            "id": "h2o_631g",
+            "abs_err": 1.311661890213145e-11,
+            "abs_err_baseline": 1.3088197192701045e-11,
+            "time_ratio": 0.07147304498102336
+          },
+          {
+            "id": "nh3_631gs",
+            "abs_err": 1.0018652574217413e-11,
+            "abs_err_baseline": 9.990230864787009e-12,
+            "time_ratio": 0.10985827771504136
+          },
+          {
+            "id": "ch4_ccpvdz",
+            "abs_err": 4.547473508864641e-13,
+            "abs_err_baseline": 1.9895196601282805e-13,
+            "time_ratio": 0.01897643085222167
+          }
+        ]
+      }
+    },
+    {
+      "generation": 6,
+      "calls": 1,
+      "best": {
+        "candidate_id": "hf-opus55-g06-s0",
+        "generation": 6,
+        "fitness": 12.374169131221958,
+        "max_abs_err": 1.3159251466277055e-11,
+        "max_abs_err_vs_baseline": 1.3130829756846651e-11,
+        "geomean_time_ratio": 0.05044858224682896,
+        "status": "ok",
+        "cases": [
+          {
+            "id": "h2_sto3g",
+            "abs_err": 2.220446049250313e-16,
+            "abs_err_baseline": 2.220446049250313e-16,
+            "time_ratio": 0.05175929345637049
+          },
+          {
+            "id": "heh_sto3g",
+            "abs_err": 1.3509193763638905e-12,
+            "abs_err_baseline": 1.3526957332032907e-12,
+            "time_ratio": 0.03386605857386911
+          },
+          {
+            "id": "h2o_sto3g",
+            "abs_err": 7.105427357601002e-14,
+            "abs_err_baseline": 0.0,
+            "time_ratio": 0.0495740581927476
+          },
+          {
+            "id": "h2_631g",
+            "abs_err": 3.817390847871138e-12,
+            "abs_err_baseline": 3.8262726320681395e-12,
+            "time_ratio": 0.06597771610626936
+          },
+          {
+            "id": "h2o_631g",
+            "abs_err": 1.3159251466277055e-11,
+            "abs_err_baseline": 1.3130829756846651e-11,
+            "time_ratio": 0.07070306836795691
+          },
+          {
+            "id": "nh3_631gs",
+            "abs_err": 9.961809155356605e-12,
+            "abs_err_baseline": 9.9333874459262e-12,
+            "time_ratio": 0.10734235464950831
+          },
+          {
+            "id": "ch4_ccpvdz",
+            "abs_err": 4.547473508864641e-13,
+            "abs_err_baseline": 1.9895196601282805e-13,
+            "time_ratio": 0.01911299017508317
+          }
+        ]
+      }
+    },
+    {
+      "generation": 7,
+      "calls": 1,
+      "best": {
+        "candidate_id": "hf-opus55-g07-s0",
+        "generation": 7,
+        "fitness": 12.383009171979154,
+        "max_abs_err": 1.3130829756846651e-11,
+        "max_abs_err_vs_baseline": 1.3102408047416247e-11,
+        "geomean_time_ratio": 0.0496576567781573,
+        "status": "ok",
+        "cases": [
+          {
+            "id": "h2_sto3g",
+            "abs_err": 2.220446049250313e-16,
+            "abs_err_baseline": 2.220446049250313e-16,
+            "time_ratio": 0.050605427858583
+          },
+          {
+            "id": "heh_sto3g",
+            "abs_err": 1.3509193763638905e-12,
+            "abs_err_baseline": 1.3526957332032907e-12,
+            "time_ratio": 0.03313722877548158
+          },
+          {
+            "id": "h2o_sto3g",
+            "abs_err": 9.947598300641403e-14,
+            "abs_err_baseline": 2.842170943040401e-14,
+            "time_ratio": 0.04894202228205091
+          },
+          {
+            "id": "h2_631g",
+            "abs_err": 9.769962616701378e-15,
+            "abs_err_baseline": 8.881784197001252e-16,
+            "time_ratio": 0.06749489448382064
+          },
+          {
+            "id": "h2o_631g",
+            "abs_err": 1.3130829756846651e-11,
+            "abs_err_baseline": 1.3102408047416247e-11,
+            "time_ratio": 0.06609004372227735
+          },
+          {
+            "id": "nh3_631gs",
+            "abs_err": 1.0018652574217413e-11,
+            "abs_err_baseline": 9.990230864787009e-12,
+            "time_ratio": 0.10822945970918238
+          },
+          {
+            "id": "ch4_ccpvdz",
+            "abs_err": 4.121147867408581e-13,
+            "abs_err_baseline": 1.5631940186722204e-13,
+            "time_ratio": 0.0187912602348857
           }
         ]
       }
