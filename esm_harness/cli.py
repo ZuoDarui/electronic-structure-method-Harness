@@ -21,8 +21,8 @@ from esm_harness.config import REPO_ROOT, cell_id, expand_grid, load_yaml, resol
 from esm_harness.eval.cases import load_cases
 from esm_harness.eval.reference import baseline_errors, pyscf_energies, read_references, write_references
 from esm_harness.eval.submit import make_submitter
-from esm_harness.search.session import Session
-from esm_harness.trace import write_ablation_ledger
+from esm_harness.search.session import Session, _now
+from esm_harness.trace import append_record, write_ablation_ledger
 
 
 def _print(payload) -> None:
@@ -56,8 +56,17 @@ def _cmd_status(args: argparse.Namespace) -> int:
     return 0
 
 
+def _session_for(cid: str, session: str | None) -> Session:
+    if session:
+        return Session(resolve(session))
+    for state in resolve("trajectories").glob("**/session.json"):
+        if cid.startswith(json.loads(state.read_text(encoding="utf-8"))["run_id"] + "-g"):
+            return Session(state.parent)
+    raise SystemExit(f"no session under trajectories/ owns {cid}; pass --session")
+
+
 def _cmd_meta(args: argparse.Namespace) -> int:
-    session = Session(resolve(args.session))
+    session = _session_for(args.cid, args.session)
     usage = json.loads(args.usage_json) if args.usage_json else None
     meta = {
         "provider": "cursor-subagent",
@@ -67,9 +76,13 @@ def _cmd_meta(args: argparse.Namespace) -> int:
         "usage_note": None if usage else "the subagent call did not report token usage",
         "latency_s": args.latency_s,
     }
-    path = session.path("meta", args.cid)
-    path.write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
-    _print({"meta": str(path), **meta})
+    append_record(
+        session.root / "calls.jsonl",
+        {"candidate_id": args.cid, "at": _now(), "error": args.error, **meta},
+    )
+    if not args.error:
+        session.path("meta", args.cid).write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
+    _print({"candidate_id": args.cid, "error": args.error, **meta})
     return 0
 
 
@@ -157,8 +170,9 @@ def build_parser() -> argparse.ArgumentParser:
     status.set_defaults(func=_cmd_status)
 
     meta = commands.add_parser("meta", help="record which model answered a prompt and its token usage")
-    meta.add_argument("--session", required=True)
+    meta.add_argument("--session", help="session directory (default: found from the candidate id)")
     meta.add_argument("--cid", required=True)
+    meta.add_argument("--error", help="the call failed with this message; it is logged and retried")
     meta.add_argument("--model", required=True)
     meta.add_argument("--agent-id")
     meta.add_argument("--usage-json", help="token usage reported by the call; omit when none was reported")

@@ -1,0 +1,202 @@
+{
+  "run_id": "cell-06-hf_minimal-iterative-w0.5-medium",
+  "status": "awaiting_responses",
+  "factors": {
+    "model": "claude-opus-5.5",
+    "prompt_id": "hf_minimal",
+    "search": "iterative",
+    "speed_weight": 0.5,
+    "reasoning_effort": "medium",
+    "population_n": 3,
+    "allowed_imports": [
+      "numpy",
+      "scipy",
+      "pyscf.gto"
+    ],
+    "max_abs_err": 1e-08,
+    "max_time_ratio": 1.0,
+    "fitness_err_ceiling": 1e-06
+  },
+  "models": {
+    "claude-opus-5-5-medium": 2
+  },
+  "calls": 2,
+  "metered_calls": 0,
+  "unmetered_calls": 2,
+  "usage": {
+    "input_tokens": 0,
+    "cached_tokens": 0,
+    "output_tokens": 0,
+    "reasoning_tokens": 0,
+    "total_tokens": 0
+  },
+  "generations": [
+    {
+      "generation": 0,
+      "calls": 1,
+      "best": {
+        "candidate_id": "cell-06-hf_minimal-iterative-w0.5-medium-g00-s0",
+        "generation": 0,
+        "fitness": 13.071861808907636,
+        "max_abs_err": 1.9895196601282805e-13,
+        "max_abs_err_vs_baseline": 5.684341886080802e-14,
+        "geomean_time_ratio": 0.11721755600237864,
+        "status": "ok",
+        "cases": [
+          {
+            "id": "h2_sto3g",
+            "abs_err": 2.220446049250313e-16,
+            "abs_err_baseline": 2.220446049250313e-16,
+            "time_ratio": 0.04330788756575351
+          },
+          {
+            "id": "heh_sto3g",
+            "abs_err": 1.7763568394002505e-15,
+            "abs_err_baseline": 3.552713678800501e-15,
+            "time_ratio": 0.08427930075509958
+          },
+          {
+            "id": "h2o_sto3g",
+            "abs_err": 5.684341886080802e-14,
+            "abs_err_baseline": 2.842170943040401e-14,
+            "time_ratio": 0.09097864460550806
+          },
+          {
+            "id": "h2_631g",
+            "abs_err": 9.769962616701378e-15,
+            "abs_err_baseline": 8.881784197001252e-16,
+            "time_ratio": 0.14434093082737773
+          },
+          {
+            "id": "h2o_631g",
+            "abs_err": 0.0,
+            "abs_err_baseline": 2.842170943040401e-14,
+            "time_ratio": 0.18002810629742777
+          },
+          {
+            "id": "nh3_631gs",
+            "abs_err": 5.684341886080802e-14,
+            "abs_err_baseline": 2.842170943040401e-14,
+            "time_ratio": 0.3080311558582238
+          },
+          {
+            "id": "ch4_ccpvdz",
+            "abs_err": 1.9895196601282805e-13,
+            "abs_err_baseline": 5.684341886080802e-14,
+            "time_ratio": 0.11439229872441861
+          }
+        ]
+      }
+    },
+    {
+      "generation": 1,
+      "calls": 1,
+      "best": {
+        "candidate_id": "cell-06-hf_minimal-iterative-w0.5-medium-g01-s0",
+        "generation": 1,
+        "fitness": 13.169659744661468,
+        "max_abs_err": 1.2789769243681803e-13,
+        "max_abs_err_vs_baseline": 1.2789769243681803e-13,
+        "geomean_time_ratio": 0.09639321252627889,
+        "status": "ok",
+        "cases": [
+          {
+            "id": "h2_sto3g",
+            "abs_err": 2.220446049250313e-16,
+            "abs_err_baseline": 2.220446049250313e-16,
+            "time_ratio": 0.04998012356050207
+          },
+          {
+            "id": "heh_sto3g",
+            "abs_err": 4.440892098500626e-15,
+            "abs_err_baseline": 6.217248937900877e-15,
+            "time_ratio": 0.09595918205642522
+          },
+          {
+            "id": "h2o_sto3g",
+            "abs_err": 1.4210854715202004e-14,
+            "abs_err_baseline": 7.105427357601002e-14,
+            "time_ratio": 0.06924506676224051
+          },
+          {
+            "id": "h2_631g",
+            "abs_err": 1.021405182655144e-14,
+            "abs_err_baseline": 1.3322676295501878e-15,
+            "time_ratio": 0.15047409304152057
+          },
+          {
+            "id": "h2o_631g",
+            "abs_err": 5.684341886080802e-14,
+            "abs_err_baseline": 2.842170943040401e-14,
+            "time_ratio": 0.1133902808510995
+          },
+          {
+            "id": "nh3_631gs",
+            "abs_err": 9.947598300641403e-14,
+            "abs_err_baseline": 7.105427357601002e-14,
+            "time_ratio": 0.160726095538748
+          },
+          {
+            "id": "ch4_ccpvdz",
+            "abs_err": 1.2789769243681803e-13,
+            "abs_err_baseline": 1.2789769243681803e-13,
+            "time_ratio": 0.08490407198050372
+          }
+        ]
+      }
+    }
+  ],
+  "best": {
+    "candidate_id": "cell-06-hf_minimal-iterative-w0.5-medium-g01-s0",
+    "generation": 1,
+    "fitness": 13.169659744661468,
+    "max_abs_err": 1.2789769243681803e-13,
+    "max_abs_err_vs_baseline": 1.2789769243681803e-13,
+    "geomean_time_ratio": 0.09639321252627889,
+    "status": "ok",
+    "cases": [
+      {
+        "id": "h2_sto3g",
+        "abs_err": 2.220446049250313e-16,
+        "abs_err_baseline": 2.220446049250313e-16,
+        "time_ratio": 0.04998012356050207
+      },
+      {
+        "id": "heh_sto3g",
+        "abs_err": 4.440892098500626e-15,
+        "abs_err_baseline": 6.217248937900877e-15,
+        "time_ratio": 0.09595918205642522
+      },
+      {
+        "id": "h2o_sto3g",
+        "abs_err": 1.4210854715202004e-14,
+        "abs_err_baseline": 7.105427357601002e-14,
+        "time_ratio": 0.06924506676224051
+      },
+      {
+        "id": "h2_631g",
+        "abs_err": 1.021405182655144e-14,
+        "abs_err_baseline": 1.3322676295501878e-15,
+        "time_ratio": 0.15047409304152057
+      },
+      {
+        "id": "h2o_631g",
+        "abs_err": 5.684341886080802e-14,
+        "abs_err_baseline": 2.842170943040401e-14,
+        "time_ratio": 0.1133902808510995
+      },
+      {
+        "id": "nh3_631gs",
+        "abs_err": 9.947598300641403e-14,
+        "abs_err_baseline": 7.105427357601002e-14,
+        "time_ratio": 0.160726095538748
+      },
+      {
+        "id": "ch4_ccpvdz",
+        "abs_err": 1.2789769243681803e-13,
+        "abs_err_baseline": 1.2789769243681803e-13,
+        "time_ratio": 0.08490407198050372
+      }
+    ]
+  }
+}
