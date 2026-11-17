@@ -48,6 +48,34 @@ python -m esm_harness rescore --baseline baselines/pyscf_rhf.py  # 所有会话�
 
 `rescore` 不改原轨迹，只在每个会话下写 `rescore/<基线名>.baseline.json`、`rescore/<基线名>.jsonl`（每个候选一行，含原适应度和新适应度），并写汇总表 `trajectories/RESCORE_<基线名>.md`。
 
+## 按轮运行（主代理 + 子代理 + 监控）
+
+分工：
+
+- **主代理**：每一轮开一个新的 Cursor 云端代理，它只活一轮，按 `LOOP.md` 执行：`round begin` 加锁并打开 `loop.yaml` 里的会话 → 每个待答提示各启动一个全新的 Opus 5.5 子代理（并行）→ 逐个 `meta` 记录 → `round end` 打分、写下一代提示、写轮报告 `trajectories/rounds/round-NNN.json`、解锁 → 推送后结束。一轮让每个会话前进一代。
+- **子代理**：只读自己的提示、只写自己的回复（同前）。
+- **监控代理**：在轮次进行时只读，用 `monitor` 查看锁、各候选的回复/meta/调用记录，可附上平台对话看每个子代理的模型和是否已写出回复；轮次之间（`loop-state` 返回 0）才修改 harness，轮后用 `audit` 核查。
+
+主代理必须是顶层云端代理：Cursor 的子代理没有再启动子代理的工具，所以“主代理再分出子代理”这一层只能由顶层代理承担。
+
+锁 `LOOP_LOCK.json` 记录启动该轮的代理 id 和 harness 文件（`esm_harness/`、`configs/`、`ablations/`、`baselines/`、`benchmarks/`、`tests/`、`pyproject.toml`、`loop.yaml`、`LOOP.md`）的指纹。锁存在时：别的代理不能开始新的一轮；指纹一变，`round end` 和 `step` 都拒绝打分。
+
+开一轮：在 Cursor 里对本仓库新建一个云端代理，发送
+
+```text
+按仓库 cursor/hf-harness-66dd 分支上的 LOOP.md 执行一轮 electronic structure harness 循环，只执行一轮，完成后报告并结束。
+```
+
+监控（只读）：
+
+```bash
+python -m esm_harness loop-state          # 0 = 空闲，可以改 harness；3 = 有一轮在进行
+python -m esm_harness monitor             # 锁、指纹是否变化、每个待答候选的状态、历次轮报告
+python -m esm_harness monitor --driver-transcript <主代理 transcript.json> --transcripts <子代理对话目录>
+```
+
+`loop.yaml` 目前只包含以 PySCF 为基线、从第 0 代重新开始的主搜索 `hf-opus55-pyscf`（8 代，即最多 8 轮）。
+
 ## 审计
 
 `meta` 和 `calls.jsonl` 由驱动者（在 Cursor 里运行 harness 的那个模型）填写，harness 本身只能看到文件。`audit` 拿平台记录的对话来核对：驱动者的对话里有每次启动子代理时请求的模型、发出的指令和返回的子代理 id；每个子代理的对话里有它收到的指令、每次工具调用和它创建的文件内容。

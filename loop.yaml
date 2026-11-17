@@ -1,0 +1,11 @@
+# Sessions each round advances by one generation. Edit only while no round is
+# open (`python -m esm_harness loop-state` exits 0).
+branch: cursor/hf-harness-66dd
+rounds_dir: trajectories/rounds
+sessions:
+  # The main search again, now scored against PySCF scf.RHF from generation 0.
+  - config: configs/hf_rhf.yaml
+    run_id: hf-opus55-pyscf
+  # Uncomment to advance the ablation cells in the same rounds; give the grid a
+  # new out_dir first so the recorded cells under trajectories/ablation stay intact.
+  # - grid: ablations/hf_rhf.yaml

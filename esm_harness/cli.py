@@ -45,6 +45,9 @@ def _cmd_init(args: argparse.Namespace) -> int:
 
 
 def _cmd_step(args: argparse.Namespace) -> int:
+    from esm_harness.loop import check_frozen
+
+    check_frozen(REPO_ROOT)
     session = Session(resolve(args.session))
     config = session.load()["config"]
     _print(session.advance(make_submitter(config, REPO_ROOT)))
@@ -222,6 +225,54 @@ def _cmd_audit_ids(args: argparse.Namespace) -> int:
     return 0
 
 
+def _loop_args(args: argparse.Namespace) -> tuple[Path, dict]:
+    root = resolve(args.root)
+    return root, load_yaml(root / args.plan)
+
+
+def _cmd_round(args: argparse.Namespace) -> int:
+    from esm_harness import loop
+
+    root, plan = _loop_args(args)
+    try:
+        if args.action == "begin":
+            _print(loop.begin(root, plan, args.agent_id))
+        elif args.action == "requests":
+            _print(loop.open_requests(root))
+        else:
+            _print(loop.end(root, plan, args.agent_id))
+    except loop.LoopError as exc:
+        print(f"round {args.action}: {exc}", file=sys.stderr)
+        return 2
+    return 0
+
+
+def _cmd_loop_state(args: argparse.Namespace) -> int:
+    from esm_harness.loop import read_lock
+
+    lock = read_lock(resolve(args.root))
+    _print(lock or {"state": "idle"})
+    return 3 if lock else 0
+
+
+def _cmd_monitor(args: argparse.Namespace) -> int:
+    from esm_harness.loop import format_snapshot, snapshot
+
+    root, plan = _loop_args(args)
+    launches, transcripts = None, None
+    if args.driver_transcript or args.transcripts:
+        from esm_harness.audit import load_agent_transcripts, load_launches
+
+        launches = load_launches([resolve(path) for path in args.driver_transcript])
+        transcripts = load_agent_transcripts([resolve(path) for path in args.transcripts])
+    view = snapshot(root, plan, launches, transcripts)
+    if args.json:
+        _print(view)
+    else:
+        print(format_snapshot(view))
+    return 0
+
+
 def _cmd_reference(args: argparse.Namespace) -> int:
     cases = load_cases(resolve(args.suite))
     _print(write_references(cases, resolve(args.out)))
@@ -319,6 +370,25 @@ def build_parser() -> argparse.ArgumentParser:
     audit_ids.add_argument("--driver-transcript", action="append", required=True)
     audit_ids.set_defaults(func=_cmd_audit_ids)
 
+    round_ = commands.add_parser("round", help="begin or end the one round a driving agent is allowed to run")
+    round_.add_argument("action", choices=("begin", "requests", "end"))
+    round_.add_argument("--agent-id", help="the driving agent's own id (required for begin and end)")
+    round_.add_argument("--root", default=".", help=argparse.SUPPRESS)
+    round_.add_argument("--plan", default="loop.yaml", help=argparse.SUPPRESS)
+    round_.set_defaults(func=_cmd_round)
+
+    loop_state = commands.add_parser("loop-state", help="print the round lock; exit 3 while a round is open")
+    loop_state.add_argument("--root", default=".", help=argparse.SUPPRESS)
+    loop_state.set_defaults(func=_cmd_loop_state)
+
+    monitor = commands.add_parser("monitor", help="read-only view of the loop for a monitoring agent")
+    monitor.add_argument("--driver-transcript", action="append", default=[])
+    monitor.add_argument("--transcripts", action="append", default=[])
+    monitor.add_argument("--json", action="store_true")
+    monitor.add_argument("--root", default=".", help=argparse.SUPPRESS)
+    monitor.add_argument("--plan", default="loop.yaml", help=argparse.SUPPRESS)
+    monitor.set_defaults(func=_cmd_monitor)
+
     reference = commands.add_parser("reference", help="cache PySCF RHF energies for the suite")
     reference.add_argument("--suite", default="benchmarks/hf_rhf.yaml")
     reference.add_argument("--out", default="benchmarks/reference_energies.json")
@@ -335,6 +405,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> None:
     args = build_parser().parse_args(argv)
+    if getattr(args, "action", None) in ("begin", "end") and not args.agent_id:
+        raise SystemExit(f"round {args.action} needs --agent-id")
     try:
         code = args.func(args)
     except BrokenPipeError:
