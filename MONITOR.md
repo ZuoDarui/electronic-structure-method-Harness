@@ -4,6 +4,8 @@
 
 分支：`loop.yaml` 里的 `branch`（目前是 `cursor/hf-harness-66dd`）。
 
+开始前：`git fetch origin cursor/hf-harness-66dd && git checkout -B cursor/hf-harness-66dd origin/cursor/hf-harness-66dd`（`main` 上还没有这些文件），然后 `python3 -m pip install -q -e '.[dev]'`（新虚拟机上没有预装 PySCF）。
+
 ## 规则
 
 - 先看锁：`git fetch -q origin <branch>` 后用 `git show origin/<branch>:LOOP_LOCK.json`。有锁就表示一轮正在进行。
