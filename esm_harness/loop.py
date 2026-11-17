@@ -129,13 +129,27 @@ def begin(root: Path, plan: dict, agent_id: str) -> dict:
     started = _now()
     active, fresh = [], []
     for session, config in planned_sessions(plan):
+        submitter = make_submitter(config, REPO_ROOT)
+        if getattr(submitter, "asynchronous", False):
+            try:
+                submitter.preflight()
+            except Exception as exc:
+                raise LoopError(f"{config['run_id']}: the cluster cannot take jobs: {exc}") from exc
         if not session.exists():
-            session.init(config, make_submitter(config, REPO_ROOT), run_id=config["run_id"])
+            session.init(config, submitter, run_id=config["run_id"])
             fresh.append(_rel(root, session.root))
+        if session.load()["status"] == "evaluating":
+            session.advance(submitter)
         if session.load()["status"] != "done":
             active.append(_rel(root, session.root))
     if not active:
         raise LoopError("every planned session is done; nothing to run")
+    if not any(Session(root / path).requests() for path in active):
+        waiting = [path for path in active if Session(root / path).load()["status"] == "evaluating"]
+        if waiting:
+            raise LoopError(
+                f"waiting for cluster evaluations in {', '.join(waiting)}; no round was started"
+            )
     number = len(list(_rounds_dir(root, plan).glob("round-*.json"))) + 1
     lock = {
         "round": number,
@@ -185,7 +199,20 @@ def end(root: Path, plan: dict, agent_id: str) -> dict:
                 "generation_scored": before["generation"],
                 "baseline": {"measured": baseline["measured"], "host": baseline.get("host")},
                 "status": status["status"],
-                "next_generation": status["generation"] if status["status"] != "done" else None,
+                "next_generation": status["generation"]
+                if status["status"] not in ("done", "evaluating")
+                else None,
+                "evaluating": [
+                    {
+                        "candidate_id": cid,
+                        "tasks": [
+                            {"case_id": job["case_id"], "task_id": job["handle"].get("task_id"),
+                             "submit_error": job["handle"].get("submit_error")}
+                            for job in started.get("jobs", [])
+                        ],
+                    }
+                    for cid, started in sorted((session.load().get("evaluating") or {}).items())
+                ],
                 "candidates": [
                     {
                         "candidate_id": record["candidate_id"],
@@ -276,6 +303,13 @@ def snapshot(root: Path, plan: dict, launches: list | None = None, transcripts: 
                 "candidates_scored": len(read_records(session.trajectory)),
                 "best": {key: best.get(key) for key in ("candidate_id", "fitness", "max_abs_err", "geomean_time_ratio")},
                 "pending": pending,
+                "evaluating": {
+                    cid: {
+                        "started_at": started.get("started_at"),
+                        "tasks": [job["handle"].get("task_id") for job in started.get("jobs", [])],
+                    }
+                    for cid, started in (state.get("evaluating") or {}).items()
+                },
             }
         )
     rounds = []
@@ -329,6 +363,11 @@ def format_snapshot(view: dict) -> str:
             f"- {item['run_id']}: {item['status']}, generation {item['generation']}, "
             f"{item['candidates_scored']} scored, {best_text}"
         )
+        for cid, info in (item.get("evaluating") or {}).items():
+            lines.append(
+                f"    {cid}: evaluating on the cluster since {info['started_at']}, "
+                f"{len(info['tasks'])} tasks ({', '.join(str(task) for task in info['tasks'])})"
+            )
         for cid in item["pending"]:
             launched = ", ".join(
                 f"{launch['agent_id']} {launch['model']}"

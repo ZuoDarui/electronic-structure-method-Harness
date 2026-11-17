@@ -8,6 +8,7 @@ dependencies = [
   "scipy",
   "pyscf",
   "pyyaml",
+  "paramiko",
 ]
 
 [project.optional-dependencies]

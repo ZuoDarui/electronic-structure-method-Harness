@@ -3,7 +3,8 @@
 A session directory holds everything a run produced::
 
     session.json          config, factors, bound model, status, generation
-    baseline.json         baseline energies and times measured on this host
+    baseline.json         baseline energies and times (measured on this host,
+                          or recorded on the cluster when ``baseline: recorded``)
     prompts/<cid>.prompt.md
     responses/<cid>.response.md   written by the model
     meta/<cid>.meta.json          model id, agent id, reported token usage
@@ -15,6 +16,11 @@ A session directory holds everything a run produced::
 of the pending generation, then writes the prompts for the next one. Calling it
 again before the responses exist changes nothing, so a crashed driver resumes
 where it stopped.
+
+With an asynchronous submitter (the cluster), the first ``advance`` after the
+responses exist submits each program's jobs and sets the status to
+``evaluating``; later calls collect finished jobs, and the generation closes
+only once every candidate has been scored.
 """
 
 from __future__ import annotations
@@ -28,8 +34,8 @@ from pathlib import Path
 
 from esm_harness.config import resolve, subagent_model, validate_factors
 from esm_harness.eval.cases import load_cases
-from esm_harness.eval.reference import read_references
-from esm_harness.eval.sandbox import evaluate_program
+from esm_harness.eval.reference import read_reference_records
+from esm_harness.eval.sandbox import collect_evaluation, evaluate_program, start_evaluation
 from esm_harness.eval.score import meets_threshold
 from esm_harness.llm.client import normalize_usage, read_meta, split_program
 from esm_harness.llm.prompts import read_baseline_source, render_prompt, subagent_instructions
@@ -37,6 +43,7 @@ from esm_harness.search.strategies import strategy_for
 from esm_harness.trace import append_record, best_record, read_records, write_ledger
 
 BASELINE_GATE = 1e-8
+RECORDED = "recorded"
 
 
 def _now() -> str:
@@ -63,6 +70,21 @@ def measure_baseline(source: str, context: dict, factors: dict, submitter, work_
         repeats=context["repeats"],
         trusted=True,
     )
+
+
+def _unscored(status: str, stderr: str) -> dict:
+    return {
+        "status": status,
+        "stderr": stderr,
+        "cases": [],
+        "submission": None,
+        "max_abs_err": None,
+        "max_abs_err_vs_baseline": None,
+        "geomean_time_ratio": None,
+        "all_converged": False,
+        "accepted": False,
+        "fitness": None,
+    }
 
 
 class Session:
@@ -121,16 +143,48 @@ class Session:
     def _context(self, state: dict) -> dict:
         config = state["config"]
         cases = load_cases(resolve(config["suite"]))
+        records = read_reference_records(resolve(config["references"]), cases)
         return {
             "cases": cases,
-            "references": read_references(resolve(config["references"]), cases),
+            "references": {case_id: record["energy"] for case_id, record in records.items()},
+            "reference_records": records,
             "timeout_s": float(config.get("timeout_s", 120)),
             "memory_mb": int(config.get("memory_mb", 8192)),
             "repeats": int(config.get("repeats", 3)),
         }
 
+    def _timeouts(self, state: dict, context: dict, baseline: dict) -> dict[str, float]:
+        """Per-case limit: ``timeout_s``, or ``timeout_factor`` times the baseline time if that is longer."""
+        factor = state["config"].get("timeout_factor")
+        out = {}
+        for case in context["cases"]:
+            limit = context["timeout_s"]
+            if factor and baseline["times"].get(case["id"]):
+                limit = max(limit, float(factor) * float(baseline["times"][case["id"]]))
+            out[case["id"]] = limit
+        return out
+
+    def recorded_baseline(self, state: dict) -> bool:
+        return state["config"].get("baseline") == RECORDED
+
     def _measure_baseline(self, state: dict, submitter) -> None:
         context = self._context(state)
+        if self.recorded_baseline(state):
+            records = context["reference_records"]
+            missing = [case_id for case_id, record in records.items() if not record["time_s"]]
+            if missing:
+                raise RuntimeError(f"no recorded baseline time for {missing}")
+            baseline = {
+                "source": RECORDED,
+                "references": state["config"]["references"],
+                "measured": _now(),
+                "host": "recorded",
+                "times": {case_id: record["time_s"] for case_id, record in records.items()},
+                "energies": {case_id: record["energy"] for case_id, record in records.items()},
+                "time_sources": {case_id: record["source"] for case_id, record in records.items()},
+            }
+            (self.root / "baseline.json").write_text(json.dumps(baseline, indent=2) + "\n", encoding="utf-8")
+            return
         source = read_baseline_source(resolve(state["config"]["baseline"]))
         measured = measure_baseline(source, context, state["factors"], submitter, self.root / "jobs")
         if measured["status"] != "ok" or not measured["all_converged"]:
@@ -154,8 +208,11 @@ class Session:
         """Time the baseline again on this host; the previous measurement moves to baseline_history.jsonl.
 
         Rounds run on different machines, so each round's candidates are compared
-        with a baseline timed on the machine that times them.
+        with a baseline timed on the machine that times them. A recorded baseline
+        belongs to the cluster that runs the jobs and is left as it is.
         """
+        if self.recorded_baseline(self.load()):
+            return self.baseline()
         previous = self.baseline()
         self._measure_baseline(self.load(), submitter)
         append_record(self.root / "baseline_history.jsonl", previous)
@@ -181,7 +238,13 @@ class Session:
         shown = None
         if factors["prompt_id"] == "hf_show_baseline":
             shown = read_baseline_source(resolve(state["config"]["baseline"]))
-        prompt = render_prompt(factors["prompt_id"], context["cases"], self._feedback(records), shown)
+        prompt = render_prompt(
+            factors["prompt_id"],
+            context["cases"],
+            self._feedback(records),
+            shown,
+            allowed_imports=factors["allowed_imports"],
+        )
         pending = []
         for sample in range(strategy_for(factors).samples(factors)):
             cid = f"{state['run_id']}-g{generation:02d}-s{sample}"
@@ -219,9 +282,7 @@ class Session:
             if not self.path("responses", cid).is_file() and not self._gave_up(state, cid)
         ]
 
-    def _record(self, state: dict, cid: str, submitter, context: dict, baseline: dict) -> dict:
-        factors = state["factors"]
-        prompt = self.path("prompts", cid).read_text(encoding="utf-8")
+    def _answer(self, state: dict, cid: str) -> dict:
         failed = self._gave_up(state, cid)
         response = "" if failed else self.path("responses", cid).read_text(encoding="utf-8")
         meta = {"model": state["subagent_model"]} if failed else read_meta(self.path("meta", cid))
@@ -233,41 +294,26 @@ class Session:
         code, parse_error = split_program(response)
         if code:
             self.path("programs", cid).write_text(code + "\n", encoding="utf-8")
-            evaluation = evaluate_program(
-                code,
-                cases=context["cases"],
-                references=context["references"],
-                baseline_times=baseline["times"],
-                baseline_energies=baseline["energies"],
-                submitter=submitter,
-                factors=factors,
-                timeout_s=context["timeout_s"],
-                memory_mb=context["memory_mb"],
-                work_root=self.root / "jobs",
-                repeats=context["repeats"],
-            )
-        else:
-            evaluation = {
-                "status": "call_failed" if failed else "no_program",
-                "stderr": f"model call failed {self.call_failures(cid)} times; see calls.jsonl" if failed else parse_error,
-                "cases": [],
-                "submission": None,
-                "max_abs_err": None,
-                "max_abs_err_vs_baseline": None,
-                "geomean_time_ratio": None,
-                "all_converged": False,
-                "fitness": None,
-            }
+        return {"failed": failed, "response": response, "meta": meta, "code": code, "parse_error": parse_error}
+
+    def _unscored_evaluation(self, cid: str, answer: dict) -> dict:
+        if answer["failed"]:
+            return _unscored("call_failed", f"model call failed {self.call_failures(cid)} times; see calls.jsonl")
+        return _unscored("no_program", answer["parse_error"])
+
+    def _make_record(self, state: dict, cid: str, answer: dict, evaluation: dict) -> dict:
+        factors = state["factors"]
+        prompt = self.path("prompts", cid).read_text(encoding="utf-8")
+        meta = answer["meta"]
         evaluation["meets_threshold"] = meets_threshold(evaluation, factors)
         generation = state["generation"]
-        sample = int(cid.rsplit("-s", 1)[1])
         return {
             "run_id": state["run_id"],
             "candidate_id": cid,
             "generation": generation,
-            "sample": sample,
+            "sample": int(cid.rsplit("-s", 1)[1]),
             "factors": factors,
-            "model": model,
+            "model": meta.get("model"),
             "agent_id": meta.get("agent_id"),
             "call_failures": self.call_failures(cid),
             "usage": normalize_usage(meta.get("usage")),
@@ -276,11 +322,79 @@ class Session:
             "from_scratch": generation == 0,
             "prompt_sha": _sha(prompt),
             "prompt": prompt,
-            "response": response,
-            "code": code,
+            "response": answer["response"],
+            "code": answer["code"],
             "eval": evaluation,
             "scored_at": _now(),
         }
+
+    def _record(self, state: dict, cid: str, submitter, context: dict, baseline: dict) -> dict:
+        answer = self._answer(state, cid)
+        if answer["code"]:
+            evaluation = evaluate_program(
+                answer["code"],
+                cases=context["cases"],
+                references=context["references"],
+                baseline_times=baseline["times"],
+                baseline_energies=baseline["energies"],
+                submitter=submitter,
+                factors=state["factors"],
+                timeout_s=context["timeout_s"],
+                memory_mb=context["memory_mb"],
+                work_root=self.root / "jobs",
+                repeats=context["repeats"],
+            )
+        else:
+            evaluation = self._unscored_evaluation(cid, answer)
+        return self._make_record(state, cid, answer, evaluation)
+
+    def _advance_async(self, state: dict, submitter, context: dict, baseline: dict) -> bool:
+        """Submit and collect cluster jobs; True once every pending candidate is recorded."""
+        evaluating = state.setdefault("evaluating", {})
+        recorded = {record["candidate_id"] for record in read_records(self.trajectory)}
+        timeouts = self._timeouts(state, context, baseline)
+        for cid in state["pending"]:
+            if cid in recorded or cid in evaluating:
+                continue
+            answer = self._answer(state, cid)
+            if answer["code"]:
+                started = start_evaluation(
+                    answer["code"],
+                    cases=context["cases"],
+                    submitter=submitter,
+                    factors=state["factors"],
+                    timeouts=timeouts,
+                    memory_mb=context["memory_mb"],
+                    work_root=self.root / "jobs",
+                    repeats=context["repeats"],
+                    label=cid,
+                )
+            else:
+                started = {"evaluation": self._unscored_evaluation(cid, answer)}
+            evaluating[cid] = {**started, "started_at": _now()}
+            self.save(state)
+        for cid in list(evaluating):
+            evaluation = collect_evaluation(
+                evaluating[cid],
+                submitter=submitter,
+                cases=context["cases"],
+                references=context["references"],
+                baseline_times=baseline["times"],
+                baseline_energies=baseline["energies"],
+                factors=state["factors"],
+            )
+            if evaluation is None:
+                continue
+            evaluation["started_at"] = evaluating[cid].get("started_at")
+            append_record(self.trajectory, self._make_record(state, cid, self._answer(state, cid), evaluation))
+            del evaluating[cid]
+            self.save(state)
+        if evaluating:
+            state["status"] = "evaluating"
+            self.save(state)
+            return False
+        state.pop("evaluating", None)
+        return True
 
     def advance(self, submitter) -> dict:
         state = self.load()
@@ -291,10 +405,14 @@ class Session:
             return self.status()
         context = self._context(state)
         baseline = self.baseline()
-        before = best_record(read_records(self.trajectory))
-        for cid in state["pending"]:
-            append_record(self.trajectory, self._record(state, cid, submitter, context, baseline))
+        if getattr(submitter, "asynchronous", False):
+            if not self._advance_async(state, submitter, context, baseline):
+                return self.status()
+        else:
+            for cid in state["pending"]:
+                append_record(self.trajectory, self._record(state, cid, submitter, context, baseline))
         records = read_records(self.trajectory)
+        before = best_record([record for record in records if record["generation"] < state["generation"]])
         after = best_record(records)
         improved = after is not None and (
             before is None or float(after["eval"]["fitness"]) > float(before["eval"]["fitness"])
@@ -327,6 +445,7 @@ class Session:
             "generation": state["generation"],
             "candidates_scored": len(records),
             "stale_generations": state.get("stale_generations", 0),
+            "evaluating": sorted(state.get("evaluating") or {}),
             "best": None
             if best is None
             else {
