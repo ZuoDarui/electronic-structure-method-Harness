@@ -58,6 +58,8 @@ python -m esm_harness rescore --baseline baselines/pyscf_rhf.py  # 所有会话�
 
 主代理必须是顶层云端代理：Cursor 的子代理没有再启动子代理的工具，所以“主代理再分出子代理”这一层只能由顶层代理承担。
 
+每轮的主代理在不同的虚拟机上运行，所以 `round end` 打分前会在本机重测一次基线（本轮 `begin` 时刚测过就不重测），旧的测量移到 `baseline_history.jsonl`，轮报告里记下这次基线的测量时间和主机。每条轨迹记录里本来就存有逐分子的 `baseline_time_s`，比值所用的基线可以追溯。
+
 锁 `LOOP_LOCK.json` 记录启动该轮的代理 id 和 harness 文件（`esm_harness/`、`configs/`、`ablations/`、`baselines/`、`benchmarks/`、`tests/`、`pyproject.toml`、`loop.yaml`、`LOOP.md`）的指纹。锁存在时：别的代理不能开始新的一轮；指纹一变，`round end` 和 `step` 都拒绝打分。
 
 开一轮：在 Cursor 里对本仓库新建一个云端代理，发送

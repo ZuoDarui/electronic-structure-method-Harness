@@ -22,6 +22,7 @@ from __future__ import annotations
 import datetime as dt
 import hashlib
 import json
+import socket
 import uuid
 from pathlib import Path
 
@@ -108,7 +109,12 @@ class Session:
             "stale_generations": 0,
         }
         self.save(state)
-        self._measure_baseline(state, submitter)
+        try:
+            self._measure_baseline(state, submitter)
+        except RuntimeError:
+            state["status"] = "baseline_failed"
+            self.save(state)
+            raise
         self._open_generation(state, 0)
         return state
 
@@ -128,24 +134,32 @@ class Session:
         source = read_baseline_source(resolve(state["config"]["baseline"]))
         measured = measure_baseline(source, context, state["factors"], submitter, self.root / "jobs")
         if measured["status"] != "ok" or not measured["all_converged"]:
-            state["status"] = "baseline_failed"
-            self.save(state)
             raise RuntimeError("baseline did not finish on the suite: " + (measured.get("stderr") or measured["status"]))
         for case in measured["cases"]:
             if case["abs_err"] is None or case["abs_err"] > BASELINE_GATE:
-                state["status"] = "baseline_failed"
-                self.save(state)
                 raise RuntimeError(f"baseline {case['id']} abs_err {case['abs_err']} exceeds {BASELINE_GATE}")
         baseline = {
             "source": state["config"]["baseline"],
             "source_sha": _sha(source),
             "measured": _now(),
+            "host": socket.gethostname(),
             "times": {case["id"]: float(case["time_s"]) for case in measured["cases"]},
             "energies": {case["id"]: float(case["energy"]) for case in measured["cases"]},
             "abs_err_vs_pyscf": {case["id"]: case["abs_err"] for case in measured["cases"]},
             "submission": measured["submission"],
         }
         (self.root / "baseline.json").write_text(json.dumps(baseline, indent=2) + "\n", encoding="utf-8")
+
+    def remeasure_baseline(self, submitter) -> dict:
+        """Time the baseline again on this host; the previous measurement moves to baseline_history.jsonl.
+
+        Rounds run on different machines, so each round's candidates are compared
+        with a baseline timed on the machine that times them.
+        """
+        previous = self.baseline()
+        self._measure_baseline(self.load(), submitter)
+        append_record(self.root / "baseline_history.jsonl", previous)
+        return self.baseline()
 
     def baseline(self) -> dict:
         return json.loads((self.root / "baseline.json").read_text(encoding="utf-8"))

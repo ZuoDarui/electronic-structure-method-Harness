@@ -57,10 +57,18 @@ def test_one_round_per_driver(tmp_path):
     assert item["candidates"][0]["status"] == "ok"
     assert (tmp_path / "trajectories" / "rounds" / "round-001.json").is_file()
 
+    assert not (session.root / "baseline_history.jsonl").exists()
+    first_baseline = session.baseline()
+
     second = loop.begin(tmp_path, plan, "bc-round-2")
     assert second["round"] == 2 and second["requests"][0]["candidate_id"] == "loop-test-g01-s0"
     _answer(session)
-    assert loop.end(tmp_path, plan, "bc-round-2")["sessions"][0]["status"] == "done"
+    final = loop.end(tmp_path, plan, "bc-round-2")["sessions"][0]
+    assert final["status"] == "done"
+    history = (session.root / "baseline_history.jsonl").read_text(encoding="utf-8").splitlines()
+    assert [json.loads(line) for line in history] == [first_baseline]
+    assert final["baseline"]["measured"] >= second["started"]
+    assert final["baseline"]["host"]
     with pytest.raises(loop.LoopError, match="nothing to run"):
         loop.begin(tmp_path, plan, "bc-round-3")
 

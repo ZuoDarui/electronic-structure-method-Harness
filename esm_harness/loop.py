@@ -124,6 +124,7 @@ def begin(root: Path, plan: dict, agent_id: str) -> dict:
             f"round {lock['round']} is held by {lock['driver_agent_id']} since {lock['started']}; "
             "only that agent may continue it"
         )
+    started = _now()
     active = []
     for session, config in planned_sessions(plan):
         if not session.exists():
@@ -136,7 +137,7 @@ def begin(root: Path, plan: dict, agent_id: str) -> dict:
     lock = {
         "round": number,
         "driver_agent_id": agent_id,
-        "started": _now(),
+        "started": started,
         "fingerprint": fingerprint(root),
         "sessions": active,
     }
@@ -166,14 +167,19 @@ def end(root: Path, plan: dict, agent_id: str) -> dict:
     sessions = []
     for session in _locked_sessions(root, lock):
         before = session.load()
+        submitter = make_submitter(before["config"], REPO_ROOT)
+        if session.baseline()["measured"] < lock["started"]:
+            session.remeasure_baseline(submitter)
+        baseline = session.baseline()
         scored_before = len(read_records(session.trajectory))
-        status = session.advance(make_submitter(before["config"], REPO_ROOT))
+        status = session.advance(submitter)
         scored = read_records(session.trajectory)[scored_before:]
         sessions.append(
             {
                 "session": _rel(root, session.root),
                 "run_id": status["run_id"],
                 "generation_scored": before["generation"],
+                "baseline": {"measured": baseline["measured"], "host": baseline.get("host")},
                 "status": status["status"],
                 "next_generation": status["generation"] if status["status"] != "done" else None,
                 "candidates": [
