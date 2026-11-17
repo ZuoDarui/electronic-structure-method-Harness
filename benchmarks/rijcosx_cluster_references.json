@@ -1,0 +1,39 @@
+{
+  "_note": "RHF/cc-pVTZ RIJCOSX energies (Hartree) and wall times (s, 8 threads, CPU) recorded on the TI-ONE cluster. The reference for each case is the PySCF value when PySCF converged, otherwise the hf.py value. Logs are relative to /home/tione/notebook/home/zuodarui/fieldquantum. PySCF times for water8-64 come from hf/outputs/hf_water_scaling_20261110/hf_water_measurements.csv because those logs predate total_elapsed_s.",
+  "water8": {
+    "pyscf": {"energy": -608.450816454237, "converged": true, "time_s": 36.89, "log": "hf/outputs/water8_ccpvtz_pyscf.log"},
+    "hf.py": {"energy": -608.450816454238, "converged": true, "time_s": 37.053, "log": "hf/outputs/water8_ccpvtz.log"}
+  },
+  "water16": {
+    "pyscf": {"energy": -1216.922657446848, "converged": true, "time_s": 179.44, "log": "hf/outputs/water16_ccpvtz_pyscf.log"},
+    "hf.py": {"energy": -1216.922657446848, "converged": true, "time_s": 170.481, "log": "hf/outputs/water16_ccpvtz_2.log"}
+  },
+  "water32": {
+    "pyscf": {"energy": -2433.82570561263, "converged": true, "time_s": 892.14, "log": "hf/outputs/water32_ccpvtz_pyscf.log"},
+    "hf.py": {"energy": -2433.825705612636, "converged": true, "time_s": 726.008, "log": "hf/outputs/water32_ccpvtz_2.log"}
+  },
+  "water64": {
+    "pyscf": {"energy": -4867.578954975383, "converged": true, "time_s": 5103.0, "log": "hf/outputs/water64_ccpvtz_pyscf.log"},
+    "hf.py": {"energy": -4867.578954975339, "converged": true, "time_s": 3404.584, "log": "hf/outputs/water64_ccpvtz_2.log"}
+  },
+  "water128": {
+    "pyscf": {"energy": null, "converged": false, "time_s": null, "log": "hf/outputs/water128_ccpvtz_pyscf.log", "note": "stopped after SCF iteration 2"},
+    "hf.py": {"energy": -9735.322544840899, "converged": true, "time_s": 7482.749, "log": "hf/outputs/water128_ccpvtz_2.log"}
+  },
+  "c21h44": {
+    "pyscf": {"energy": -821.161841294277, "converged": true, "time_s": 572.028, "log": "hf/outputs/c21h44_ccpvtz_pyscf.log"},
+    "hf.py": {"energy": -821.16184129418, "converged": true, "time_s": 458.225, "log": "hf/outputs/c21h44_ccpvtz_2.log"}
+  },
+  "c43h88": {
+    "pyscf": {"energy": -1680.213362582757, "converged": true, "time_s": 2037.838, "log": "hf/outputs/c43h88_ccpvtz_pyscf.log"},
+    "hf.py": {"energy": -1680.213362582531, "converged": true, "time_s": 1150.316, "log": "hf/outputs/c43h88_ccpvtz_2.log"}
+  },
+  "c86h174": {
+    "pyscf": {"energy": -3359.268610541398, "converged": true, "time_s": 30395.637, "log": "hf/outputs/c86h174_ccpvtz_pyscf.log"},
+    "hf.py": {"energy": -3359.26861054047, "converged": true, "time_s": 3123.504, "log": "hf/outputs/c86h174_ccpvtz_2.log"}
+  },
+  "c172h346": {
+    "pyscf": {"energy": null, "converged": false, "time_s": null, "log": null, "note": "no PySCF run"},
+    "hf.py": {"energy": -6717.379184800415, "converged": true, "time_s": 16538.027, "log": "hf-c172-correct-20261116/outputs/c172h346_ccpvtz.log", "note": "SCF re-converged on the 35x302 grid (jk_engine=pyscf_reference)"}
+  }
+}

@@ -28,6 +28,11 @@ def _block_drivers(prefixes: list[str]) -> None:
     def blocked(*_args, **_kwargs):
         raise RuntimeError("pyscf SCF and density-fitting drivers are blocked")
 
+    # These define classes that subclass scf.hf.RHF, so they must be imported
+    # before RHF is replaced.
+    for mod_name in ("pyscf.dft", "pyscf.df.df_jk", "pyscf.sgx"):
+        importlib.import_module(mod_name)
+
     if "pyscf.scf" in prefixes:
         for mod_name in ("pyscf.scf", "pyscf.scf.hf", "pyscf.scf.uhf", "pyscf.scf.rohf"):
             module = importlib.import_module(mod_name)
@@ -38,6 +43,20 @@ def _block_drivers(prefixes: list[str]) -> None:
         module = importlib.import_module("pyscf.df")
         if hasattr(module, "DF"):
             setattr(module, "DF", blocked)
+        df_jk = importlib.import_module("pyscf.df.df_jk")
+        for name in ("get_j", "get_jk", "density_fit"):
+            if hasattr(df_jk, name):
+                setattr(df_jk, name, blocked)
+    if "pyscf.sgx" in prefixes:
+        for mod_name, names in (
+            ("pyscf.sgx", ("SGX", "sgx_fit")),
+            ("pyscf.sgx.sgx", ("SGX", "sgx_fit")),
+            ("pyscf.sgx.sgx_jk", ("get_jk", "get_k_only", "get_jk_favork", "get_jk_favorj")),
+        ):
+            module = importlib.import_module(mod_name)
+            for name in names:
+                if hasattr(module, name):
+                    setattr(module, name, blocked)
 
 
 def _limit_memory(memory_mb: int | None) -> None:
@@ -67,7 +86,7 @@ def _load_solve(program: Path):
 def _build_mol(case: dict):
     from pyscf import gto
 
-    return gto.M(
+    mol = gto.M(
         atom=case["atom"],
         basis=case["basis"],
         unit=case.get("unit", "Angstrom"),
@@ -75,19 +94,31 @@ def _build_mol(case: dict):
         spin=int(case.get("spin", 0)),
         verbose=0,
     )
+    if case.get("nao") is not None and mol.nao_nr() != int(case["nao"]):
+        raise ValueError(f"{case['id']}: built {mol.nao_nr()} basis functions, suite says {case['nao']}")
+    return mol
 
 
-def _time_call(program: Path, case: dict, repeats: int):
+def _call_solve(solve, case: dict, mol=None):
+    """``solve(mol)``, or ``solve(mol, method)`` for suites that fix the method."""
+    mol = _build_mol(case) if mol is None else mol
+    if case.get("method") is not None:
+        return solve(mol, dict(case["method"]))
+    return solve(mol)
+
+
+def _time_call(program: Path, case: dict, repeats: int, warmup: bool = True):
     """Each call gets a freshly loaded module and a fresh Mole, so state kept in
     module globals or on the molecule cannot carry over between timed calls."""
-    _load_solve(program)(_build_mol(case))
+    if warmup:
+        _call_solve(_load_solve(program), case)
     samples = []
     result = None
     for _ in range(repeats):
         solve = _load_solve(program)
         mol = _build_mol(case)
         started = time.perf_counter()
-        result = solve(mol)
+        result = _call_solve(solve, case, mol)
         samples.append(time.perf_counter() - started)
     samples.sort()
     return result, samples[len(samples) // 2]
@@ -105,13 +136,14 @@ def run_job(job_path: Path) -> None:
         program = Path(job["program"])
         _load_solve(program)
         repeats = int(job.get("repeats", 3))
+        warmup = bool(job.get("warmup", True))
         cases = []
         for case in job["cases"]:
             captured = []
             stdout = sys.stdout
             sys.stdout = _Collector(captured)
             try:
-                result, median = _time_call(program, case, repeats)
+                result, median = _time_call(program, case, repeats, warmup)
             finally:
                 sys.stdout = stdout
             if not isinstance(result, dict) or "e_tot" not in result:

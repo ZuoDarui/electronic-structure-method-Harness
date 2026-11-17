@@ -6,7 +6,9 @@ import ast
 import re
 
 _SCF_IMPORT = re.compile(r"pyscf\s*\.\s*scf|\bimport\s+scf\b|from\s+pyscf\s+import\s+[^#\n]*\bscf\b")
-_DF_IMPORT = re.compile(r"pyscf\s*\.\s*df|from\s+pyscf\s+import\s+[^#\n]*\bdf\b")
+_DF_IMPORT = re.compile(r"pyscf\s*\.\s*df\b|from\s+pyscf\s+import\s+[^#\n]*\bdf\b")
+_SGX_IMPORT = re.compile(r"pyscf\s*\.\s*sgx|from\s+pyscf\s+import\s+[^#\n]*\bsgx\b")
+_DFT_DRIVER = re.compile(r"\bdft\s*\.\s*(RKS|UKS|ROKS|GKS|KS)\b")
 _SCF_DRIVER = re.compile(r"\bscf\s*\.\s*(RHF|UHF|ROHF|GHF|RKS|UKS)\b")
 _KERNEL_CALL = re.compile(r"\.kernel\s*\(")
 
@@ -40,7 +42,10 @@ def _ast_reason(source: str, allowed: set[str]) -> str | None:
             if node.level:
                 return "relative imports are not allowed"
             base = node.module or ""
-            names = [base] if base != "pyscf" else [f"pyscf.{alias.name}" for alias in node.names]
+            if base == "pyscf" or (base.startswith("pyscf.") and not _module_allowed(base, allowed)):
+                names = [f"{base}.{alias.name}" for alias in node.names]
+            else:
+                names = [base]
         else:
             names = []
         for name in names:
@@ -67,6 +72,10 @@ def rejection_reason(source: str, allowed_imports: list[str]) -> str | None:
         return "pyscf.scf drivers are not allowed in generated programs"
     if "pyscf.df" not in allowed and _DF_IMPORT.search(source):
         return "pyscf.df is not allowed in generated programs"
+    if "pyscf.sgx" not in allowed and _SGX_IMPORT.search(source):
+        return "pyscf.sgx is not allowed in generated programs"
+    if "pyscf.dft" not in allowed and _DFT_DRIVER.search(source):
+        return "pyscf.dft drivers are not allowed in generated programs"
     if _KERNEL_CALL.search(source):
         return "calling kernel() is not allowed; expose solve(mol)"
     if "def solve" not in source:
@@ -81,4 +90,6 @@ def blocked_modules(allowed_imports: list[str]) -> list[str]:
         blocked.append("pyscf.scf")
     if "pyscf.df" not in allowed:
         blocked.append("pyscf.df")
+    if "pyscf.sgx" not in allowed:
+        blocked.append("pyscf.sgx")
     return blocked
