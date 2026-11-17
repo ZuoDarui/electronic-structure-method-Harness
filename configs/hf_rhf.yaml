@@ -25,4 +25,4 @@ factors:
     - pyscf.gto
   max_abs_err: 1.0e-8
   max_time_ratio: 1.0
-  fitness_err_ceiling: 1.0e-6
+  fitness_err_ceiling: 1.0e-8

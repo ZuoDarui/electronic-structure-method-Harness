@@ -7,6 +7,8 @@ from pathlib import Path
 
 import yaml
 
+from esm_harness.eval.score import ACCEPTANCE_FLOOR
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 FACTOR_KEYS = (
@@ -23,7 +25,7 @@ FACTOR_KEYS = (
 )
 
 SEARCHES = {"iterative", "best_of_n"}
-PROMPTS = {"hf_minimal", "hf_spec", "hf_show_baseline"}
+PROMPTS = {"hf_minimal", "hf_spec", "hf_show_baseline", "hf_rijcosx"}
 EFFORTS = {"low", "medium", "high", "xhigh", "max"}
 
 # Cursor subagent slugs encode the reasoning effort in the model name.
@@ -73,6 +75,9 @@ def validate_factors(factors: dict) -> dict:
     normalized["max_time_ratio"] = float(factors["max_time_ratio"])
     normalized["fitness_err_ceiling"] = float(factors["fitness_err_ceiling"])
     normalized["allowed_imports"] = list(factors["allowed_imports"])
+    for key in ("max_abs_err", "fitness_err_ceiling"):
+        if normalized[key] > ACCEPTANCE_FLOOR:
+            raise ValueError(f"{key} {normalized[key]} is looser than the acceptance floor {ACCEPTANCE_FLOOR}")
     return normalized
 
 

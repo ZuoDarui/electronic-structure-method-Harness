@@ -38,7 +38,17 @@ def _add_usage(total: dict[str, int], usage: dict | None) -> None:
 
 
 def best_record(records: list[dict]) -> dict | None:
-    ranked = [record for record in records if record["eval"].get("fitness") is not None]
+    """Fittest record within the acceptance floor; records scored before the floor
+    existed may carry a fitness with a larger error, and those never qualify."""
+    from esm_harness.eval.score import ACCEPTANCE_FLOOR
+
+    ranked = [
+        record
+        for record in records
+        if record["eval"].get("fitness") is not None
+        and record["eval"].get("max_abs_err") is not None
+        and float(record["eval"]["max_abs_err"]) <= ACCEPTANCE_FLOOR
+    ]
     if not ranked:
         return None
     return max(ranked, key=lambda record: float(record["eval"]["fitness"]))
