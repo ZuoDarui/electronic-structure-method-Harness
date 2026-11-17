@@ -6,7 +6,7 @@
 
 - `esm_harness/search/session.py`：可续跑的会话。每一代写出提示文件，等模型写回回复文件，再打分、写下一代提示。
 - `esm_harness/llm/prompts.py`：三档提示（消融因子 `prompt_id`）。`driver_wrapper.md`：发给模型的固定外层指令。
-- `esm_harness/eval/`：静态策略、沙箱子进程、本机/Slurm 提交、打分。
+- `esm_harness/eval/`：静态策略、沙箱子进程、本机/Slurm/TI-ONE 集群提交、打分（验收底线 1e-8）。
 - `baselines/pyscf_rhf.py`：速度与精度基线，PySCF `scf.RHF` 默认设置（MINAO 初猜、DIIS、`conv_tol=1e-9`）。基线属于受信代码，不受候选程序的导入限制；换别的基线时用配置项 `baseline` 指向一个 `solve(mol) -> {"e_tot", "converged"}`。
 - `benchmarks/hf_rhf.yaml`：固定的 7 个分子/基组（STO-3G 到 cc-pVDZ，最大 34 个基函数）；`benchmarks/reference_energies.json`：PySCF 参考能量。
 - `configs/hf_rhf.yaml`：主搜索；`ablations/hf_rhf.yaml`：消融格子。
@@ -80,7 +80,23 @@ python -m esm_harness monitor --driver-transcript <主代理 transcript.json> --
 
 暂停：把 `loop.yaml` 里的 `paused` 改成 `true`，之后定时触发的主代理执行 `round begin` 会被拒绝，直接退出，不提交任何东西；已经开始的那一轮照常完成。改回 `false` 即恢复。
 
-`loop.yaml` 目前只包含以 PySCF 为基线、从第 0 代重新开始的主搜索 `hf-opus55-pyscf`（8 代，即最多 8 轮）。
+`loop.yaml` 目前只包含集群验收的搜索 `hf-opus55-cluster`（`configs/hf_rijcosx_cluster.yaml`，见下节）。之前的小分子搜索 `hf-opus55-pyscf` 已从 `loop.yaml` 移出，轨迹保留。
+
+## 集群验收：水分子簇与直链烷烃
+
+测试集是 TI-ONE 集群上 `hf.py` 和 PySCF 算过的那两组分子（`benchmarks/hf_rijcosx_cluster.yaml`）：(H2O)n，n = 8, 16, 32, 64, 128；C21H44、C43H88、C86H174、C172H346。几何结构是集群上的 XYZ 文件原样拷贝（`benchmarks/geometries/`，sha256 与集群一致）。C375H752 两个程序都没算出能量，不放进测试集。方法与集群一致：RHF/cc-pVTZ，RIJCOSX（auxbasis weigend，SCF 在 30×110 网格上收敛，`conv_tol = conv_tol_grad = 1e-8`）。候选程序接口是 `solve(mol, method)`，`method` 由测试集给出。
+
+参考能量（`benchmarks/rijcosx_cluster_references.json`）按规则选取：PySCF 收敛了就用 PySCF，否则用 `hf.py`（`esm_harness/eval/reference.py` 的 `REFERENCE_ORDER`）。结果是 water128（PySCF 只跑了 2 次迭代）和 C172H346（没有 PySCF 运行）用 `hf.py`，其余 7 个用 PySCF。两类最终能量的定义不同，都按参考程序当时的做法写进测试集：PySCF（`pyscf_water32.py`）和 11 月 16 日以前的 `hf.py` 在 35×302 网格上用收敛密度重建一次 J/K（`final_energy: single_point`）；C172 的唯一结果来自 11 月 16 日的 `hf.py`，它在 35×302 网格上再次收敛 SCF（`final_energy: reconverge`）。`baselines/pyscf_rijcosx.py` 按这两种定义复现参考计算；在集群的 PySCF 2.14 环境里用它跑 water8，得到 -608.4508164542374，与参考值相差 4e-13。
+
+速度基线用集群上记录的参考程序耗时（`baseline: recorded`，8 线程；PySCF 没有结果的分子用 `hf.py` 的耗时），不再每轮重测。
+
+评测在集群上运行（`submit: tione`，`esm_harness/eval/submit.py` 的 `TioneSubmitter`）：每个候选的每个分子一个 TI-ONE 训练任务（`tione-submit --submit`，48 核、256 GB），任务目录放在 CFS 的 `fieldquantum/esm-harness-eval/<job>/`，用集群的 conda 环境 `pyscf`、`OMP_NUM_THREADS=8`、不预热、计时 1 次。每个分子的时限是 `timeout_s`（3600 s）和 3 倍参考耗时中的较大者；任务结束却没有结果、或时限加 `max_queue_s`（72 小时）后仍无结果，记为失败。连接用配置里的主机和用户，口令取环境变量 `ESM_CLUSTER_PASSWORD`（或密钥文件 `ESM_CLUSTER_KEY_FILE`），不写进仓库。
+
+由于大分子要跑几个小时，这个会话的打分是异步的：`round end` 只提交任务，会话状态变为 `evaluating`；之后每次 `round begin` 先去集群收结果，全部分子都有结果后才打分、写下一代提示；还在算时 `round begin` 报“waiting for cluster evaluations”并退出，不加锁。`round begin` 在启动任何子代理之前先检查集群可连、`tione-submit` 可用。
+
+候选程序可以导入 `pyscf.dft.gen_grid` 和 `pyscf.dft.radi`，用来构造与参考计算完全相同的积分网格；`pyscf.scf`、`pyscf.df`、`pyscf.sgx` 和 DFT 驱动仍然禁止，运行时也会被替换掉。
+
+需要注意：参考计算用的是 PySCF 的 `optk = True`，它在 `sgx_jk.get_k_only` 里做积分筛选。同一网格上不筛选的精确 COSX 交换（等于 `optk = False`）在 water8 上与参考值差 5.2e-8，水二聚体（cc-pVTZ）差 9.4e-9，分子越大差得越多。所以一个只实现精确 RIJCOSX 的程序过不了 1e-8 的底线，必须连 PySCF 的筛选一起复现。提示里写明了这一点。
 
 ## 审计
 
@@ -106,7 +122,9 @@ python -m esm_harness audit --strict                                            
 
 ## 评分
 
-适应度 `fitness = -log10(max(err, 1e-12)) - speed_weight * ln(geomean_time_ratio)`，`err` 是 7 个分子中相对 PySCF 的最大绝对误差，`geomean_time_ratio` 是候选耗时除以基线耗时的几何平均。任一分子未收敛或误差超过 `fitness_err_ceiling`（1e-6）时没有适应度。`meets_threshold` 另外标出误差 ≤ `max_abs_err`（1e-8）且耗时比 ≤ `max_time_ratio`（1.0）的候选。
+适应度 `fitness = -log10(max(err, 1e-12)) - speed_weight * ln(geomean_time_ratio)`，`err` 是测试集所有分子中相对参考能量的最大绝对误差，`geomean_time_ratio` 是候选耗时除以基线耗时的几何平均。
+
+验收底线 1e-8 Hartree（`esm_harness/eval/score.py` 的 `ACCEPTANCE_FLOOR`）：任一分子未收敛、缺结果或误差超过 1e-8，候选就不被接受（`eval.accepted = false`），没有适应度，也永远不会成为下一代拿去改进的“最佳程序”。配置项 `max_abs_err` 和 `fitness_err_ceiling` 只能比底线更严，写得比 1e-8 宽时 `validate_factors` 直接报错；以前按 1e-6 上限打过分的旧记录，`best_record` 也会因误差超过底线而跳过。`meets_threshold` 另外标出误差 ≤ 底线且耗时比 ≤ `max_time_ratio`（1.0）的候选。
 
 沙箱规则（提示里也写明）：只能导入 numpy、scipy、pyscf.gto 和少数纯标准库模块；不能导入 `pyscf.scf`/`pyscf.df`，不能调用 `kernel()`，不能做文件读写、`exec`/`eval`。每次计时调用都重新加载程序模块并新建 `Mole`，模块全局变量里的缓存带不到下一次调用。计时取 3 次中位数，前面有一次不计时的预热。子进程环境去掉所有名字含 `API_KEY`/`TOKEN`/`SECRET`/`PASSWORD` 的变量。
 
@@ -134,7 +152,7 @@ python -m esm_harness audit --strict                                            
 
 审计（`trajectories/AUDIT.md`）：54 次子代理启动全部在平台记录里，请求的模型都等于各会话绑定的模型（`high`/`medium`/`max`），每个子代理只用于一个候选；47 个被打分的回复与子代理写出的内容逐字节一致，7 次失败启动都没有写出回复，启动次数与 `calls.jsonl` 一一对应，违规 0 条。备注 5 条：两个子代理第一次写文件失败后重写；其中一个为了满足写前须读的工具规则，读了一次自己的回复文件；另有一次启动发生在主搜索重新开始之前，属于被丢弃的旧会话，不计入。
 
-以后用新配置 `init` 的会话会直接对 PySCF 计时，反馈给模型的耗时比也以 PySCF 为准。在集群上用 `submit: slurm` 运行时，基线在集群节点上重新测量。
+以后用新配置 `init` 的会话会直接对 PySCF 计时，反馈给模型的耗时比也以 PySCF 为准。集群验收的会话见上文“集群验收”。
 
 ## 测试
 

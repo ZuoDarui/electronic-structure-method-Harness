@@ -48,8 +48,10 @@ to that branch. Do not open, update, or merge pull requests.
    ```
 
    If it exits saying the loop is paused, that the round is held by another
-   agent, or that every session is done, report that and stop without
-   committing or pushing anything. Never take over another agent's round.
+   agent, that every session is done, that it is waiting for cluster
+   evaluations, or that the cluster cannot take jobs, report that and stop
+   without committing or pushing anything. Never take over another agent's
+   round.
 
 4. The output lists `requests`. For each one launch a subagent with the Task
    tool. Put all launches in a single message so they run in parallel:
@@ -79,6 +81,12 @@ to that branch. Do not open, update, or merge pull requests.
 
    If the push is rejected, `git pull --rebase origin "$BRANCH"` and push again.
 
+   Sessions that evaluate on the cluster are not scored here: `round end`
+   submits one cluster task per molecule, and the session's status becomes
+   `evaluating`. A later round's `round begin` collects the results, scores
+   them, and only then writes the next prompts.
+
 7. Finish with a short report: the round number, each candidate's id, agent id,
-   status, fitness, and time ratio (from the `round end` output), and every
-   failed launch with its reason.
+   status, fitness, and time ratio (from the `round end` output), every
+   candidate still `evaluating` with its cluster task ids, and every failed
+   launch with its reason.
