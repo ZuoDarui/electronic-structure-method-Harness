@@ -76,6 +76,8 @@ python -m esm_harness monitor             # 锁、指纹是否变化、每个待
 python -m esm_harness monitor --driver-transcript <主代理 transcript.json> --transcripts <子代理对话目录>
 ```
 
+暂停：把 `loop.yaml` 里的 `paused` 改成 `true`，之后定时触发的主代理执行 `round begin` 会被拒绝，直接退出，不提交任何东西；已经开始的那一轮照常完成。改回 `false` 即恢复。
+
 `loop.yaml` 目前只包含以 PySCF 为基线、从第 0 代重新开始的主搜索 `hf-opus55-pyscf`（8 代，即最多 8 轮）。
 
 ## 审计

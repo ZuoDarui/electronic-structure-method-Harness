@@ -1,6 +1,9 @@
 # Sessions each round advances by one generation. Edit only while no round is
 # open (`python -m esm_harness loop-state` exits 0).
 branch: cursor/hf-harness-66dd
+# true: round begin refuses to start, so scheduled round agents exit without
+# changing anything. A round already open still finishes normally.
+paused: false
 rounds_dir: trajectories/rounds
 sessions:
   # The main search again, now scored against PySCF scf.RHF from generation 0.

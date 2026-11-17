@@ -67,7 +67,7 @@ def test_one_round_per_driver(tmp_path):
     assert final["status"] == "done"
     history = (session.root / "baseline_history.jsonl").read_text(encoding="utf-8").splitlines()
     assert [json.loads(line) for line in history] == [first_baseline]
-    assert final["baseline"]["measured"] >= second["started"]
+    assert second["baseline_measured_at_begin"] == []
     assert final["baseline"]["host"]
     with pytest.raises(loop.LoopError, match="nothing to run"):
         loop.begin(tmp_path, plan, "bc-round-3")
@@ -112,3 +112,16 @@ def test_loop_state_exit_codes(tmp_path):
     with pytest.raises(SystemExit) as active:
         main(["loop-state", "--root", str(tmp_path)])
     assert active.value.code == 3
+
+
+def test_paused_loop_starts_no_round(tmp_path):
+    plan, session = _setup(tmp_path)
+    paused = {**plan, "paused": True}
+    with pytest.raises(loop.LoopError, match="paused"):
+        loop.begin(tmp_path, paused, "bc-round-1")
+    assert loop.read_lock(tmp_path) is None and not session.exists()
+    assert loop.snapshot(tmp_path, paused)["paused"] is True
+    loop.begin(tmp_path, plan, "bc-round-1")
+    _answer(session)
+    loop.end(tmp_path, paused, "bc-round-1")
+    assert session.load()["generation"] == 1

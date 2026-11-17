@@ -116,6 +116,8 @@ def open_requests(root: Path) -> list[dict]:
 
 
 def begin(root: Path, plan: dict, agent_id: str) -> dict:
+    if plan.get("paused"):
+        raise LoopError("the loop is paused (loop.yaml: paused: true); no round was started")
     lock = read_lock(root)
     if lock is not None:
         if lock["driver_agent_id"] == agent_id:
@@ -125,10 +127,11 @@ def begin(root: Path, plan: dict, agent_id: str) -> dict:
             "only that agent may continue it"
         )
     started = _now()
-    active = []
+    active, fresh = [], []
     for session, config in planned_sessions(plan):
         if not session.exists():
             session.init(config, make_submitter(config, REPO_ROOT), run_id=config["run_id"])
+            fresh.append(_rel(root, session.root))
         if session.load()["status"] != "done":
             active.append(_rel(root, session.root))
     if not active:
@@ -140,6 +143,7 @@ def begin(root: Path, plan: dict, agent_id: str) -> dict:
         "started": started,
         "fingerprint": fingerprint(root),
         "sessions": active,
+        "baseline_measured_at_begin": fresh,
     }
     (root / LOCK_NAME).write_text(json.dumps(lock, indent=2) + "\n", encoding="utf-8")
     return {**lock, "requests": open_requests(root), "resumed": False}
@@ -168,7 +172,7 @@ def end(root: Path, plan: dict, agent_id: str) -> dict:
     for session in _locked_sessions(root, lock):
         before = session.load()
         submitter = make_submitter(before["config"], REPO_ROOT)
-        if session.baseline()["measured"] < lock["started"]:
+        if _rel(root, session.root) not in lock.get("baseline_measured_at_begin", []):
             session.remeasure_baseline(submitter)
         baseline = session.baseline()
         scored_before = len(read_records(session.trajectory))
@@ -288,6 +292,7 @@ def snapshot(root: Path, plan: dict, launches: list | None = None, transcripts: 
         )
     return {
         "state": "active" if lock else "idle",
+        "paused": bool(plan.get("paused")),
         "lock": None
         if lock is None
         else {**lock, "elapsed": _age(lock["started"]), "harness_unchanged": current == lock["fingerprint"]},
@@ -308,6 +313,8 @@ def format_snapshot(view: dict) -> str:
         )
     else:
         lines.append(f"loop: idle (harness fingerprint {view['fingerprint']}); harness edits are allowed")
+    if view.get("paused"):
+        lines.append("loop.yaml: paused; new rounds will not start")
     for item in view["sessions"]:
         if item.get("status") == "not started":
             lines.append(f"- {item['session']}: not started")

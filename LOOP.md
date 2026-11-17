@@ -47,8 +47,9 @@ to that branch. Do not open, update, or merge pull requests.
    git add -A LOOP_LOCK.json trajectories && git commit -qm "round: begin" && git push -q origin "HEAD:$BRANCH"
    ```
 
-   If it exits with "is held by" another agent, stop and report that; do not
-   take the round over. If every session is done, report that and stop.
+   If it exits saying the loop is paused, that the round is held by another
+   agent, or that every session is done, report that and stop without
+   committing or pushing anything. Never take over another agent's round.
 
 4. The output lists `requests`. For each one launch a subagent with the Task
    tool. Put all launches in a single message so they run in parallel:
