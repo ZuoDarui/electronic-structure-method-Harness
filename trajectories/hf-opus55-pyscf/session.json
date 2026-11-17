@@ -50,10 +50,10 @@
   "model": "claude-opus-5.5",
   "subagent_model": "claude-opus-5-5-high",
   "status": "awaiting_responses",
-  "generation": 0,
+  "generation": 1,
   "pending": [
-    "hf-opus55-pyscf-g00-s0"
+    "hf-opus55-pyscf-g01-s0"
   ],
   "stale_generations": 0,
-  "updated": "2026-11-17T07:39:17+00:00"
+  "updated": "2026-11-17T07:40:17+00:00"
 }
