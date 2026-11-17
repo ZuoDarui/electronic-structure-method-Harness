@@ -68,6 +68,8 @@ python -m esm_harness rescore --baseline baselines/pyscf_rhf.py  # 所有会话�
 按仓库 cursor/hf-harness-66dd 分支上的 LOOP.md 执行一轮 electronic structure harness 循环，只执行一轮，完成后报告并结束。
 ```
 
+监控代理的规则和步骤写在 `MONITOR.md`：检查进度、事后审计并存档、布置任务（改 `loop.yaml`）、暂停与恢复、修改 harness。为了不让一个对话越拉越长，建议每次新开一个短对话，说“按 MONITOR.md 检查循环”或“按 MONITOR.md 把……加进 loop.yaml”。
+
 监控（只读）：
 
 ```bash
