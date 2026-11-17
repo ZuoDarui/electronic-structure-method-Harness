@@ -1,0 +1,9 @@
+{
+  "round": 1,
+  "driver_agent_id": "bc-dd2b817b-c469-4568-9b2e-30b19343d647",
+  "started": "2026-11-17T07:39:17+00:00",
+  "fingerprint": "e813691a9391abc4",
+  "sessions": [
+    "trajectories/hf-opus55-pyscf"
+  ]
+}
