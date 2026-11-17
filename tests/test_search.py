@@ -150,3 +150,19 @@ def test_repeated_call_failures_are_scored_and_the_search_moves_on(tmp_path):
     assert record["eval"]["status"] == "call_failed"
     assert record["call_failures"] == 2
     assert record["eval"]["fitness"] is None
+
+
+def test_rescore_retimes_recorded_programs_against_pyscf(tmp_path):
+    from esm_harness.rescore import rescore_session
+
+    config = _config(tmp_path, allow_any_model=True, max_generations=1)
+    submitter = make_submitter(config, REPO_ROOT)
+    run_with_client(config, StubClient([LEGAL]), submitter, tmp_path / "run")
+    before = (tmp_path / "run" / "trajectory.jsonl").read_text(encoding="utf-8")
+    result = rescore_session(Session(tmp_path / "run"), REPO_ROOT / "baselines" / "pyscf_rhf.py", submitter)
+    assert (tmp_path / "run" / "trajectory.jsonl").read_text(encoding="utf-8") == before
+    [row] = result["rows"]
+    assert row["status"] == "ok"
+    assert row["cases"][0]["abs_err_baseline"] < 1e-8
+    assert row["cases"][0]["baseline_time_s"] == result["baseline_times"]["h2_sto3g"]
+    assert (tmp_path / "run" / "rescore" / "pyscf_rhf.jsonl").is_file()

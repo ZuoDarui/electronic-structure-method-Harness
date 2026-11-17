@@ -1,5 +1,5 @@
 # Main search: Claude Opus 5.5 writes an RHF program from nothing (generation 0
-# sees no program) and then improves it toward baselines/hf.py.
+# sees no program) and then improves it toward the speed of PySCF scf.RHF (baselines/pyscf_rhf.py).
 task: hf_rhf
 run_id: hf-opus55
 out_dir: trajectories
@@ -8,7 +8,7 @@ patience: 4
 submit: local
 suite: benchmarks/hf_rhf.yaml
 references: benchmarks/reference_energies.json
-baseline: baselines/hf.py
+baseline: baselines/pyscf_rhf.py
 repeats: 3
 timeout_s: 120
 memory_mb: 8192

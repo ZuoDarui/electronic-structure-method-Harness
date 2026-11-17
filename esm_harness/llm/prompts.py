@@ -87,8 +87,8 @@ def render_prompt(
     parts.append("\n".join(_case_lines(cases)))
     if prompt_id == "hf_show_baseline":
         parts.append(
-            "Reference program on the scoring host (shown for this ablation only; "
-            "it uses pyscf.scf for its initial guess, which your program may not import):\n"
+            "Reference program whose time you are compared against (shown for this "
+            "ablation only; it may use modules your program is not allowed to import):\n"
             f"```python\n{baseline_source or ''}\n```"
         )
     if feedback:

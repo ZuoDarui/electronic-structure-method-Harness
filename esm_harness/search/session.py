@@ -46,6 +46,24 @@ def _sha(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
 
 
+def measure_baseline(source: str, context: dict, factors: dict, submitter, work_root: Path) -> dict:
+    unit = {case["id"]: 1.0 for case in context["cases"]}
+    return evaluate_program(
+        source,
+        cases=context["cases"],
+        references=context["references"],
+        baseline_times=unit,
+        baseline_energies=unit,
+        submitter=submitter,
+        factors=factors,
+        timeout_s=context["timeout_s"],
+        memory_mb=context["memory_mb"],
+        work_root=work_root,
+        repeats=context["repeats"],
+        trusted=True,
+    )
+
+
 class Session:
     def __init__(self, root: Path):
         self.root = Path(root)
@@ -108,22 +126,7 @@ class Session:
     def _measure_baseline(self, state: dict, submitter) -> None:
         context = self._context(state)
         source = read_baseline_source(resolve(state["config"]["baseline"]))
-        factors = dict(state["factors"])
-        factors["allowed_imports"] = sorted(set(factors["allowed_imports"]) | {"pyscf.scf", "pyscf.df"})
-        unit = {case["id"]: 1.0 for case in context["cases"]}
-        measured = evaluate_program(
-            source,
-            cases=context["cases"],
-            references=context["references"],
-            baseline_times=unit,
-            baseline_energies=unit,
-            submitter=submitter,
-            factors=factors,
-            timeout_s=context["timeout_s"],
-            memory_mb=context["memory_mb"],
-            work_root=self.root / "jobs",
-            repeats=context["repeats"],
-        )
+        measured = measure_baseline(source, context, state["factors"], submitter, self.root / "jobs")
         if measured["status"] != "ok" or not measured["all_converged"]:
             state["status"] = "baseline_failed"
             self.save(state)

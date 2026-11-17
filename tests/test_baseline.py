@@ -12,7 +12,7 @@ def test_baseline_matches_pyscf_reference():
                 "--suite",
                 str(REPO_ROOT / "benchmarks" / "hf_rhf.yaml"),
                 "--baseline",
-                str(REPO_ROOT / "baselines" / "hf.py"),
+                str(REPO_ROOT / "baselines" / "pyscf_rhf.py"),
                 "--references",
                 str(REPO_ROOT / "benchmarks" / "reference_energies.json"),
                 "--tol",

@@ -7,7 +7,7 @@ base:
   submit: local
   suite: benchmarks/hf_rhf.yaml
   references: benchmarks/reference_energies.json
-  baseline: baselines/hf.py
+  baseline: baselines/pyscf_rhf.py
   repeats: 3
   timeout_s: 120
   memory_mb: 8192

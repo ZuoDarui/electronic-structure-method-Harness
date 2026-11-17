@@ -24,8 +24,11 @@ def evaluate_program(
     memory_mb: int,
     work_root: Path,
     repeats: int = 3,
+    trusted: bool = False,
 ) -> dict:
-    reason = rejection_reason(code, list(factors["allowed_imports"]))
+    """``trusted`` is only for harness-owned code such as the baseline: it skips
+    the generated-program policy and leaves the PySCF drivers importable."""
+    reason = None if trusted else rejection_reason(code, list(factors["allowed_imports"]))
     if reason:
         summary = summarize_cases([], factors["speed_weight"], factors["fitness_err_ceiling"])
         return {
@@ -48,7 +51,7 @@ def evaluate_program(
         "cases": cases,
         "repeats": repeats,
         "memory_mb": memory_mb,
-        "block_imports": blocked_modules(list(factors["allowed_imports"])),
+        "block_imports": [] if trusted else blocked_modules(list(factors["allowed_imports"])),
     }
     job_file = workdir / "job.json"
     job_file.write_text(json.dumps(job), encoding="utf-8")

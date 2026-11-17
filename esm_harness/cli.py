@@ -158,6 +158,20 @@ def _cmd_report(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_rescore(args: argparse.Namespace) -> int:
+    from esm_harness.rescore import rescore_session, write_rescore_report
+
+    root = resolve(args.root)
+    baseline = resolve(args.baseline)
+    results = []
+    for state_path in sorted(root.glob("**/session.json")):
+        session = Session(state_path.parent)
+        config = session.load()["config"]
+        results.append(rescore_session(session, baseline, make_submitter(config, REPO_ROOT)))
+    print(write_rescore_report(root, baseline, results).read_text(encoding="utf-8"))
+    return 0
+
+
 def _cmd_reference(args: argparse.Namespace) -> int:
     cases = load_cases(resolve(args.suite))
     _print(write_references(cases, resolve(args.out)))
@@ -227,6 +241,11 @@ def build_parser() -> argparse.ArgumentParser:
     report.add_argument("--root", default="trajectories")
     report.set_defaults(func=_cmd_report)
 
+    rescore = commands.add_parser("rescore", help="re-time every recorded program against another baseline")
+    rescore.add_argument("--root", default="trajectories")
+    rescore.add_argument("--baseline", default="baselines/pyscf_rhf.py")
+    rescore.set_defaults(func=_cmd_rescore)
+
     reference = commands.add_parser("reference", help="cache PySCF RHF energies for the suite")
     reference.add_argument("--suite", default="benchmarks/hf_rhf.yaml")
     reference.add_argument("--out", default="benchmarks/reference_energies.json")
@@ -234,7 +253,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     check = commands.add_parser("check-baseline", help="require the baseline to match PySCF")
     check.add_argument("--suite", default="benchmarks/hf_rhf.yaml")
-    check.add_argument("--baseline", default="baselines/hf.py")
+    check.add_argument("--baseline", default="baselines/pyscf_rhf.py")
     check.add_argument("--references", default="benchmarks/reference_energies.json")
     check.add_argument("--tol", type=float, default=1e-8)
     check.set_defaults(func=_cmd_check_baseline)
