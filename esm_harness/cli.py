@@ -172,6 +172,56 @@ def _cmd_rescore(args: argparse.Namespace) -> int:
     return 0
 
 
+def _audit_inputs(args: argparse.Namespace, sessions: list[Session]):
+    from esm_harness.audit import load_agent_transcripts, load_launches
+
+    if args.driver_transcript:
+        launch_files = [resolve(path) for path in args.driver_transcript]
+    else:
+        launch_files = [s.root / "launches.jsonl" for s in sessions if (s.root / "launches.jsonl").is_file()]
+    transcript_dirs = [resolve(path) for path in args.transcripts] or [s.root for s in sessions]
+    return load_launches(launch_files), load_agent_transcripts(transcript_dirs)
+
+
+def _sessions_under(root: Path) -> list[Session]:
+    return [Session(path.parent) for path in sorted(root.glob("**/session.json"))]
+
+
+def _cmd_audit(args: argparse.Namespace) -> int:
+    from esm_harness.audit import archive, audit_session, reused_agents, write_audit, write_audit_report
+
+    root = resolve(args.root)
+    sessions = _sessions_under(root)
+    launches, transcripts = _audit_inputs(args, sessions)
+    if not launches:
+        raise SystemExit("no subagent launches found; pass --driver-transcript or audit an archived session")
+    reused = reused_agents(launches)
+    results = []
+    for session in sessions:
+        result = audit_session(session, launches, transcripts, reused)
+        if args.archive:
+            archive(session, result, transcripts)
+        write_audit(session, result)
+        results.append(result)
+    print(write_audit_report(root, results).read_text(encoding="utf-8"))
+    violations = sum(result["summary"]["violations"] for result in results)
+    return 1 if args.strict and violations else 0
+
+
+def _cmd_audit_ids(args: argparse.Namespace) -> int:
+    from esm_harness.audit import load_launches
+
+    run_ids = {s.load()["run_id"] for s in _sessions_under(resolve(args.root))}
+    ids = [
+        launch.agent_id
+        for launch in load_launches([resolve(path) for path in args.driver_transcript])
+        if launch.cid and any(launch.cid.startswith(run_id + "-g") for run_id in run_ids)
+    ]
+    for start in range(0, len(ids), 50):
+        print(json.dumps(ids[start : start + 50]))
+    return 0
+
+
 def _cmd_reference(args: argparse.Namespace) -> int:
     cases = load_cases(resolve(args.suite))
     _print(write_references(cases, resolve(args.out)))
@@ -245,6 +295,29 @@ def build_parser() -> argparse.ArgumentParser:
     rescore.add_argument("--root", default="trajectories")
     rescore.add_argument("--baseline", default="baselines/pyscf_rhf.py")
     rescore.set_defaults(func=_cmd_rescore)
+
+    audit = commands.add_parser("audit", help="check sessions against the driver's and subagents' transcripts")
+    audit.add_argument("--root", default="trajectories")
+    audit.add_argument(
+        "--driver-transcript",
+        action="append",
+        default=[],
+        help="transcript JSON of the agent that launched the subagents (default: archived launches.jsonl)",
+    )
+    audit.add_argument(
+        "--transcripts",
+        action="append",
+        default=[],
+        help="directory holding <agent-id>/transcript.json files (default: archived agent_transcripts/)",
+    )
+    audit.add_argument("--archive", action="store_true", help="copy the launches and transcripts used into each session")
+    audit.add_argument("--strict", action="store_true", help="exit 1 when any violation is found")
+    audit.set_defaults(func=_cmd_audit)
+
+    audit_ids = commands.add_parser("audit-ids", help="list subagent ids to fetch transcripts for, 50 per line")
+    audit_ids.add_argument("--root", default="trajectories")
+    audit_ids.add_argument("--driver-transcript", action="append", required=True)
+    audit_ids.set_defaults(func=_cmd_audit_ids)
 
     reference = commands.add_parser("reference", help="cache PySCF RHF energies for the suite")
     reference.add_argument("--suite", default="benchmarks/hf_rhf.yaml")

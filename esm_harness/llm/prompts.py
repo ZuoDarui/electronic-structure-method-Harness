@@ -115,3 +115,12 @@ def render_prompt(
 
 def read_baseline_source(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
+
+DRIVER_WRAPPER = Path(__file__).with_name("driver_wrapper.md")
+
+
+def subagent_instructions(prompt_path: str, response_path: str) -> str:
+    """The exact text a driver sends to a fresh subagent; `audit` compares launches against it."""
+    template = DRIVER_WRAPPER.read_text(encoding="utf-8")
+    return template.replace("{prompt}", prompt_path).replace("{response}", response_path)

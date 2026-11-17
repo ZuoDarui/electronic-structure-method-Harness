@@ -31,7 +31,7 @@ from esm_harness.eval.reference import read_references
 from esm_harness.eval.sandbox import evaluate_program
 from esm_harness.eval.score import meets_threshold
 from esm_harness.llm.client import normalize_usage, read_meta, split_program
-from esm_harness.llm.prompts import read_baseline_source, render_prompt
+from esm_harness.llm.prompts import read_baseline_source, render_prompt, subagent_instructions
 from esm_harness.search.strategies import strategy_for
 from esm_harness.trace import append_record, best_record, read_records, write_ledger
 
@@ -197,6 +197,9 @@ class Session:
                 "prompt": str(self.path("prompts", cid)),
                 "response": str(self.path("responses", cid)),
                 "meta": str(self.path("meta", cid)),
+                "instructions": subagent_instructions(
+                    str(self.path("prompts", cid)), str(self.path("responses", cid))
+                ),
             }
             for cid in state["pending"]
             if not self.path("responses", cid).is_file() and not self._gave_up(state, cid)

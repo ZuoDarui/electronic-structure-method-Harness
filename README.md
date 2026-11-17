@@ -24,7 +24,8 @@
 python -m esm_harness check-baseline            # 基线与 PySCF 误差需 ≤ 1e-8，否则不开始
 python -m esm_harness init --config configs/hf_rhf.yaml
 python -m esm_harness status --session trajectories/hf-opus55
-# 对 status 列出的每个提示，用 claude-opus-5-5-<effort> 生成回复写到指定路径，然后：
+# 对 status 列出的每个提示，启动一个全新的 claude-opus-5-5-<effort> 子代理，
+# 把该请求的 instructions 字段原样发给它；它写完回复后：
 python -m esm_harness meta --cid <cid> --model claude-opus-5-5-high --agent-id <id>
 python -m esm_harness step --session trajectories/hf-opus55   # 打分并写下一代提示
 ```
@@ -47,6 +48,28 @@ python -m esm_harness rescore --baseline baselines/pyscf_rhf.py  # 所有会话�
 
 `rescore` 不改原轨迹，只在每个会话下写 `rescore/<基线名>.baseline.json`、`rescore/<基线名>.jsonl`（每个候选一行，含原适应度和新适应度），并写汇总表 `trajectories/RESCORE_<基线名>.md`。
 
+## 审计
+
+`meta` 和 `calls.jsonl` 由驱动者（在 Cursor 里运行 harness 的那个模型）填写，harness 本身只能看到文件。`audit` 拿平台记录的对话来核对：驱动者的对话里有每次启动子代理时请求的模型、发出的指令和返回的子代理 id；每个子代理的对话里有它收到的指令、每次工具调用和它创建的文件内容。
+
+```bash
+python -m esm_harness audit-ids --driver-transcript <驱动者 transcript.json>   # 列出要取对话的子代理 id，每行 50 个
+# 用 Cursor 的 batch-fetch-details（includeTranscripts）取回这些对话，然后：
+python -m esm_harness audit --driver-transcript <驱动者 transcript.json> --transcripts <取回目录> --archive
+python -m esm_harness audit --strict                                            # 之后只用仓库里的存档复核
+```
+
+逐个候选检查，任何一条不符都记为 violation：
+
+- 每个被打分的候选都对应驱动者对话里的一次启动，请求的模型等于会话绑定的模型，指令与 `driver_wrapper.md` 渲染结果逐字相同，子代理 id 只用于这一个候选；
+- 子代理只读了自己的提示文件、只写了自己的回复文件，没有用其他工具；
+- 打分用的回复与子代理写出的内容 SHA-256 相同（从子代理创建文件的 diff 还原），即驱动者没有改过回复；
+- 每个候选的启动次数等于 `calls.jsonl` 的记录数（没有未记录的调用），记为失败的那些启动确实没有写出回复（没有挑结果）。
+
+结果写入每个会话的 `audit.json` 和总表 `trajectories/AUDIT.md`。`--archive` 把用到的启动记录（`launches.jsonl`）和子代理对话（`agent_transcripts/`）存进会话目录，其中也有模型的思考过程，可用于消融分析。驱动者对话本身不存档，因为它包含整段会话。
+
+审计的前提是对话由平台写入、驱动者改不了。存档进仓库以后，复核只能说明存档内部一致；要排除存档被改过，就用 `batch-fetch-details` 重新取一次对话，再用 `--driver-transcript`/`--transcripts` 审计。
+
 ## 评分
 
 适应度 `fitness = -log10(max(err, 1e-12)) - speed_weight * ln(geomean_time_ratio)`，`err` 是 7 个分子中相对 PySCF 的最大绝对误差，`geomean_time_ratio` 是候选耗时除以基线耗时的几何平均。任一分子未收敛或误差超过 `fitness_err_ceiling`（1e-6）时没有适应度。`meets_threshold` 另外标出误差 ≤ `max_abs_err`（1e-8）且耗时比 ≤ `max_time_ratio`（1.0）的候选。
@@ -63,6 +86,7 @@ python -m esm_harness rescore --baseline baselines/pyscf_rhf.py  # 所有会话�
 - `trajectory.jsonl`：每个候选一行，字段有 `factors`、`model`、`agent_id`、`from_scratch`、`prompt`、`response`、`code`、`usage`，以及 `eval`（状态、错误输出、逐分子 `energy`/`abs_err`/`abs_err_baseline`/`time_s`/`baseline_time_s`/`time_ratio`、`fitness`）
 - `calls.jsonl`：每一次子代理调用，包括超时等失败
 - `ledger.json`：按代汇总，列出最佳候选与调用计数
+- `audit.json`、`launches.jsonl`、`agent_transcripts/`：审计结果、驱动者的启动记录、每个子代理的完整对话（见“审计”）
 
 `trajectories/REPORT.md` 是所有会话最佳结果的一张表，`trajectories/ablation/ablation-ledger.json` 按格子汇总。
 
@@ -73,6 +97,8 @@ python -m esm_harness rescore --baseline baselines/pyscf_rhf.py  # 所有会话�
 主搜索 `hf-opus55`（`hf_minimal`、`iterative`、`speed_weight=0.5`、`high`，8 代）：第 0 代从零写出的程序在 7 个分子上全部收敛，最大误差 1.1e-13 Hartree，几何平均耗时为 PySCF 的 0.112；最佳为第 3 代，误差 4.4e-13，耗时比 0.074。它自己改用 8 重对称的双电子积分和打包的对指标超矩阵，用一次矩阵—向量乘积得到 J 和 K。第 4–7 代把耗时比压到 0.057，但误差升到 1.3e-11，按适应度不如第 3 代。
 
 消融（每格 4 代，单因子相对主配置变化，全部从零开始）：所有格子第 0 代都写出了误差 ≤ 2e-13 的正确程序。按适应度选出的最佳程序相对 PySCF 的耗时比：`max` 档 0.059（第 0 代）、显示基线源码 0.062、best-of-3 0.064、`speed_weight=2` 0.064、给出方程 0.071、默认 0.083、`medium` 档 0.098、`speed_weight=0` 0.125（只奖励精度时误差已触到 1e-12 上限，适应度不再变化，速度也就没有改进）。`max` 档的调用常超出子代理时限：第 1 代 3 次调用都超时，记为 `call_failed`；第 3 代前两次分别超时、被 Anthropic 使用策略拦截，第三次才返回。这些失败都写在该格的 `calls.jsonl` 里。注意“显示基线源码”这一格当时给模型看的是旧 `hf.py` 的源码。
+
+审计（`trajectories/AUDIT.md`）：54 次子代理启动全部在平台记录里，请求的模型都等于各会话绑定的模型（`high`/`medium`/`max`），每个子代理只用于一个候选；47 个被打分的回复与子代理写出的内容逐字节一致，7 次失败启动都没有写出回复，启动次数与 `calls.jsonl` 一一对应，违规 0 条。备注 5 条：两个子代理第一次写文件失败后重写；其中一个为了满足写前须读的工具规则，读了一次自己的回复文件；另有一次启动发生在主搜索重新开始之前，属于被丢弃的旧会话，不计入。
 
 以后用新配置 `init` 的会话会直接对 PySCF 计时，反馈给模型的耗时比也以 PySCF 为准。在集群上用 `submit: slurm` 运行时，基线在集群节点上重新测量。
 
