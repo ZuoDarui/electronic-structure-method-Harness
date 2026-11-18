@@ -13,7 +13,7 @@ import uuid
 from pathlib import Path
 
 from esm_harness.eval.policy import blocked_modules, rejection_reason
-from esm_harness.eval.score import summarize_cases
+from esm_harness.eval.score import ACCEPTANCE_FLOOR, summarize_cases
 from esm_harness.eval.submit import JobSpec
 
 _EMPTY = {
@@ -223,21 +223,38 @@ def collect_evaluation(
     baseline_energies: dict[str, float],
     factors: dict,
 ) -> dict | None:
-    """The evaluation once every job of ``started`` has finished, otherwise None."""
+    """The evaluation once every job of ``started`` has finished, otherwise None.
+
+    Acceptance is decided by accuracy, so it does not always wait for every job:
+    once a finished molecule failed to converge, missed the floor, or crashed, the
+    program cannot be accepted, and it is scored at once on the molecules that
+    have finished (``status: inaccurate`` or ``error``, ``unfinished`` lists the
+    rest). Jobs still running are left alone.
+    """
     if "evaluation" in started:
         return started["evaluation"]
-    finished = []
+    limit = min(float(factors["fitness_err_ceiling"]), ACCEPTANCE_FLOOR)
+    finished = [(job, job["result"]) for job in started["jobs"] if "result" in job]
+    decided = next((f for f in (_failure(r["payload"], references, limit) for _, r in finished) if f), None)
     for job in started["jobs"]:
-        if "result" not in job:
-            result = submitter.poll(job["handle"])
-            if result is not None:
-                job["result"] = result
+        if decided:
+            break
         if "result" in job:
-            finished.append((job, job["result"]))
-    if len(finished) < len(started["jobs"]):
+            continue
+        result = submitter.poll(job["handle"])
+        if result is not None:
+            job["result"] = result
+            finished.append((job, result))
+            decided = _failure(result["payload"], references, limit)
+    finished.sort(key=lambda item: started["jobs"].index(item[0]))
+    unfinished = [job["case_id"] for job in started["jobs"] if "result" not in job]
+    if unfinished and not decided:
         return None
     statuses = [result["payload"].get("status", "error") for _, result in finished]
-    status = "ok" if all(item == "ok" for item in statuses) else next(item for item in statuses if item != "ok")
+    if unfinished:
+        status = decided
+    else:
+        status = "ok" if all(item == "ok" for item in statuses) else next(item for item in statuses if item != "ok")
     payload = {
         "status": status,
         "stderr": "\n".join(
@@ -249,7 +266,7 @@ def collect_evaluation(
         "backend": getattr(submitter, "backend", None),
         "jobs": [{"case_id": job["case_id"], **result["submission"]} for job, result in finished],
     }
-    return _join(
+    evaluation = _join(
         payload,
         submission,
         cases=cases,
@@ -258,3 +275,25 @@ def collect_evaluation(
         baseline_energies=baseline_energies,
         factors=factors,
     )
+    if unfinished:
+        evaluation["unfinished"] = unfinished
+        if status == "inaccurate":
+            evaluation.update(summarize_cases(evaluation["cases"], factors["speed_weight"], factors["fitness_err_ceiling"]))
+            evaluation["fitness"] = None
+            evaluation["accepted"] = False
+    return evaluation
+
+
+def _failure(payload: dict, references: dict[str, float], limit: float) -> str | None:
+    """Why a finished job already rules the program out, or None."""
+    if payload.get("status") == "error":
+        return "error"
+    if payload.get("status") != "ok":
+        return None
+    for case in payload.get("cases") or []:
+        reference = references.get(case["id"])
+        if not case.get("converged") or case.get("energy") is None or reference is None:
+            return "inaccurate"
+        if abs(float(case["energy"]) - float(reference)) > limit:
+            return "inaccurate"
+    return None

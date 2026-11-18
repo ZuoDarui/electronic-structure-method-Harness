@@ -38,6 +38,9 @@ cluster:
   # Give up on a task that has produced no result this long after its time
   # limit, and on a job whose task could not be created for this long.
   max_queue_s: 259200
+  # A job that hits its time limit is rerun with twice the limit, up to this
+  # (7 days); only a timeout at this limit counts against the program.
+  max_timeout_s: 604800
 factors:
   model: claude-opus-5.5
   prompt_id: hf_rijcosx

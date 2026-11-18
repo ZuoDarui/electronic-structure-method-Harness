@@ -136,6 +136,11 @@ def _result_lines(evaluation: dict) -> list[str]:
     lines = [f"status: {evaluation['status']}"]
     if "accepted" in evaluation:
         lines.append(f"accepted (every molecule converged and within 1e-8 Hartree): {bool(evaluation['accepted'])}")
+    if evaluation.get("unfinished"):
+        lines.append(
+            "ruled out before these molecules finished (their results are not shown): "
+            + ", ".join(evaluation["unfinished"])
+        )
     if evaluation.get("stderr"):
         lines.append("error output (tail):")
         lines.append(evaluation["stderr"][-3000:])

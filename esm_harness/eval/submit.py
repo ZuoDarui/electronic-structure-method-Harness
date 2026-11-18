@@ -437,6 +437,22 @@ class TioneSubmitter:
         self._submit(handle)
         return handle
 
+    def _extend(self, handle: dict) -> bool:
+        """A time limit is not a verdict: rerun the job with twice the limit, up to
+        ``max_timeout_s``. Returns False once the cap is reached."""
+        limit = 2 * float(handle["timeout_s"])
+        if limit > float(self.cluster.get("max_timeout_s", 0)):
+            return False
+        remote = self.remote()
+        remote_dir = handle["remote_dir"]
+        remote.run(f"rm -f {shlex.quote(remote_dir)}/exit_code {shlex.quote(remote_dir)}/host.txt")
+        remote.put_text(f"{remote_dir}/{handle['script']}", self._script(limit), mode=0o755)
+        handle.setdefault("timeouts", []).append({"limit_s": float(handle["timeout_s"]), "task_id": handle["task_id"]})
+        handle["timeout_s"] = limit
+        handle["task_id"] = None
+        self._submit(handle)
+        return True
+
     def _task_status(self, task_id: str) -> dict:
         helper = f"{self.remote_root}/tione_status.py"
         remote = self.remote()
@@ -481,6 +497,8 @@ class TioneSubmitter:
             result = remote.read_text(f"{handle['remote_dir']}/result.json")
             if result:
                 payload = json.loads(result)
+            elif exit_code == 124 and self._extend(handle):
+                return None
             elif exit_code == 124:
                 payload = {"status": "timeout", "stderr": f"job exceeded {int(handle['timeout_s'])} s", "cases": []}
             else:

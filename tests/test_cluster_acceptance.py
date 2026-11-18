@@ -106,8 +106,8 @@ class FakeTione:
     def preflight(self):
         return None
 
-    def finish(self):
-        self.finished.update(handle["task_id"] for handle in self.started)
+    def finish(self, *task_ids):
+        self.finished.update(task_ids or [handle["task_id"] for handle in self.started])
 
     def start(self, spec, job_file, label=""):
         submission = self.local.submit(spec, job_file)
@@ -200,6 +200,35 @@ def test_cluster_session_scores_only_after_every_job_finishes(tmp_path):
     record = [json.loads(line) for line in session.trajectory.read_text(encoding="utf-8").splitlines()][-1]
     assert record["eval"]["accepted"] is True
     assert [case["time_ratio"] is not None for case in record["eval"]["cases"]] == [True, True]
+
+
+def test_a_finished_molecule_off_the_floor_rules_the_program_out_at_once(tmp_path):
+    submitter = FakeTione()
+    session = Session(tmp_path / "run")
+    session.init(_cluster_config(tmp_path), submitter)
+    answer_with_client(session, StubClient([OFF_BY_5E8]))
+    session.advance(submitter)
+    submitter.finish("t1")
+    status = session.advance(submitter)
+    assert status["generation"] == 1 and status["status"] == "awaiting_responses"
+    [record] = [json.loads(line) for line in session.trajectory.read_text(encoding="utf-8").splitlines()]
+    evaluation = record["eval"]
+    assert evaluation["status"] == "inaccurate" and evaluation["unfinished"] == ["h2a"]
+    assert evaluation["accepted"] is False and evaluation["fitness"] is None
+    assert evaluation["max_abs_err"] == pytest.approx(5e-8, rel=1e-3)
+    prompt = session.path("prompts", "hf-opus55-cluster-g01-s0").read_text(encoding="utf-8")
+    assert "ruled out before these molecules finished (their results are not shown): h2a" in prompt
+
+
+def test_an_accurate_molecule_does_not_end_the_wait(tmp_path):
+    submitter = FakeTione()
+    session = Session(tmp_path / "run")
+    session.init(_cluster_config(tmp_path), submitter)
+    answer_with_client(session, StubClient([EXACT]))
+    session.advance(submitter)
+    submitter.finish("t0")
+    assert session.advance(submitter)["status"] == "evaluating"
+    assert not session.trajectory.exists()
 
 
 def test_round_waits_for_the_cluster_without_taking_the_lock(tmp_path, monkeypatch):
@@ -331,9 +360,30 @@ def test_tione_submitter_deploys_submits_and_collects(tmp_path):
     assert result["submission"]["scheduler_id"] == "train-123" and result["submission"]["returncode"] == 0
 
 
+def test_a_timeout_reruns_the_job_with_twice_the_limit(tmp_path):
+    remote = FakeRemote()
+    submitter, spec, job_file = _tione(tmp_path, remote)
+    submitter.cluster["max_timeout_s"] = 3600
+    handle = submitter.start(spec, job_file)
+    remote.files["/cfs/eval/abc123/exit_code"] = "124\n"
+    assert submitter.poll(handle) is None
+    assert handle["timeout_s"] == 1800 and handle["timeouts"] == [{"limit_s": 900, "task_id": "train-123"}]
+    assert "timeout --kill-after=60 1800 python" in remote.files["/cfs/eval/abc123/esm-abc123.sh"]
+    assert handle["task_id"] == "train-123"
+    assert sum("esm_tione_submit.py" in command for command in remote.commands) == 2
+    assert any("rm -f /cfs/eval/abc123/exit_code" in command for command in remote.commands)
+
+    remote.files["/cfs/eval/abc123/exit_code"] = "124\n"
+    assert submitter.poll(handle) is None and handle["timeout_s"] == 3600
+    remote.files["/cfs/eval/abc123/exit_code"] = "124\n"
+    result = submitter.poll(handle)
+    assert result["payload"]["status"] == "timeout" and "3600 s" in result["payload"]["stderr"]
+
+
 def test_tione_submitter_reports_timeouts_and_dead_tasks(tmp_path):
     remote = FakeRemote()
     submitter, spec, job_file = _tione(tmp_path, remote)
+    submitter.cluster["max_timeout_s"] = 0
     handle = submitter.start(spec, job_file)
     remote.files["/cfs/eval/abc123/exit_code"] = "124\n"
     assert submitter.poll(handle)["payload"]["status"] == "timeout"
