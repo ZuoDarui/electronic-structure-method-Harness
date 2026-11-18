@@ -90,9 +90,11 @@ python -m esm_harness monitor --driver-transcript <主代理 transcript.json> --
 
 速度基线用集群上记录的参考程序耗时（`baseline: recorded`，8 线程；PySCF 没有结果的分子用 `hf.py` 的耗时），不再每轮重测。
 
-评测在集群上运行（`submit: tione`，`esm_harness/eval/submit.py` 的 `TioneSubmitter`）：每个候选的每个分子一个 TI-ONE 训练任务（`tione-submit --submit`，48 核、256 GB），任务目录放在 CFS 的 `fieldquantum/esm-harness-eval/<job>/`，用集群的 conda 环境 `pyscf`、`OMP_NUM_THREADS=8`、不预热、计时 1 次。每个分子的时限是 `timeout_s`（3600 s）和 3 倍参考耗时中的较大者；任务结束却没有结果、或时限加 `max_queue_s`（72 小时）后仍无结果，记为失败。连接用配置里的主机和用户，口令取环境变量 `ESM_CLUSTER_PASSWORD`（或密钥文件 `ESM_CLUSTER_KEY_FILE`），不写进仓库。
+评测在集群上运行（`submit: tione`，`esm_harness/eval/submit.py` 的 `TioneSubmitter`）：每个候选的每个分子一个 TI-ONE 训练任务（与 `tione-submit` 相同的任务：1 GPU、48 核、256 GB、项目镜像，见配置 `cluster.task`）。任务由集群上原有的 `submit_training_task.py` 创建，harness 只在外面包一层（`esm-harness-eval/esm_tione_submit.py`）：原脚本只在账户最近 20 个任务里找 `infra` 资源组的 VPC 和子网，共享账户上这 20 个常常都属于别的资源组，这时报“no existing training task in this resource group has a VPC and subnet”；包装层改为往前翻找，并把找到的网络缓存在 `tione_network.json`。任务创建失败算集群的问题，不算程序的错：每次收结果时重试，`max_queue_s` 后仍失败才记为 `submit_failed`。任务目录放在 CFS 的 `fieldquantum/esm-harness-eval/<job>/`，用集群的 conda 环境 `pyscf`、`OMP_NUM_THREADS=8`、不预热、计时 1 次。每个分子的时限是 `timeout_s`（3600 s）和 3 倍参考耗时中的较大者；任务结束却没有结果、或时限加 `max_queue_s`（72 小时）后仍无结果，记为失败。连接用配置里的主机和用户，口令取环境变量 `ESM_CLUSTER_PASSWORD`（或密钥文件 `ESM_CLUSTER_KEY_FILE`），不写进仓库。
 
-由于大分子要跑几个小时，这个会话的打分是异步的：`round end` 只提交任务，会话状态变为 `evaluating`；之后每次 `round begin` 先去集群收结果，全部分子都有结果后才打分、写下一代提示；还在算时 `round begin` 报“waiting for cluster evaluations”并退出，不加锁。`round begin` 在启动任何子代理之前先检查集群可连、`tione-submit` 可用。
+由于大分子要跑几个小时，这个会话的打分是异步的：`round end` 只提交任务，会话状态变为 `evaluating`；之后每次 `round begin` 先去集群收结果，全部分子都有结果后才打分、写下一代提示；还在算时 `round begin` 报“waiting for cluster evaluations”并退出，不加锁。`round begin` 在启动任何子代理之前先检查集群可连、提交脚本和 `uv` 可用。`round abort --agent-id <id> --reason <原因>` 让持锁的主代理不打分地结束本轮：会话原样保留，已写好的回复由下一轮评测，轮报告里记下原因。
+
+第 2 轮（2026-11-18）就是这样结束的：Opus 5.5 写出了第 0 代程序，但 9 个任务都因上面的 VPC 问题没能创建，旧代码把它当成程序错误打了分。那次打分没有提交，会话退回到打分前（回复、meta、调用记录保留），修好提交后用 `round abort` 结束第 2 轮，第 0 代程序在第 3 轮提交评测。
 
 候选程序可以导入 `pyscf.dft.gen_grid` 和 `pyscf.dft.radi`，用来构造与参考计算完全相同的积分网格；`pyscf.scf`、`pyscf.df`、`pyscf.sgx` 和 DFT 驱动仍然禁止，运行时也会被替换掉。
 

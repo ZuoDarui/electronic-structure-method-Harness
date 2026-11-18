@@ -246,18 +246,64 @@ print(json.dumps(out))
 
 _TIONE_ENDED = {"FAILED", "STOPPED", "SUCCEED"}
 
+# Runs the user's own submit_training_task.py unchanged, except that the VPC and
+# subnet are looked up further back when its own lookup fails: it only reads the
+# account's 20 most recent tasks, which on a shared account are often all in
+# other resource groups. The network found is cached next to this file.
+_TIONE_SUBMIT = """\
+import importlib.util, json, sys
+from pathlib import Path
+
+CACHE = Path(__file__).with_name("tione_network.json")
+SCRIPT = Path(sys.argv.pop(1)).expanduser()
+spec = importlib.util.spec_from_file_location("submit_training_task", SCRIPT)
+s = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(s)
+original = s.resolve_host
+
+
+def resolve_host(client, host):
+    host = dict(host)
+    if CACHE.is_file() and s.blank(host.get("vpc")) and s.blank(host.get("subnet")):
+        host.update(json.loads(CACHE.read_text()))
+    if not s.blank(host.get("vpc")) and not s.blank(host.get("subnet")):
+        return original(client, host)
+    resolved = original(client, {**host, "vpc": "-", "subnet": "-"})
+    for offset in range(0, 2000, 50):
+        items = client.describe_training_tasks(offset=offset, limit=50).TrainingTaskSet or []
+        for item in items:
+            if getattr(item, "ResourceGroupId", None) != resolved["group"]:
+                continue
+            detail = client.describe_training_task(item.Id).TrainingTaskDetail
+            if getattr(detail, "VpcId", None) and getattr(detail, "SubnetId", None):
+                network = {"vpc": detail.VpcId, "subnet": detail.SubnetId}
+                CACHE.write_text(json.dumps(network))
+                return {**resolved, **network}
+        if not items:
+            break
+    s.fail("no training task in this resource group has a VPC and subnet")
+
+
+s.resolve_host = resolve_host
+sys.argv = [str(SCRIPT)] + sys.argv[1:]
+s.main()
+"""
+
 
 def _now_s() -> float:
     return time.time()
 
 
 class TioneSubmitter:
-    """One TI-ONE training task per job, submitted with the cluster's ``tione-submit``.
+    """One TI-ONE training task per job, created with the cluster's own
+    ``submit_training_task.py`` (the script behind ``tione-submit``) through
+    ``_TIONE_SUBMIT``, with the resources in the config's ``cluster.task``.
 
     The job directory goes onto the CFS that every task mounts, the task runs
     ``worker.py`` under ``timeout`` with the cluster's conda environment, and
-    the result is read back from CFS. ``start`` returns as soon as the task is
-    created; ``poll`` returns None until it has finished.
+    the result is read back from CFS. ``start`` returns once the files are
+    deployed and a task creation was attempted; ``poll`` retries a failed
+    creation and returns None until the task has finished.
 
     Connection settings come from the run config's ``cluster`` block, and the
     password from ``ESM_CLUSTER_PASSWORD`` (or a key file in
@@ -294,12 +340,55 @@ class TioneSubmitter:
 
     def preflight(self) -> None:
         """Fail before any model call when the cluster cannot take jobs."""
-        submit = shlex.split(self.cluster.get("submit_command", "tione-submit --submit"))[0]
+        script = self.cluster["task"]["submit_script"]
         code, out, err = self.remote().run(
-            f"bash -lc {shlex.quote(f'mkdir -p {self.remote_root} && command -v {submit}')}", timeout=120
+            f"bash -lc {shlex.quote(f'mkdir -p {self.remote_root} && test -f {script} && command -v uv')}",
+            timeout=120,
         )
         if code != 0:
             raise RuntimeError(f"cluster preflight failed ({code}): {(err or out).strip()[-500:]}")
+
+    def _ensure(self, name: str, text: str) -> str:
+        path = f"{self.remote_root}/{name}"
+        remote = self.remote()
+        if remote.read_text(path) != text:
+            remote.put_text(path, text)
+        return path
+
+    def _submit(self, handle: dict) -> None:
+        """Create the TI-ONE task for a deployed job directory; on failure record why."""
+        task = self.cluster["task"]
+        wrapper = self._ensure("esm_tione_submit.py", _TIONE_SUBMIT)
+        name = f"{self.cluster['user']}-{handle['script'].removesuffix('.sh')}-{time.strftime('%m%d%H%M%S')}"
+        args = [
+            "uv", "run", "-q", "--with", "tikit", "python", wrapper, str(task["submit_script"]),
+            "--host", str(task.get("host", "infra")),
+            "--name", name,
+            "--gpus", str(task.get("gpus", 1)),
+            "--nodes", "1",
+            "--cpu", str(task.get("cpu", 48)),
+            "--memory", str(task.get("memory", 256)),
+            "--image", str(task["image"]),
+            "--image-type", str(task.get("image_type", "CCR")),
+            "--start-cmd", f"bash {handle['remote_dir']}/{handle['script']}",
+            "--submit",
+        ]
+        handle["submit_attempts"] = int(handle.get("submit_attempts", 0)) + 1
+        try:
+            code, out, err = self.remote().run(f"bash -lc {shlex.quote(shlex.join(args))}", timeout=600)
+        except Exception as exc:
+            handle["submit_error"] = f"submit failed: {exc}"[:2000]
+            return
+        for line in reversed(out.splitlines()):
+            line = line.strip()
+            if line.startswith("{") and "task_id" in line:
+                handle["task_id"] = json.loads(line)["task_id"]
+                handle["task_name"] = name
+                handle["submitted"] = _now_s()
+                handle.pop("submit_error", None)
+                return
+        reason = [line for line in (err or out).splitlines() if line.startswith(("submit=", "reason="))]
+        handle["submit_error"] = f"submit exited {code}: " + (" ".join(reason) or (err or out).strip()[-2000:])
 
     def _script(self, timeout_s: float) -> str:
         threads = int(self.cluster.get("threads", 8))
@@ -328,31 +417,24 @@ class TioneSubmitter:
         job["program"] = "candidate.py"
         job["output"] = "result.json"
         script_name = f"esm-{spec.job_id}.sh"
+        now = _now_s()
         handle = {
             "remote_dir": remote_dir,
+            "script": script_name,
             "task_id": None,
             "label": label,
-            "submitted": _now_s(),
+            "first_attempt": now,
+            "submitted": now,
             "timeout_s": float(spec.timeout_s),
         }
-        code, out, err = remote.run(f"mkdir -p {shlex.quote(remote_dir)}")
-        if code != 0:
-            return {**handle, "submit_error": (err or out)[-2000:]}
+        remote.run(f"mkdir -p {shlex.quote(remote_dir)}")
         remote.put_text(f"{remote_dir}/candidate.py", (spec.workdir / "candidate.py").read_text(encoding="utf-8"))
         remote.put_text(f"{remote_dir}/job.json", json.dumps(job))
         remote.put_text(f"{remote_dir}/worker.py", (Path(__file__).with_name("worker.py")).read_text(encoding="utf-8"))
         script = self._script(spec.timeout_s)
         remote.put_text(f"{remote_dir}/{script_name}", script, mode=0o755)
         (spec.workdir / script_name).write_text(script, encoding="utf-8")
-        command = f"{self.cluster.get('submit_command', 'tione-submit --submit')} {remote_dir}/{script_name}"
-        code, out, err = remote.run(f"bash -lc {shlex.quote(command)}", timeout=600)
-        for line in reversed(out.splitlines()):
-            line = line.strip()
-            if line.startswith("{") and "task_id" in line:
-                handle["task_id"] = json.loads(line)["task_id"]
-                break
-        if not handle["task_id"]:
-            handle["submit_error"] = f"submit exited {code}: {(err or out).strip()[-2000:]}"
+        self._submit(handle)
         return handle
 
     def _task_status(self, task_id: str) -> dict:
@@ -374,11 +456,24 @@ class TioneSubmitter:
             "scheduler_id": handle.get("task_id") or "",
             "remote_dir": handle["remote_dir"],
         }
-        if handle.get("submit_error"):
-            return {
-                "payload": {"status": "error", "stderr": handle["submit_error"], "cases": []},
-                "submission": {**submission, "returncode": None},
-            }
+        max_queue_s = float(self.cluster.get("max_queue_s", 86400))
+        if not handle.get("task_id"):
+            # A failed submission is the cluster's problem, not the program's:
+            # retry on each poll, and give up only after max_queue_s.
+            self._submit(handle)
+            if handle.get("task_id"):
+                return None
+            if _now_s() - float(handle.get("first_attempt", handle["submitted"])) > max_queue_s:
+                return {
+                    "payload": {
+                        "status": "submit_failed",
+                        "stderr": f"no TI-ONE task could be created in {int(max_queue_s)} s "
+                        f"({handle['submit_attempts']} attempts): {handle['submit_error']}",
+                        "cases": [],
+                    },
+                    "submission": {**submission, "returncode": None},
+                }
+            return None
         remote = self.remote()
         exit_text = remote.read_text(f"{handle['remote_dir']}/exit_code")
         if exit_text is not None and exit_text.strip():
@@ -402,7 +497,6 @@ class TioneSubmitter:
                 },
                 "submission": {**submission, "returncode": None},
             }
-        max_queue_s = float(self.cluster.get("max_queue_s", 86400))
         if _now_s() - float(handle["submitted"]) > float(handle["timeout_s"]) + max_queue_s:
             return {
                 "payload": {

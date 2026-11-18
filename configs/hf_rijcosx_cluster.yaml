@@ -25,9 +25,18 @@ cluster:
   user: zuodarui
   remote_root: /home/tione/notebook/home/zuodarui/fieldquantum/esm-harness-eval
   activate: source /home/tione/notebook/home/zuodarui/miniforge3/bin/activate pyscf
-  submit_command: tione-submit --submit
   threads: 8
-  # Give up on a task that has produced no result this long after its time limit.
+  # The same task that tione-submit creates: 1 GPU, 48 cores, 256 GB, project image.
+  task:
+    submit_script: ~/.cursor/skills/server-use/scripts/submit_training_task.py
+    host: infra
+    gpus: 1
+    cpu: 48
+    memory: 256
+    image: tione.tencentcloudcr.com/qcloud-ti-platform/notebook-conda-gpu:verl0.6.1-vllm0.11.0-torch2.8-py312-cuda12.8-gpu
+    image_type: CCR
+  # Give up on a task that has produced no result this long after its time
+  # limit, and on a job whose task could not be created for this long.
   max_queue_s: 259200
 factors:
   model: claude-opus-5.5

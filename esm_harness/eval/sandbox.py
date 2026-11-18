@@ -228,10 +228,14 @@ def collect_evaluation(
         return started["evaluation"]
     finished = []
     for job in started["jobs"]:
-        result = submitter.poll(job["handle"])
-        if result is None:
-            return None
-        finished.append((job, result))
+        if "result" not in job:
+            result = submitter.poll(job["handle"])
+            if result is not None:
+                job["result"] = result
+        if "result" in job:
+            finished.append((job, job["result"]))
+    if len(finished) < len(started["jobs"]):
+        return None
     statuses = [result["payload"].get("status", "error") for _, result in finished]
     status = "ok" if all(item == "ok" for item in statuses) else next(item for item in statuses if item != "ok")
     payload = {

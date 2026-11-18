@@ -1,4 +1,5 @@
 import json
+import shlex
 from pathlib import Path
 
 import pytest
@@ -242,14 +243,18 @@ def test_round_stops_before_model_calls_when_the_cluster_is_unreachable(tmp_path
 
 
 class FakeRemote:
-    def __init__(self):
+    def __init__(self, submit_failures=0):
         self.files = {}
         self.commands = []
         self.status = "RUNNING"
+        self.submit_failures = submit_failures
 
     def run(self, command, timeout=600):
         self.commands.append(command)
-        if "tione-submit" in command:
+        if "esm_tione_submit.py" in command:
+            if self.submit_failures:
+                self.submit_failures -= 1
+                return 1, "", "warnings\nsubmit=failed\nreason=no training task in this resource group has a VPC and subnet\n"
             return 0, 'name_ok=true\n{"submit": "created", "task_id": "train-123", "name": "x"}\n', ""
         if "tione_status.py" in command:
             return 0, json.dumps({"train-123": {"status": self.status, "reason": "oom"}}) + "\n", ""
@@ -266,7 +271,7 @@ def _tione(tmp_path, remote):
     cluster = load_yaml(CONFIG)["cluster"]
     submitter = TioneSubmitter(REPO_ROOT, {**cluster, "remote_root": "/cfs/eval"}, remote=remote)
     workdir = tmp_path / "job1"
-    workdir.mkdir()
+    workdir.mkdir(parents=True)
     (workdir / "candidate.py").write_text(EXACT, encoding="utf-8")
     job_file = workdir / "job.json"
     job_file.write_text(json.dumps({"program": str(workdir / "candidate.py"), "output": str(workdir / "result.json"),
@@ -288,7 +293,15 @@ def test_tione_submitter_deploys_submits_and_collects(tmp_path):
     assert "timeout --kill-after=60 900 python -u worker.py --job job.json" in script
     assert "miniforge3/bin/activate pyscf" in script and "OMP_NUM_THREADS=8" in script
     assert "*PASSWORD*" in script
-    assert any("tione-submit --submit /cfs/eval/abc123/esm-abc123.sh" in command for command in remote.commands)
+    [submit] = [command for command in remote.commands if "esm_tione_submit.py" in command]
+    args = shlex.split(shlex.split(submit)[2])
+    assert args[:8] == ["uv", "run", "-q", "--with", "tikit", "python", "/cfs/eval/esm_tione_submit.py",
+                        "~/.cursor/skills/server-use/scripts/submit_training_task.py"]
+    options = dict(zip(args[8:-1:2], args[9:-1:2]))
+    assert options["--host"] == "infra" and options["--name"].startswith("zuodarui-esm-abc123-")
+    assert (options["--gpus"], options["--cpu"], options["--memory"], options["--image-type"]) == ("1", "48", "256", "CCR")
+    assert options["--start-cmd"] == "bash /cfs/eval/abc123/esm-abc123.sh" and args[-1] == "--submit"
+    assert "s.resolve_host = resolve_host" in remote.files["/cfs/eval/esm_tione_submit.py"]
 
     assert submitter.poll(handle) is None
     remote.files["/cfs/eval/abc123/exit_code"] = "0\n"
@@ -309,6 +322,47 @@ def test_tione_submitter_reports_timeouts_and_dead_tasks(tmp_path):
     remote.status = "FAILED"
     result = submitter.poll(handle)
     assert result["payload"]["status"] == "error" and "FAILED" in result["payload"]["stderr"]
+
+
+def test_failed_task_creation_is_retried_not_scored(tmp_path, monkeypatch):
+    from esm_harness.eval import submit as submit_module
+
+    remote = FakeRemote(submit_failures=2)
+    submitter, spec, job_file = _tione(tmp_path, remote)
+    handle = submitter.start(spec, job_file)
+    assert handle["task_id"] is None and "VPC and subnet" in handle["submit_error"]
+    assert submitter.poll(handle) is None
+    assert handle["task_id"] is None and handle["submit_attempts"] == 2
+    assert submitter.poll(handle) is None
+    assert handle["task_id"] == "train-123" and "submit_error" not in handle
+
+    remote = FakeRemote(submit_failures=10)
+    submitter, spec, job_file = _tione(tmp_path / "late", remote)
+    handle = submitter.start(spec, job_file)
+    monkeypatch.setattr(submit_module, "_now_s", lambda: handle["first_attempt"] + 259201)
+    result = submitter.poll(handle)
+    assert result["payload"]["status"] == "submit_failed" and "2 attempts" in result["payload"]["stderr"]
+
+
+def test_abort_closes_the_round_without_scoring(tmp_path, monkeypatch):
+    config = _cluster_config(tmp_path)
+    (tmp_path / "run.yaml").write_text(yaml.safe_dump(config), encoding="utf-8")
+    plan = {"rounds_dir": "trajectories/rounds", "sessions": [{"config": str(tmp_path / "run.yaml"), "run_id": "c"}]}
+    submitter = FakeTione()
+    monkeypatch.setattr(loop, "make_submitter", lambda config, root: submitter)
+    session = Session(tmp_path / "trajectories" / "c")
+    loop.begin(tmp_path, plan, "bc-1")
+    answer_with_client(session, StubClient([EXACT]))
+    with pytest.raises(loop.LoopError, match="belongs to bc-1"):
+        loop.abort(tmp_path, plan, "bc-2", "x")
+    report = loop.abort(tmp_path, plan, "bc-1", "cluster could not create tasks")
+    assert report["aborted"] == "cluster could not create tasks" and loop.read_lock(tmp_path) is None
+    assert session.load()["generation"] == 0 and not session.trajectory.exists()
+    assert "aborted: cluster could not create tasks" in loop.format_snapshot(loop.snapshot(tmp_path, plan))
+
+    opened = loop.begin(tmp_path, plan, "bc-3")
+    assert opened["round"] == 2 and opened["requests"] == []
+    assert loop.end(tmp_path, plan, "bc-3")["sessions"][0]["status"] == "evaluating"
 
 
 def test_worker_passes_the_suite_method_to_solve(tmp_path):

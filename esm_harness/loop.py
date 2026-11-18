@@ -235,6 +235,22 @@ def end(root: Path, plan: dict, agent_id: str) -> dict:
     return report
 
 
+def abort(root: Path, plan: dict, agent_id: str, reason: str) -> dict:
+    """Close the caller's round without scoring: sessions stay as they are, so
+    answered candidates are scored by a later round."""
+    lock = read_lock(root)
+    if lock is None:
+        raise LoopError("no round is open")
+    if lock["driver_agent_id"] != agent_id:
+        raise LoopError(f"round {lock['round']} belongs to {lock['driver_agent_id']}, not {agent_id}")
+    report = {**lock, "ended": _now(), "aborted": reason, "sessions": []}
+    out = _rounds_dir(root, plan)
+    out.mkdir(parents=True, exist_ok=True)
+    (out / f"round-{lock['round']:03d}.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    (root / LOCK_NAME).unlink()
+    return report
+
+
 def _age(stamp: str) -> str:
     seconds = int((dt.datetime.now(dt.timezone.utc) - dt.datetime.fromisoformat(stamp)).total_seconds())
     return f"{seconds // 60}m{seconds % 60:02d}s"
@@ -322,6 +338,7 @@ def snapshot(root: Path, plan: dict, launches: list | None = None, transcripts: 
                 "started": report["started"],
                 "ended": report["ended"],
                 "scored": sum(len(item["candidates"]) for item in report["sessions"]),
+                "aborted": report.get("aborted"),
             }
         )
     return {
@@ -383,6 +400,6 @@ def format_snapshot(view: dict) -> str:
     for item in view["rounds"][-5:]:
         lines.append(
             f"round {item['round']}: {item['driver_agent_id']}, {item['started']} -> {item['ended']}, "
-            f"{item['scored']} scored"
+            f"{item['scored']} scored" + (f", aborted: {item['aborted']}" if item.get("aborted") else "")
         )
     return "\n".join(lines)

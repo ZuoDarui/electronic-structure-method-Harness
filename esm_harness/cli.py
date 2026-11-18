@@ -239,6 +239,10 @@ def _cmd_round(args: argparse.Namespace) -> int:
             _print(loop.begin(root, plan, args.agent_id))
         elif args.action == "requests":
             _print(loop.open_requests(root))
+        elif args.action == "abort":
+            if not args.reason:
+                raise loop.LoopError("round abort needs --reason")
+            _print(loop.abort(root, plan, args.agent_id, args.reason))
         else:
             _print(loop.end(root, plan, args.agent_id))
     except loop.LoopError as exc:
@@ -371,8 +375,9 @@ def build_parser() -> argparse.ArgumentParser:
     audit_ids.set_defaults(func=_cmd_audit_ids)
 
     round_ = commands.add_parser("round", help="begin or end the one round a driving agent is allowed to run")
-    round_.add_argument("action", choices=("begin", "requests", "end"))
-    round_.add_argument("--agent-id", help="the driving agent's own id (required for begin and end)")
+    round_.add_argument("action", choices=("begin", "requests", "end", "abort"))
+    round_.add_argument("--agent-id", help="the driving agent's own id (required for begin, end and abort)")
+    round_.add_argument("--reason", help="abort: why the round closes without scoring")
     round_.add_argument("--root", default=".", help=argparse.SUPPRESS)
     round_.add_argument("--plan", default="loop.yaml", help=argparse.SUPPRESS)
     round_.set_defaults(func=_cmd_round)
@@ -405,7 +410,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> None:
     args = build_parser().parse_args(argv)
-    if getattr(args, "action", None) in ("begin", "end") and not args.agent_id:
+    if getattr(args, "action", None) in ("begin", "end", "abort") and not args.agent_id:
         raise SystemExit(f"round {args.action} needs --agent-id")
     try:
         code = args.func(args)
