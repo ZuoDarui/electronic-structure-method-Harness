@@ -293,6 +293,7 @@ class Session:
             )
         code, parse_error = split_program(response)
         if code:
+            self.path("programs", cid).parent.mkdir(parents=True, exist_ok=True)
             self.path("programs", cid).write_text(code + "\n", encoding="utf-8")
         return {"failed": failed, "response": response, "meta": meta, "code": code, "parse_error": parse_error}
 

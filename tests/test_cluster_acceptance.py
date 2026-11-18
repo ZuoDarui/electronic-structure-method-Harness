@@ -230,6 +230,26 @@ def test_round_waits_for_the_cluster_without_taking_the_lock(tmp_path, monkeypat
     assert session.status()["best"]["candidate_id"] == "c-g00-s0"
 
 
+def test_round_end_reaches_the_cluster_with_the_current_config(tmp_path, monkeypatch):
+    config = _cluster_config(tmp_path)
+    (tmp_path / "run.yaml").write_text(yaml.safe_dump(config), encoding="utf-8")
+    plan = {"rounds_dir": "trajectories/rounds", "sessions": [{"config": str(tmp_path / "run.yaml"), "run_id": "c"}]}
+    submitter = FakeTione()
+    seen = []
+    monkeypatch.setattr(loop, "make_submitter", lambda config, root: seen.append(config) or submitter)
+    session = Session(tmp_path / "trajectories" / "c")
+    loop.begin(tmp_path, plan, "bc-1")
+    answer_with_client(session, StubClient([EXACT]))
+    import shutil
+    shutil.rmtree(session.root / "programs")
+    config["cluster"] = {**config["cluster"], "remote_root": "/cfs/moved"}
+    (tmp_path / "run.yaml").write_text(yaml.safe_dump(config), encoding="utf-8")
+    loop.end(tmp_path, plan, "bc-1")
+    assert seen[-1]["cluster"]["remote_root"] == "/cfs/moved"
+    assert seen[-1]["factors"] == session.load()["config"]["factors"]
+    assert session.path("programs", "c-g00-s0").is_file()
+
+
 def test_round_stops_before_model_calls_when_the_cluster_is_unreachable(tmp_path, monkeypatch):
     config = _cluster_config(tmp_path)
     (tmp_path / "run.yaml").write_text(yaml.safe_dump(config), encoding="utf-8")

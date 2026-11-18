@@ -89,6 +89,21 @@ def planned_sessions(plan: dict) -> list[tuple[Session, dict]]:
     return out
 
 
+INFRA_KEYS = ("submit", "cluster", "partition", "account")
+
+
+def _infra_config(plan: dict, session: Session, stored: dict) -> dict:
+    """The session's stored config with where-to-run settings taken from the current plan.
+
+    The experiment (suite, references, factors) stays as it was when the session
+    started; how jobs reach the cluster follows the current config.
+    """
+    for planned, config in planned_sessions(plan):
+        if planned.root.resolve() == session.root.resolve():
+            return {**stored, **{key: config[key] for key in INFRA_KEYS if key in config}}
+    return stored
+
+
 def _rel(root: Path, path: Path) -> str:
     try:
         return path.resolve().relative_to(root.resolve()).as_posix()
@@ -185,7 +200,7 @@ def end(root: Path, plan: dict, agent_id: str) -> dict:
     sessions = []
     for session in _locked_sessions(root, lock):
         before = session.load()
-        submitter = make_submitter(before["config"], REPO_ROOT)
+        submitter = make_submitter(_infra_config(plan, session, before["config"]), REPO_ROOT)
         if _rel(root, session.root) not in lock.get("baseline_measured_at_begin", []):
             session.remeasure_baseline(submitter)
         baseline = session.baseline()
