@@ -1,0 +1,122 @@
+{
+  "run_id": "cell-07-hf_minimal-iterative-w0.5-max",
+  "bound_model": "claude-opus-5-5-max",
+  "audited_at": "2026-11-17T03:57:59+00:00",
+  "session_created": "2026-11-16T02:21:38+00:00",
+  "launches_before_session": [],
+  "summary": {
+    "candidates": 4,
+    "launches": 9,
+    "responses_verified": 3,
+    "call_failed": 1,
+    "candidates_with_violations": 0,
+    "violations": 0,
+    "notes": 1
+  },
+  "candidates": [
+    {
+      "candidate_id": "cell-07-hf_minimal-iterative-w0.5-max-g00-s0",
+      "status": "ok",
+      "accepted_agent": "bc-889ab572-855d-53aa-8e79-30980815a8d9",
+      "launches": [
+        {
+          "agent_id": "bc-d3b4d416-0561-58c5-a08c-715c8e6e2b71",
+          "model": "claude-opus-5-5-max",
+          "transcript": true,
+          "error": null
+        },
+        {
+          "agent_id": "bc-889ab572-855d-53aa-8e79-30980815a8d9",
+          "model": "claude-opus-5-5-max",
+          "transcript": true,
+          "error": null
+        }
+      ],
+      "logged_calls": 2,
+      "logged_failures": 1,
+      "response_verified": true,
+      "violations": [],
+      "notes": []
+    },
+    {
+      "candidate_id": "cell-07-hf_minimal-iterative-w0.5-max-g01-s0",
+      "status": "call_failed",
+      "accepted_agent": null,
+      "launches": [
+        {
+          "agent_id": "bc-ddfb6270-3ef3-5db4-b83c-8ae7da749768",
+          "model": "claude-opus-5-5-max",
+          "transcript": true,
+          "error": "Activity task timed out; no response"
+        },
+        {
+          "agent_id": "bc-bbc7f97a-1f00-5cf4-84a5-aa7e45aa4a3b",
+          "model": "claude-opus-5-5-max",
+          "transcript": true,
+          "error": "Activity task timed out; no response"
+        },
+        {
+          "agent_id": "bc-b43a8cda-9cb2-50fe-bdf4-7d069f0b9716",
+          "model": "claude-opus-5-5-max",
+          "transcript": true,
+          "error": "Activity task timed out; no response"
+        }
+      ],
+      "logged_calls": 3,
+      "logged_failures": 3,
+      "response_verified": false,
+      "violations": [],
+      "notes": []
+    },
+    {
+      "candidate_id": "cell-07-hf_minimal-iterative-w0.5-max-g02-s0",
+      "status": "ok",
+      "accepted_agent": "bc-09e38434-9a32-5037-a83b-340e8b4401bc",
+      "launches": [
+        {
+          "agent_id": "bc-09e38434-9a32-5037-a83b-340e8b4401bc",
+          "model": "claude-opus-5-5-max",
+          "transcript": true,
+          "error": null
+        }
+      ],
+      "logged_calls": 1,
+      "logged_failures": 0,
+      "response_verified": true,
+      "violations": [],
+      "notes": []
+    },
+    {
+      "candidate_id": "cell-07-hf_minimal-iterative-w0.5-max-g03-s0",
+      "status": "ok",
+      "accepted_agent": "bc-7c77f328-cee1-59b7-be7e-bb8b65891259",
+      "launches": [
+        {
+          "agent_id": "bc-5f54f80f-ce59-5a75-84e1-0eb3efaf856b",
+          "model": "claude-opus-5-5-max",
+          "transcript": true,
+          "error": "Activity task timed out; no response"
+        },
+        {
+          "agent_id": "bc-2a56c4ee-41d1-55ef-8385-bbe8354fbbf6",
+          "model": "claude-opus-5-5-max",
+          "transcript": true,
+          "error": "request blocked under Anthropic's Usage Policy; no response"
+        },
+        {
+          "agent_id": "bc-7c77f328-cee1-59b7-be7e-bb8b65891259",
+          "model": "claude-opus-5-5-max",
+          "transcript": true,
+          "error": null
+        }
+      ],
+      "logged_calls": 3,
+      "logged_failures": 2,
+      "response_verified": true,
+      "violations": [],
+      "notes": [
+        "agent bc-7c77f328-cee1-59b7-be7e-bb8b65891259 made a search_replace call that has no recorded result (a failed write, retried)"
+      ]
+    }
+  ]
+}

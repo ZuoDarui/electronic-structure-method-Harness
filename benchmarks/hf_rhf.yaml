@@ -1,0 +1,43 @@
+cases:
+  - id: h2_sto3g
+    atom: "H 0 0 0; H 0 0 0.74"
+    basis: sto-3g
+    charge: 0
+    spin: 0
+    unit: Angstrom
+  - id: heh_sto3g
+    atom: "He 0 0 0; H 0 0 0.774"
+    basis: sto-3g
+    charge: 1
+    spin: 0
+    unit: Angstrom
+  - id: h2o_sto3g
+    atom: "O 0 0 0.1173; H 0 0.7572 -0.4692; H 0 -0.7572 -0.4692"
+    basis: sto-3g
+    charge: 0
+    spin: 0
+    unit: Angstrom
+  - id: h2_631g
+    atom: "H 0 0 0; H 0 0 0.74"
+    basis: 6-31g
+    charge: 0
+    spin: 0
+    unit: Angstrom
+  - id: h2o_631g
+    atom: "O 0 0 0.1173; H 0 0.7572 -0.4692; H 0 -0.7572 -0.4692"
+    basis: 6-31g
+    charge: 0
+    spin: 0
+    unit: Angstrom
+  - id: nh3_631gs
+    atom: "N 0 0 0.1162; H 0 0.9377 -0.2711; H 0.8121 -0.4689 -0.2711; H -0.8121 -0.4689 -0.2711"
+    basis: 6-31g*
+    charge: 0
+    spin: 0
+    unit: Angstrom
+  - id: ch4_ccpvdz
+    atom: "C 0 0 0; H 0.6291 0.6291 0.6291; H -0.6291 -0.6291 0.6291; H -0.6291 0.6291 -0.6291; H 0.6291 -0.6291 -0.6291"
+    basis: cc-pvdz
+    charge: 0
+    spin: 0
+    unit: Angstrom

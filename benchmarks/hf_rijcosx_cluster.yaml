@@ -1,0 +1,54 @@
+# Water clusters and straight-chain alkanes from the TI-ONE cluster runs
+# (/home/tione/notebook/home/zuodarui/fieldquantum/hf). Geometries are the
+# cluster's XYZ files, byte for byte. Every case is closed-shell RHF/cc-pVTZ
+# with RIJCOSX as run there; reference energies and times are in
+# rijcosx_cluster_references.json. C375H752 is left out: neither hf.py nor
+# PySCF produced an energy for it.
+method:
+  jk: rijcosx
+  auxbasis: weigend
+  grid: [30, 110]
+  final_grid: [35, 302]
+  conv_tol: 1.0e-8
+  final_energy: single_point
+cases:
+  - id: water8
+    xyz: geometries/water8.xyz
+    basis: cc-pvtz
+    nao: 464
+  - id: water16
+    xyz: geometries/water16.xyz
+    basis: cc-pvtz
+    nao: 928
+  - id: water32
+    xyz: geometries/water32.xyz
+    basis: cc-pvtz
+    nao: 1856
+  - id: water64
+    xyz: geometries/water64.xyz
+    basis: cc-pvtz
+    nao: 3712
+  - id: water128
+    xyz: geometries/water128.xyz
+    basis: cc-pvtz
+    nao: 7424
+  - id: c21h44
+    xyz: geometries/c21h44.xyz
+    basis: cc-pvtz
+    nao: 1246
+  - id: c43h88
+    xyz: geometries/c43h88.xyz
+    basis: cc-pvtz
+    nao: 2522
+  - id: c86h174
+    xyz: geometries/c86h174.xyz
+    basis: cc-pvtz
+    nao: 5016
+  # The only C172 energy is hf.py's 2026-11-16 run, which converges SCF again
+  # on the final grid instead of evaluating it once.
+  - id: c172h346
+    xyz: geometries/c172h346.xyz
+    basis: cc-pvtz
+    nao: 10004
+    method:
+      final_energy: reconverge

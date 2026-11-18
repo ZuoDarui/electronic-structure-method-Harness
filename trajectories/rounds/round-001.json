@@ -1,0 +1,32 @@
+{
+  "round": 1,
+  "driver_agent_id": "bc-dd2b817b-c469-4568-9b2e-30b19343d647",
+  "started": "2026-11-17T07:39:17+00:00",
+  "fingerprint": "e813691a9391abc4",
+  "sessions": [
+    {
+      "session": "trajectories/hf-opus55-pyscf",
+      "run_id": "hf-opus55-pyscf",
+      "generation_scored": 0,
+      "status": "awaiting_responses",
+      "next_generation": 1,
+      "candidates": [
+        {
+          "candidate_id": "hf-opus55-pyscf-g00-s0",
+          "agent_id": "bc-bad8e453-56a1-5848-a7f4-de5da47575f2",
+          "status": "ok",
+          "fitness": 13.044716513681571,
+          "max_abs_err": 1.1368683772161603e-13,
+          "geomean_time_ratio": 0.1237572829228603
+        }
+      ],
+      "best": {
+        "candidate_id": "hf-opus55-pyscf-g00-s0",
+        "fitness": 13.044716513681571,
+        "max_abs_err": 1.1368683772161603e-13,
+        "geomean_time_ratio": 0.1237572829228603
+      }
+    }
+  ],
+  "ended": "2026-11-17T07:40:17+00:00"
+}

@@ -1,0 +1,8 @@
+{
+  "provider": "cursor-subagent",
+  "model": "claude-opus-5-5-high",
+  "agent_id": "bc-372c6c1b-af3d-52db-9456-5aeeb1dc06aa",
+  "usage": null,
+  "usage_note": "the subagent call did not report token usage",
+  "latency_s": null
+}

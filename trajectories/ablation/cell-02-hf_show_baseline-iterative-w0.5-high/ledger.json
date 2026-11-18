@@ -1,0 +1,316 @@
+{
+  "run_id": "cell-02-hf_show_baseline-iterative-w0.5-high",
+  "status": "done",
+  "factors": {
+    "model": "claude-opus-5.5",
+    "prompt_id": "hf_show_baseline",
+    "search": "iterative",
+    "speed_weight": 0.5,
+    "reasoning_effort": "high",
+    "population_n": 3,
+    "allowed_imports": [
+      "numpy",
+      "scipy",
+      "pyscf.gto"
+    ],
+    "max_abs_err": 1e-08,
+    "max_time_ratio": 1.0,
+    "fitness_err_ceiling": 1e-06
+  },
+  "models": {
+    "claude-opus-5-5-high": 4
+  },
+  "calls": 4,
+  "metered_calls": 0,
+  "unmetered_calls": 4,
+  "usage": {
+    "input_tokens": 0,
+    "cached_tokens": 0,
+    "output_tokens": 0,
+    "reasoning_tokens": 0,
+    "total_tokens": 0
+  },
+  "generations": [
+    {
+      "generation": 0,
+      "calls": 1,
+      "best": {
+        "candidate_id": "cell-02-hf_show_baseline-iterative-w0.5-high-g00-s0",
+        "generation": 0,
+        "fitness": 13.206414503194202,
+        "max_abs_err": 1.4210854715202004e-13,
+        "max_abs_err_vs_baseline": 1.1368683772161603e-13,
+        "geomean_time_ratio": 0.08956156559979049,
+        "status": "ok",
+        "cases": [
+          {
+            "id": "h2_sto3g",
+            "abs_err": 2.220446049250313e-16,
+            "abs_err_baseline": 2.220446049250313e-16,
+            "time_ratio": 0.05570023406007935
+          },
+          {
+            "id": "heh_sto3g",
+            "abs_err": 0.0,
+            "abs_err_baseline": 1.7763568394002505e-15,
+            "time_ratio": 0.0517601285667257
+          },
+          {
+            "id": "h2o_sto3g",
+            "abs_err": 1.4210854715202004e-14,
+            "abs_err_baseline": 8.526512829121202e-14,
+            "time_ratio": 0.060328890238066285
+          },
+          {
+            "id": "h2_631g",
+            "abs_err": 1.021405182655144e-14,
+            "abs_err_baseline": 1.3322676295501878e-15,
+            "time_ratio": 0.09406942297550334
+          },
+          {
+            "id": "h2o_631g",
+            "abs_err": 2.842170943040401e-14,
+            "abs_err_baseline": 0.0,
+            "time_ratio": 0.11048519578077569
+          },
+          {
+            "id": "nh3_631gs",
+            "abs_err": 9.947598300641403e-14,
+            "abs_err_baseline": 7.105427357601002e-14,
+            "time_ratio": 0.196812748426373
+          },
+          {
+            "id": "ch4_ccpvdz",
+            "abs_err": 1.4210854715202004e-13,
+            "abs_err_baseline": 1.1368683772161603e-13,
+            "time_ratio": 0.1299176745719739
+          }
+        ]
+      }
+    },
+    {
+      "generation": 1,
+      "calls": 1,
+      "best": {
+        "candidate_id": "cell-02-hf_show_baseline-iterative-w0.5-high-g01-s0",
+        "generation": 1,
+        "fitness": 13.315702269996258,
+        "max_abs_err": 1.4210854715202004e-13,
+        "max_abs_err_vs_baseline": 1.1368683772161603e-13,
+        "geomean_time_ratio": 0.07197729621844454,
+        "status": "ok",
+        "cases": [
+          {
+            "id": "h2_sto3g",
+            "abs_err": 2.220446049250313e-16,
+            "abs_err_baseline": 2.220446049250313e-16,
+            "time_ratio": 0.05492116771243063
+          },
+          {
+            "id": "heh_sto3g",
+            "abs_err": 8.881784197001252e-16,
+            "abs_err_baseline": 8.881784197001252e-16,
+            "time_ratio": 0.0551195312816025
+          },
+          {
+            "id": "h2o_sto3g",
+            "abs_err": 7.105427357601002e-14,
+            "abs_err_baseline": 0.0,
+            "time_ratio": 0.0622330402556934
+          },
+          {
+            "id": "h2_631g",
+            "abs_err": 1.0436096431476471e-14,
+            "abs_err_baseline": 1.5543122344752192e-15,
+            "time_ratio": 0.10413133815203982
+          },
+          {
+            "id": "h2o_631g",
+            "abs_err": 4.263256414560601e-14,
+            "abs_err_baseline": 1.4210854715202004e-14,
+            "time_ratio": 0.0975693259233853
+          },
+          {
+            "id": "nh3_631gs",
+            "abs_err": 9.947598300641403e-14,
+            "abs_err_baseline": 7.105427357601002e-14,
+            "time_ratio": 0.15466649572553476
+          },
+          {
+            "id": "ch4_ccpvdz",
+            "abs_err": 1.4210854715202004e-13,
+            "abs_err_baseline": 1.1368683772161603e-13,
+            "time_ratio": 0.03380737136936103
+          }
+        ]
+      }
+    },
+    {
+      "generation": 2,
+      "calls": 1,
+      "best": {
+        "candidate_id": "cell-02-hf_show_baseline-iterative-w0.5-high-g02-s0",
+        "generation": 2,
+        "fitness": 13.47514217773578,
+        "max_abs_err": 9.947598300641403e-14,
+        "max_abs_err_vs_baseline": 1.5631940186722204e-13,
+        "geomean_time_ratio": 0.05232482498250842,
+        "status": "ok",
+        "cases": [
+          {
+            "id": "h2_sto3g",
+            "abs_err": 2.220446049250313e-16,
+            "abs_err_baseline": 2.220446049250313e-16,
+            "time_ratio": 0.04703550603640978
+          },
+          {
+            "id": "heh_sto3g",
+            "abs_err": 0.0,
+            "abs_err_baseline": 1.7763568394002505e-15,
+            "time_ratio": 0.035939133567402616
+          },
+          {
+            "id": "h2o_sto3g",
+            "abs_err": 0.0,
+            "abs_err_baseline": 7.105427357601002e-14,
+            "time_ratio": 0.05013327157430048
+          },
+          {
+            "id": "h2_631g",
+            "abs_err": 1.021405182655144e-14,
+            "abs_err_baseline": 1.3322676295501878e-15,
+            "time_ratio": 0.06583478553302238
+          },
+          {
+            "id": "h2o_631g",
+            "abs_err": 2.842170943040401e-14,
+            "abs_err_baseline": 0.0,
+            "time_ratio": 0.07948952413936836
+          },
+          {
+            "id": "nh3_631gs",
+            "abs_err": 8.526512829121202e-14,
+            "abs_err_baseline": 5.684341886080802e-14,
+            "time_ratio": 0.11380573958467648
+          },
+          {
+            "id": "ch4_ccpvdz",
+            "abs_err": 9.947598300641403e-14,
+            "abs_err_baseline": 1.5631940186722204e-13,
+            "time_ratio": 0.021276761862523953
+          }
+        ]
+      }
+    },
+    {
+      "generation": 3,
+      "calls": 1,
+      "best": {
+        "candidate_id": "cell-02-hf_show_baseline-iterative-w0.5-high-g03-s0",
+        "generation": 3,
+        "fitness": 13.451451854931468,
+        "max_abs_err": 8.526512829121202e-14,
+        "max_abs_err_vs_baseline": 1.8474111129762605e-13,
+        "geomean_time_ratio": 0.054863680330274,
+        "status": "ok",
+        "cases": [
+          {
+            "id": "h2_sto3g",
+            "abs_err": 2.220446049250313e-16,
+            "abs_err_baseline": 2.220446049250313e-16,
+            "time_ratio": 0.0523971206539107
+          },
+          {
+            "id": "heh_sto3g",
+            "abs_err": 8.881784197001252e-16,
+            "abs_err_baseline": 2.6645352591003757e-15,
+            "time_ratio": 0.042964326077957526
+          },
+          {
+            "id": "h2o_sto3g",
+            "abs_err": 2.842170943040401e-14,
+            "abs_err_baseline": 9.947598300641403e-14,
+            "time_ratio": 0.05067810377667619
+          },
+          {
+            "id": "h2_631g",
+            "abs_err": 9.103828801926284e-15,
+            "abs_err_baseline": 2.220446049250313e-16,
+            "time_ratio": 0.06542036263250689
+          },
+          {
+            "id": "h2o_631g",
+            "abs_err": 8.526512829121202e-14,
+            "abs_err_baseline": 1.1368683772161603e-13,
+            "time_ratio": 0.07997322136326947
+          },
+          {
+            "id": "nh3_631gs",
+            "abs_err": 8.526512829121202e-14,
+            "abs_err_baseline": 5.684341886080802e-14,
+            "time_ratio": 0.11421964664307725
+          },
+          {
+            "id": "ch4_ccpvdz",
+            "abs_err": 7.105427357601002e-14,
+            "abs_err_baseline": 1.8474111129762605e-13,
+            "time_ratio": 0.021946255406724565
+          }
+        ]
+      }
+    }
+  ],
+  "best": {
+    "candidate_id": "cell-02-hf_show_baseline-iterative-w0.5-high-g02-s0",
+    "generation": 2,
+    "fitness": 13.47514217773578,
+    "max_abs_err": 9.947598300641403e-14,
+    "max_abs_err_vs_baseline": 1.5631940186722204e-13,
+    "geomean_time_ratio": 0.05232482498250842,
+    "status": "ok",
+    "cases": [
+      {
+        "id": "h2_sto3g",
+        "abs_err": 2.220446049250313e-16,
+        "abs_err_baseline": 2.220446049250313e-16,
+        "time_ratio": 0.04703550603640978
+      },
+      {
+        "id": "heh_sto3g",
+        "abs_err": 0.0,
+        "abs_err_baseline": 1.7763568394002505e-15,
+        "time_ratio": 0.035939133567402616
+      },
+      {
+        "id": "h2o_sto3g",
+        "abs_err": 0.0,
+        "abs_err_baseline": 7.105427357601002e-14,
+        "time_ratio": 0.05013327157430048
+      },
+      {
+        "id": "h2_631g",
+        "abs_err": 1.021405182655144e-14,
+        "abs_err_baseline": 1.3322676295501878e-15,
+        "time_ratio": 0.06583478553302238
+      },
+      {
+        "id": "h2o_631g",
+        "abs_err": 2.842170943040401e-14,
+        "abs_err_baseline": 0.0,
+        "time_ratio": 0.07948952413936836
+      },
+      {
+        "id": "nh3_631gs",
+        "abs_err": 8.526512829121202e-14,
+        "abs_err_baseline": 5.684341886080802e-14,
+        "time_ratio": 0.11380573958467648
+      },
+      {
+        "id": "ch4_ccpvdz",
+        "abs_err": 9.947598300641403e-14,
+        "abs_err_baseline": 1.5631940186722204e-13,
+        "time_ratio": 0.021276761862523953
+      }
+    ]
+  }
+}

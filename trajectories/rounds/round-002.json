@@ -1,0 +1,12 @@
+{
+  "round": 2,
+  "driver_agent_id": "bc-a787853b-1f0e-4675-9d0c-360f52cba3ff",
+  "started": "2026-11-18T02:21:22+00:00",
+  "fingerprint": "1a7c810c147316ac",
+  "sessions": [],
+  "baseline_measured_at_begin": [
+    "trajectories/hf-opus55-cluster"
+  ],
+  "ended": "2026-11-18T03:26:03+00:00",
+  "aborted": "no TI-ONE task could be created (submit_training_task.py found no infra VPC in the 20 latest tasks); the generation-0 program was never run, so its response is kept and evaluated next round"
+}

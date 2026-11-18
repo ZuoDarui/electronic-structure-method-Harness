@@ -1,0 +1,145 @@
+{
+  "run_id": "hf-opus55-pyscf",
+  "status": "awaiting_responses",
+  "factors": {
+    "model": "claude-opus-5.5",
+    "prompt_id": "hf_minimal",
+    "search": "iterative",
+    "speed_weight": 0.5,
+    "reasoning_effort": "high",
+    "population_n": 3,
+    "allowed_imports": [
+      "numpy",
+      "scipy",
+      "pyscf.gto"
+    ],
+    "max_abs_err": 1e-08,
+    "max_time_ratio": 1.0,
+    "fitness_err_ceiling": 1e-06
+  },
+  "models": {
+    "claude-opus-5-5-high": 1
+  },
+  "calls": 1,
+  "metered_calls": 0,
+  "unmetered_calls": 1,
+  "usage": {
+    "input_tokens": 0,
+    "cached_tokens": 0,
+    "output_tokens": 0,
+    "reasoning_tokens": 0,
+    "total_tokens": 0
+  },
+  "generations": [
+    {
+      "generation": 0,
+      "calls": 1,
+      "best": {
+        "candidate_id": "hf-opus55-pyscf-g00-s0",
+        "generation": 0,
+        "fitness": 13.044716513681571,
+        "max_abs_err": 1.1368683772161603e-13,
+        "max_abs_err_vs_baseline": 5.651479284551897e-12,
+        "geomean_time_ratio": 0.1237572829228603,
+        "status": "ok",
+        "cases": [
+          {
+            "id": "h2_sto3g",
+            "abs_err": 0.0,
+            "abs_err_baseline": 0.0,
+            "time_ratio": 0.03693051543199639
+          },
+          {
+            "id": "heh_sto3g",
+            "abs_err": 2.6645352591003757e-15,
+            "abs_err_baseline": 5.651479284551897e-12,
+            "time_ratio": 0.07813296758220564
+          },
+          {
+            "id": "h2o_sto3g",
+            "abs_err": 2.842170943040401e-14,
+            "abs_err_baseline": 1.6200374375330284e-12,
+            "time_ratio": 0.04608648592043895
+          },
+          {
+            "id": "h2_631g",
+            "abs_err": 8.881784197001252e-15,
+            "abs_err_baseline": 4.1744385725905886e-14,
+            "time_ratio": 0.10257797868425858
+          },
+          {
+            "id": "h2o_631g",
+            "abs_err": 8.526512829121202e-14,
+            "abs_err_baseline": 2.8421709430404007e-13,
+            "time_ratio": 0.09487124603814083
+          },
+          {
+            "id": "nh3_631gs",
+            "abs_err": 4.263256414560601e-14,
+            "abs_err_baseline": 1.4779288903810084e-12,
+            "time_ratio": 0.16838677895778115
+          },
+          {
+            "id": "ch4_ccpvdz",
+            "abs_err": 1.1368683772161603e-13,
+            "abs_err_baseline": 1.4210854715202004e-13,
+            "time_ratio": 2.0403531696738884
+          }
+        ]
+      }
+    }
+  ],
+  "best": {
+    "candidate_id": "hf-opus55-pyscf-g00-s0",
+    "generation": 0,
+    "fitness": 13.044716513681571,
+    "max_abs_err": 1.1368683772161603e-13,
+    "max_abs_err_vs_baseline": 5.651479284551897e-12,
+    "geomean_time_ratio": 0.1237572829228603,
+    "status": "ok",
+    "cases": [
+      {
+        "id": "h2_sto3g",
+        "abs_err": 0.0,
+        "abs_err_baseline": 0.0,
+        "time_ratio": 0.03693051543199639
+      },
+      {
+        "id": "heh_sto3g",
+        "abs_err": 2.6645352591003757e-15,
+        "abs_err_baseline": 5.651479284551897e-12,
+        "time_ratio": 0.07813296758220564
+      },
+      {
+        "id": "h2o_sto3g",
+        "abs_err": 2.842170943040401e-14,
+        "abs_err_baseline": 1.6200374375330284e-12,
+        "time_ratio": 0.04608648592043895
+      },
+      {
+        "id": "h2_631g",
+        "abs_err": 8.881784197001252e-15,
+        "abs_err_baseline": 4.1744385725905886e-14,
+        "time_ratio": 0.10257797868425858
+      },
+      {
+        "id": "h2o_631g",
+        "abs_err": 8.526512829121202e-14,
+        "abs_err_baseline": 2.8421709430404007e-13,
+        "time_ratio": 0.09487124603814083
+      },
+      {
+        "id": "nh3_631gs",
+        "abs_err": 4.263256414560601e-14,
+        "abs_err_baseline": 1.4779288903810084e-12,
+        "time_ratio": 0.16838677895778115
+      },
+      {
+        "id": "ch4_ccpvdz",
+        "abs_err": 1.1368683772161603e-13,
+        "abs_err_baseline": 1.4210854715202004e-13,
+        "time_ratio": 2.0403531696738884
+      }
+    ]
+  }
+}

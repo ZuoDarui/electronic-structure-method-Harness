@@ -1,0 +1,54 @@
+{
+  "run_id": "hf-opus55-cluster",
+  "bound_model": "claude-opus-5-5-high",
+  "audited_at": "2026-11-18T08:00:45+00:00",
+  "session_created": "2026-11-18T02:21:24+00:00",
+  "launches_before_session": [],
+  "summary": {
+    "candidates": 2,
+    "launches": 2,
+    "responses_verified": 2,
+    "call_failed": 0,
+    "candidates_with_violations": 0,
+    "violations": 0,
+    "notes": 0
+  },
+  "candidates": [
+    {
+      "candidate_id": "hf-opus55-cluster-g00-s0",
+      "status": "inaccurate",
+      "accepted_agent": "bc-48d53938-b6ac-597e-b933-3d4b82ee304c",
+      "launches": [
+        {
+          "agent_id": "bc-48d53938-b6ac-597e-b933-3d4b82ee304c",
+          "model": "claude-opus-5-5-high",
+          "transcript": true,
+          "error": null
+        }
+      ],
+      "logged_calls": 1,
+      "logged_failures": 0,
+      "response_verified": true,
+      "violations": [],
+      "notes": []
+    },
+    {
+      "candidate_id": "hf-opus55-cluster-g01-s0",
+      "status": "awaiting_score",
+      "accepted_agent": "bc-c062c75e-b2ed-5644-81ce-e419ddc967d4",
+      "launches": [
+        {
+          "agent_id": "bc-c062c75e-b2ed-5644-81ce-e419ddc967d4",
+          "model": "claude-opus-5-5-high",
+          "transcript": true,
+          "error": null
+        }
+      ],
+      "logged_calls": 1,
+      "logged_failures": 0,
+      "response_verified": true,
+      "violations": [],
+      "notes": []
+    }
+  ]
+}

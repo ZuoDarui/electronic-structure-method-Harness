@@ -1,0 +1,59 @@
+# Acceptance on the cluster's own test set: Claude Opus 5.5 writes an RHF/RIJCOSX
+# program from nothing and every program is run on the TI-ONE cluster on the
+# water clusters and straight-chain alkanes that hf.py and PySCF were run on
+# there. A program is accepted only if every molecule converges within 1e-8
+# Hartree of the reference (PySCF, or hf.py where PySCF has no result).
+task: hf_rijcosx
+run_id: hf-opus55-cluster
+out_dir: trajectories
+max_generations: 8
+patience: 4
+suite: benchmarks/hf_rijcosx_cluster.yaml
+references: benchmarks/rijcosx_cluster_references.json
+# Times recorded on the cluster for the reference program of each molecule
+# (PySCF, or hf.py where PySCF has no result). Nothing is re-timed per round.
+baseline: recorded
+repeats: 1
+# Per-molecule limit: the larger of timeout_s and timeout_factor x reference time.
+timeout_s: 3600
+timeout_factor: 3
+memory_mb: 245760
+submit: tione
+cluster:
+  host: 43.137.68.228
+  port: 10559
+  user: zuodarui
+  remote_root: /home/tione/notebook/home/zuodarui/fieldquantum/esm-harness-eval
+  activate: source /home/tione/notebook/home/zuodarui/miniforge3/bin/activate pyscf
+  threads: 8
+  # The same task that tione-submit creates: 1 GPU, 48 cores, 256 GB, project image.
+  task:
+    submit_script: ~/.cursor/skills/server-use/scripts/submit_training_task.py
+    host: infra
+    gpus: 1
+    cpu: 48
+    memory: 256
+    image: tione.tencentcloudcr.com/qcloud-ti-platform/notebook-conda-gpu:verl0.6.1-vllm0.11.0-torch2.8-py312-cuda12.8-gpu
+    image_type: CCR
+  # Give up on a task that has produced no result this long after its time
+  # limit, and on a job whose task could not be created for this long.
+  max_queue_s: 259200
+  # A job that hits its time limit is rerun with twice the limit, up to this
+  # (7 days); only a timeout at this limit counts against the program.
+  max_timeout_s: 604800
+factors:
+  model: claude-opus-5.5
+  prompt_id: hf_rijcosx
+  search: iterative
+  speed_weight: 0.5
+  reasoning_effort: high
+  population_n: 3
+  allowed_imports:
+    - numpy
+    - scipy
+    - pyscf.gto
+    - pyscf.dft.gen_grid
+    - pyscf.dft.radi
+  max_abs_err: 1.0e-8
+  max_time_ratio: 1.0
+  fitness_err_ceiling: 1.0e-8

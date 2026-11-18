@@ -1,0 +1,38 @@
+{
+  "source": "baselines/hf.py",
+  "source_sha": "d11939bcd2884096",
+  "measured": "2026-11-16T02:21:38+00:00",
+  "times": {
+    "h2_sto3g": 0.008394337000936503,
+    "heh_sto3g": 0.017616532000829466,
+    "h2o_sto3g": 0.01696522299971548,
+    "h2_631g": 0.009758423999301158,
+    "h2o_631g": 0.020068271998752607,
+    "nh3_631gs": 0.02966656400167267,
+    "ch4_ccpvdz": 0.7258535139990272
+  },
+  "energies": {
+    "h2_sto3g": -1.1167593073964255,
+    "heh_sto3g": -2.8417792412579814,
+    "h2o_sto3g": -74.9630231384628,
+    "h2_631g": -1.1267553171969733,
+    "h2o_631g": -75.98397447272191,
+    "nh3_631gs": -56.18334107724107,
+    "ch4_ccpvdz": -40.19870834852888
+  },
+  "abs_err_vs_pyscf": {
+    "h2_sto3g": 0.0,
+    "heh_sto3g": 1.7763568394002505e-15,
+    "h2o_sto3g": 8.526512829121202e-14,
+    "h2_631g": 8.881784197001252e-15,
+    "h2o_631g": 2.842170943040401e-14,
+    "nh3_631gs": 2.842170943040401e-14,
+    "ch4_ccpvdz": 2.5579538487363607e-13
+  },
+  "submission": {
+    "backend": "local",
+    "scheduler_id": "local-8faae0b981ec",
+    "returncode": 0,
+    "script": "/usr/bin/python3 -m esm_harness.eval.worker --job /workspace/trajectories/ablation/cell-06-hf_minimal-iterative-w0.5-medium/jobs/8faae0b981ec/job.json"
+  }
+}
