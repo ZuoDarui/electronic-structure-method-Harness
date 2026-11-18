@@ -43,7 +43,7 @@ def _launch(agent, instructions, model):
     }
 
 
-def _drive(tmp_path, *, failures=0, failed_wrote=False, model=None, extra=(), reuse=False):
+def _drive(tmp_path, *, failures=0, failed_wrote=False, model=None, extra=(), reuse=False, score=True):
     """Answer one generation the way a Cursor driver does, recording transcripts as the platform would."""
     config = _config(tmp_path, max_generations=1)
     submitter = make_submitter(config, REPO_ROOT)
@@ -66,7 +66,8 @@ def _drive(tmp_path, *, failures=0, failed_wrote=False, model=None, extra=(), re
     with open(request["response"], "w", encoding="utf-8") as handle:
         handle.write(RESPONSE)
     _cli("meta", "--session", str(session.root), "--cid", cid, "--model", bound, "--agent-id", agent)
-    session.advance(submitter)
+    if score:
+        session.advance(submitter)
 
     (tmp_path / "driver.json").write_text(json.dumps({"messages": driver}), encoding="utf-8")
     for agent, messages in children.items():
@@ -97,6 +98,17 @@ def test_edited_response_is_caught(tmp_path):
     path.write_text(json.dumps(record) + "\n", encoding="utf-8")
     [row] = _audit(tmp_path, session)["candidates"]
     assert any("differs from what agent" in item for item in row["violations"])
+
+
+def test_unscored_response_is_verified_against_the_response_file(tmp_path):
+    session, cid = _drive(tmp_path, failures=1, score=False)
+    [row] = _audit(tmp_path, session)["candidates"]
+    assert row["violations"] == [] and row["response_verified"]
+    assert row["status"] == "awaiting_score" and row["accepted_agent"] == "bc-ok"
+
+    (session.root / "responses" / f"{cid}.response.md").write_text(RESPONSE + "# edited\n", encoding="utf-8")
+    [row] = _audit(tmp_path, session)["candidates"]
+    assert any("response file differs from what agent bc-ok wrote" in item for item in row["violations"])
 
 
 def test_other_model_is_caught(tmp_path):

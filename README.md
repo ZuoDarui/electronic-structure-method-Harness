@@ -117,6 +117,7 @@ python -m esm_harness audit --strict                                            
 - 子代理只读了自己的提示文件、只写了自己的回复文件，没有用其他工具；
 - 打分用的回复与子代理写出的内容 SHA-256 相同（从子代理创建文件的 diff 还原），即驱动者没有改过回复；
 - 每个候选的启动次数等于 `calls.jsonl` 的记录数（没有未记录的调用），记为失败的那些启动确实没有写出回复（没有挑结果）。
+- 还在集群上评测、尚未打分的候选（状态 `awaiting_score`）以 `calls.jsonl` 里最后一次成功调用的子代理为准，把它写出的内容与 `responses/` 里的回复文件比对。
 
 结果写入每个会话的 `audit.json` 和总表 `trajectories/AUDIT.md`。`--archive` 把用到的启动记录（`launches.jsonl`）和子代理对话（`agent_transcripts/`）存进会话目录，其中也有模型的思考过程，可用于消融分析。驱动者对话本身不存档，因为它包含整段会话。
 

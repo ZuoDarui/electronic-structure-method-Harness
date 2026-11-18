@@ -245,7 +245,16 @@ def audit_session(session: Session, launches: list[Launch], transcripts: dict[st
             if launch.agent_id in reused:
                 violations.append(f"agent {launch.agent_id} was launched for more than one candidate")
 
-        accepted = record.get("agent_id") if record else None
+        response_file = session.root / "responses" / f"{cid}.response.md"
+        if record:
+            accepted = record.get("agent_id")
+            expected_response = record.get("response") or ""
+        else:
+            logged_ok = [call.get("agent_id") for call in cid_calls if not call.get("error")]
+            accepted = logged_ok[-1] if logged_ok else None
+            expected_response = response_file.read_text() if response_file.exists() else ""
+            if accepted:
+                status = "awaiting_score"
         verified = False
         unverified: list[str] = []
         for launch in cid_launches:
@@ -264,8 +273,9 @@ def audit_session(session: Session, launches: list[Launch], transcripts: dict[st
                     violations.append(f"accepted agent {accepted} never wrote the response file")
                 elif seen["written"] is None:
                     notes.append(f"content written by {accepted} could not be reconstructed")
-                elif _sha(seen["written"]) != _sha(record.get("response") or ""):
-                    violations.append(f"scored response differs from what agent {accepted} wrote")
+                elif _sha(seen["written"]) != _sha(expected_response):
+                    what = "scored response" if record else "response file"
+                    violations.append(f"{what} differs from what agent {accepted} wrote")
                 else:
                     verified = True
             elif seen["wrote_response"]:
