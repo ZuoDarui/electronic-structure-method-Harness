@@ -64,11 +64,153 @@
   },
   "model": "claude-opus-5.5",
   "subagent_model": "claude-opus-5-5-high",
-  "status": "awaiting_responses",
+  "status": "evaluating",
   "generation": 1,
   "pending": [
     "hf-opus55-cluster-g01-s0"
   ],
   "stale_generations": 1,
-  "updated": "2026-11-18T06:11:46+00:00"
+  "updated": "2026-11-18T07:26:54+00:00",
+  "evaluating": {
+    "hf-opus55-cluster-g01-s0": {
+      "jobs": [
+        {
+          "case_id": "water8",
+          "job_id": "25dd8dd3bfeb",
+          "handle": {
+            "remote_dir": "/home/tione/notebook/home/zuodarui/fieldquantum/esm-harness-eval/25dd8dd3bfeb",
+            "script": "esm-25dd8dd3bfeb.sh",
+            "task_id": "train-1720332697991251712",
+            "label": "hf-opus55-cluster-g01-s0-water8",
+            "first_attempt": 1794983230.801423,
+            "submitted": 1794983647.0238252,
+            "timeout_s": 3600.0,
+            "submit_attempts": 1,
+            "task_name": "zuodarui-esm-25dd8dd3bfeb-1118062726"
+          }
+        },
+        {
+          "case_id": "water16",
+          "job_id": "c416b3eedc0d",
+          "handle": {
+            "remote_dir": "/home/tione/notebook/home/zuodarui/fieldquantum/esm-harness-eval/c416b3eedc0d",
+            "script": "esm-c416b3eedc0d.sh",
+            "task_id": "train-1720335773981859712",
+            "label": "hf-opus55-cluster-g01-s0-water16",
+            "first_attempt": 1794983647.0243979,
+            "submitted": 1794984008.4263878,
+            "timeout_s": 3600.0,
+            "submit_attempts": 1,
+            "task_name": "zuodarui-esm-c416b3eedc0d-1118063418"
+          }
+        },
+        {
+          "case_id": "water32",
+          "job_id": "2a70be8878c3",
+          "handle": {
+            "remote_dir": "/home/tione/notebook/home/zuodarui/fieldquantum/esm-harness-eval/2a70be8878c3",
+            "script": "esm-2a70be8878c3.sh",
+            "task_id": "train-1720338958708498304",
+            "label": "hf-opus55-cluster-g01-s0-water32",
+            "first_attempt": 1794984008.427229,
+            "submitted": 1794984393.3313746,
+            "timeout_s": 3600.0,
+            "submit_attempts": 1,
+            "task_name": "zuodarui-esm-2a70be8878c3-1118064019"
+          }
+        },
+        {
+          "case_id": "water64",
+          "job_id": "f83faed2cb87",
+          "handle": {
+            "remote_dir": "/home/tione/notebook/home/zuodarui/fieldquantum/esm-harness-eval/f83faed2cb87",
+            "script": "esm-f83faed2cb87.sh",
+            "task_id": "train-1720342423098108672",
+            "label": "hf-opus55-cluster-g01-s0-water64",
+            "first_attempt": 1794984393.3329685,
+            "submitted": 1794984802.9762797,
+            "timeout_s": 15309.0,
+            "submit_attempts": 1,
+            "task_name": "zuodarui-esm-f83faed2cb87-1118064650"
+          }
+        },
+        {
+          "case_id": "water128",
+          "job_id": "7d3fc479b12a",
+          "handle": {
+            "remote_dir": "/home/tione/notebook/home/zuodarui/fieldquantum/esm-harness-eval/7d3fc479b12a",
+            "script": "esm-7d3fc479b12a.sh",
+            "task_id": "train-1720345614850842496",
+            "label": "hf-opus55-cluster-g01-s0-water128",
+            "first_attempt": 1794984802.9773061,
+            "submitted": 1794985181.9802475,
+            "timeout_s": 22448.247,
+            "submit_attempts": 1,
+            "task_name": "zuodarui-esm-7d3fc479b12a-1118065341"
+          }
+        },
+        {
+          "case_id": "c21h44",
+          "job_id": "5a6370bce695",
+          "handle": {
+            "remote_dir": "/home/tione/notebook/home/zuodarui/fieldquantum/esm-harness-eval/5a6370bce695",
+            "script": "esm-5a6370bce695.sh",
+            "task_id": "train-1720348840491616000",
+            "label": "hf-opus55-cluster-g01-s0-c21h44",
+            "first_attempt": 1794985181.9808867,
+            "submitted": 1794985568.0977476,
+            "timeout_s": 3600.0,
+            "submit_attempts": 1,
+            "task_name": "zuodarui-esm-5a6370bce695-1118065953"
+          }
+        },
+        {
+          "case_id": "c43h88",
+          "job_id": "f5396ce3c5b5",
+          "handle": {
+            "remote_dir": "/home/tione/notebook/home/zuodarui/fieldquantum/esm-harness-eval/f5396ce3c5b5",
+            "script": "esm-f5396ce3c5b5.sh",
+            "task_id": "train-1720352173051357952",
+            "label": "hf-opus55-cluster-g01-s0-c43h88",
+            "first_attempt": 1794985568.0992746,
+            "submitted": 1794985964.5644464,
+            "timeout_s": 6113.514,
+            "submit_attempts": 1,
+            "task_name": "zuodarui-esm-f5396ce3c5b5-1118070622"
+          }
+        },
+        {
+          "case_id": "c86h174",
+          "job_id": "0391fba9763e",
+          "handle": {
+            "remote_dir": "/home/tione/notebook/home/zuodarui/fieldquantum/esm-harness-eval/0391fba9763e",
+            "script": "esm-0391fba9763e.sh",
+            "task_id": "train-1720355500875702144",
+            "label": "hf-opus55-cluster-g01-s0-c86h174",
+            "first_attempt": 1794985964.565551,
+            "submitted": 1794986361.4859893,
+            "timeout_s": 91186.911,
+            "submit_attempts": 1,
+            "task_name": "zuodarui-esm-0391fba9763e-1118071300"
+          }
+        },
+        {
+          "case_id": "c172h346",
+          "job_id": "b569e56a5dd3",
+          "handle": {
+            "remote_dir": "/home/tione/notebook/home/zuodarui/fieldquantum/esm-harness-eval/b569e56a5dd3",
+            "script": "esm-b569e56a5dd3.sh",
+            "task_id": "train-1720358866648172288",
+            "label": "hf-opus55-cluster-g01-s0-c172h346",
+            "first_attempt": 1794986361.486767,
+            "submitted": 1794986761.9210665,
+            "timeout_s": 49614.08099999999,
+            "submit_attempts": 1,
+            "task_name": "zuodarui-esm-b569e56a5dd3-1118071938"
+          }
+        }
+      ],
+      "started_at": "2026-11-18T07:26:01+00:00"
+    }
+  }
 }
