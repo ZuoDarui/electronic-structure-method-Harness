@@ -1,0 +1,1 @@
+{"candidate_id": "hf-opus55-cluster-g00-s0", "at": "2026-11-18T03:07:30+00:00", "error": null, "provider": "cursor-subagent", "model": "claude-opus-5-5-high", "agent_id": "bc-48d53938-b6ac-597e-b933-3d4b82ee304c", "usage": null, "usage_note": "the subagent call did not report token usage", "latency_s": null}
