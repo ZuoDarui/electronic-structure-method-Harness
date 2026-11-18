@@ -4,4 +4,4 @@ Each session's `calls.jsonl`, `meta/` and `trajectory.jsonl` checked against the
 
 | run | bound model | candidates | launches | responses verified | call_failed | violations | notes |
 |---|---|---|---|---|---|---|---|
-| hf-opus55-cluster | claude-opus-5-5-high | 1 | 1 | 1 | 0 | 0 | 0 |
+| hf-opus55-cluster | claude-opus-5-5-high | 2 | 2 | 2 | 0 | 0 | 0 |
