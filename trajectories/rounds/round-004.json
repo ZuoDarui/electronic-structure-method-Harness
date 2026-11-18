@@ -1,0 +1,75 @@
+{
+  "round": 4,
+  "driver_agent_id": "bc-a787853b-1f0e-4675-9d0c-360f52cba3ff",
+  "started": "2026-11-18T03:27:57+00:00",
+  "fingerprint": "1ce4c768eddb89c3",
+  "sessions": [
+    {
+      "session": "trajectories/hf-opus55-cluster",
+      "run_id": "hf-opus55-cluster",
+      "generation_scored": 0,
+      "baseline": {
+        "measured": "2026-11-18T02:21:24+00:00",
+        "host": "recorded"
+      },
+      "status": "evaluating",
+      "next_generation": null,
+      "evaluating": [
+        {
+          "candidate_id": "hf-opus55-cluster-g00-s0",
+          "tasks": [
+            {
+              "case_id": "water8",
+              "task_id": "train-1720241914773252864",
+              "submit_error": null
+            },
+            {
+              "case_id": "water16",
+              "task_id": "train-1720244693247330048",
+              "submit_error": null
+            },
+            {
+              "case_id": "water32",
+              "task_id": "train-1720247523283951488",
+              "submit_error": null
+            },
+            {
+              "case_id": "water64",
+              "task_id": "train-1720250502967844736",
+              "submit_error": null
+            },
+            {
+              "case_id": "water128",
+              "task_id": "train-1720253351864950656",
+              "submit_error": null
+            },
+            {
+              "case_id": "c21h44",
+              "task_id": "train-1720256278541229952",
+              "submit_error": null
+            },
+            {
+              "case_id": "c43h88",
+              "task_id": "train-1720259246476241664",
+              "submit_error": null
+            },
+            {
+              "case_id": "c86h174",
+              "task_id": "train-1720262079258831616",
+              "submit_error": null
+            },
+            {
+              "case_id": "c172h346",
+              "task_id": "train-1720264945474854784",
+              "submit_error": null
+            }
+          ]
+        }
+      ],
+      "candidates": [],
+      "best": null
+    }
+  ],
+  "baseline_measured_at_begin": [],
+  "ended": "2026-11-18T04:20:32+00:00"
+}
