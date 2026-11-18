@@ -1,0 +1,39 @@
+{
+  "source": "recorded",
+  "references": "benchmarks/rijcosx_cluster_references.json",
+  "measured": "2026-11-18T02:21:24+00:00",
+  "host": "recorded",
+  "times": {
+    "water8": 36.89,
+    "water16": 179.44,
+    "water32": 892.14,
+    "water64": 5103.0,
+    "water128": 7482.749,
+    "c21h44": 572.028,
+    "c43h88": 2037.838,
+    "c86h174": 30395.637,
+    "c172h346": 16538.027
+  },
+  "energies": {
+    "water8": -608.450816454237,
+    "water16": -1216.922657446848,
+    "water32": -2433.82570561263,
+    "water64": -4867.578954975383,
+    "water128": -9735.3225448409,
+    "c21h44": -821.161841294277,
+    "c43h88": -1680.213362582757,
+    "c86h174": -3359.268610541398,
+    "c172h346": -6717.379184800415
+  },
+  "time_sources": {
+    "water8": "pyscf",
+    "water16": "pyscf",
+    "water32": "pyscf",
+    "water64": "pyscf",
+    "water128": "hf.py",
+    "c21h44": "pyscf",
+    "c43h88": "pyscf",
+    "c86h174": "pyscf",
+    "c172h346": "hf.py"
+  }
+}
