@@ -5,7 +5,7 @@ branch: cursor/hf-harness-66dd
 # changing anything. A round already open still finishes normally.
 # Stays true until the round agents' environment has the ESM_CLUSTER_PASSWORD
 # secret; without it round begin stops before any model call.
-paused: true
+paused: false
 rounds_dir: trajectories/rounds
 sessions:
   # Acceptance on the cluster's water clusters and straight-chain alkanes:
