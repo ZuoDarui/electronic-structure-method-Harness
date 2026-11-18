@@ -1,0 +1,10 @@
+{
+  "round": 3,
+  "driver_agent_id": "bc-a787853b-1f0e-4675-9d0c-360f52cba3ff",
+  "started": "2026-11-18T03:26:12+00:00",
+  "fingerprint": "fb8711110aed4530",
+  "sessions": [
+    "trajectories/hf-opus55-cluster"
+  ],
+  "baseline_measured_at_begin": []
+}
