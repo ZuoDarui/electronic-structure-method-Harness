@@ -84,15 +84,35 @@ python -m esm_harness monitor --driver-transcript <主代理 transcript.json> --
 
 ## 集群验收：水分子簇与直链烷烃
 
-测试集是 TI-ONE 集群上 `hf.py` 和 PySCF 算过的那两组分子（`benchmarks/hf_rijcosx_cluster.yaml`）：(H2O)n，n = 8, 16, 32, 64, 128；C21H44、C43H88、C86H174、C172H346。几何结构是集群上的 XYZ 文件原样拷贝（`benchmarks/geometries/`，sha256 与集群一致）。C375H752 两个程序都没算出能量，不放进测试集。方法与集群一致：RHF/cc-pVTZ，RIJCOSX（auxbasis weigend，SCF 在 30×110 网格上收敛，`conv_tol = conv_tol_grad = 1e-8`）。候选程序接口是 `solve(mol, method)`，`method` 由测试集给出。
+测试集是 TI-ONE 集群上 `hf.py` 和 PySCF 算过的那两组分子（`benchmarks/hf_rijcosx_cluster.yaml`）：(H2O)n，n = 8, 16, 32, 64, 128；C21H44、C43H88、C86H174、C172H346。几何结构是集群上的 XYZ 文件原样拷贝（`benchmarks/geometries/`，sha256 与集群一致）。C375H752 两个程序都没算出能量，不放进测试集。方法与集群一致：RHF/cc-pVTZ，RIJCOSX（auxbasis weigend，SCF 在 30×110 网格上收敛，`conv_tol = conv_tol_grad = 1e-8`）。候选程序接口是 `solve(mol, method, log)`，`method` 由测试集给出；`log` 是 worker 提供的回调，程序每个 SCF 循环结束时调用一次 `log(cycle, energy, delta_e, grad_norm)`，最终网格上的能量用 `stage="final"` 再调用（见下文“任务日志”）。第 0、1 代程序写于这个要求之前，接口是 `solve(mol, method)`，它们的任务不要求逐轮日志。
 
 参考能量（`benchmarks/rijcosx_cluster_references.json`）按规则选取：PySCF 收敛了就用 PySCF，否则用 `hf.py`（`esm_harness/eval/reference.py` 的 `REFERENCE_ORDER`）。结果是 water128（PySCF 只跑了 2 次迭代）和 C172H346（没有 PySCF 运行）用 `hf.py`，其余 7 个用 PySCF。两类最终能量的定义不同，都按参考程序当时的做法写进测试集：PySCF（`pyscf_water32.py`）和 11 月 16 日以前的 `hf.py` 在 35×302 网格上用收敛密度重建一次 J/K（`final_energy: single_point`）；C172 的唯一结果来自 11 月 16 日的 `hf.py`，它在 35×302 网格上再次收敛 SCF（`final_energy: reconverge`）。`baselines/pyscf_rijcosx.py` 按这两种定义复现参考计算；在集群的 PySCF 2.14 环境里用它跑 water8，得到 -608.4508164542374，与参考值相差 4e-13。
 
 速度基线用集群上记录的参考程序耗时（`baseline: recorded`，8 线程；PySCF 没有结果的分子用 `hf.py` 的耗时），不再每轮重测。
 
-评测在集群上运行（`submit: tione`，`esm_harness/eval/submit.py` 的 `TioneSubmitter`）：每个候选的每个分子一个 TI-ONE 训练任务（与 `tione-submit` 相同的任务：1 GPU、48 核、256 GB、项目镜像，见配置 `cluster.task`）。任务由集群上原有的 `submit_training_task.py` 创建，harness 只在外面包一层（`esm-harness-eval/esm_tione_submit.py`）：原脚本只在账户最近 20 个任务里找 `infra` 资源组的 VPC 和子网，共享账户上这 20 个常常都属于别的资源组，这时报“no existing training task in this resource group has a VPC and subnet”；包装层改为往前翻找，并把找到的网络缓存在 `tione_network.json`。任务创建失败算集群的问题，不算程序的错：每次收结果时重试，`max_queue_s` 后仍失败才记为 `submit_failed`。任务目录放在 CFS 的 `fieldquantum/esm-harness-eval/<job>/`，用集群的 conda 环境 `pyscf`、`OMP_NUM_THREADS=8`、不预热、计时 1 次。每个分子的时限是 `timeout_s`（3600 s）和 3 倍参考耗时中的较大者；任务结束却没有结果、或时限加 `max_queue_s`（72 小时）后仍无结果，记为失败。连接用配置里的主机和用户，口令取环境变量 `ESM_CLUSTER_PASSWORD`（或密钥文件 `ESM_CLUSTER_KEY_FILE`），不写进仓库。
+评测在集群上运行（`submit: tione`，`esm_harness/eval/submit.py` 的 `TioneSubmitter`）：每个候选的每个分子一个 TI-ONE 训练任务（与 `tione-submit` 相同的任务：1 GPU、48 核、256 GB、项目镜像，见配置 `cluster.task`）。任务由集群上原有的 `submit_training_task.py` 创建，harness 只在外面包一层（`esm-harness-eval/esm_tione_submit.py`）：原脚本只在账户最近 20 个任务里找 `infra` 资源组的 VPC 和子网，共享账户上这 20 个常常都属于别的资源组，这时报“no existing training task in this resource group has a VPC and subnet”；包装层改为往前翻找，并把找到的网络缓存在 `tione_network.json`。任务创建失败算集群的问题，不算程序的错：每次收结果时重试，`max_queue_s` 后仍失败才记为 `submit_failed`。任务目录放在 CFS 的 `fieldquantum/esm-harness-eval/<job>/`，用集群的 conda 环境 `pyscf`、`OMP_NUM_THREADS=8`、不预热、计时 1 次。连接用配置里的主机和用户，口令取环境变量 `ESM_CLUSTER_PASSWORD`（或密钥文件 `ESM_CLUSTER_KEY_FILE`），不写进仓库。
 
-验收看的是准确性，时限不是判决：一个分子超时后，用两倍时限重新提交，直到 `max_timeout_s`（7 天）仍超时才算这个分子失败。反过来，只要有一个分子已经算完且未收敛、误差超过 1e-8 或程序报错，这个程序就已经不可能被接受，harness 立即按已算完的分子打分（`eval.status` 为 `inaccurate` 或 `error`，`eval.unfinished` 列出还没算完的分子），不再等其余分子，下一代提示随即写出；还在跑的任务不去停止，结果也不再读取。
+验收只看最终能量的准确性，任务没有墙钟时限：任务脚本直接运行 `worker.py`（不套 `timeout`），一直算到 `solve` 返回为止，harness 不会因为“算得久”停掉任务，也不会因为提交后很久没有结果把它记为失败。只有两种情况算失败：任务结束却没有写出 `result.json`（程序崩溃、内存不足、TI-ONE 任务被平台终止，错误信息里附 `worker.log` 末尾），或 TI-ONE 任务 `max_queue_s`（72 小时）内一直创建不了。以前的 harness 按时限杀掉的任务（退出码 124，第 0、1 代都有）在下一次收结果时不带时限重新提交一次，原来的空日志改名为 `worker.timeout.log`。
+
+只要有一个分子已经算完且未收敛、误差超过 1e-8 或程序报错，这个程序就已经不可能被接受，harness 立即按已算完的分子打分（`eval.status` 为 `inaccurate` 或 `error`，`eval.unfinished` 列出还没算完的分子），下一代提示随即写出。因为任务没有时限，这个程序其余还在跑的 TI-ONE 任务会被停止（`tikit` 的 `stop_training_task`，原因记在任务句柄的 `stopped` 里，`eval.stopped` 列出这些分子）；这是唯一会停掉任务的情况。
+
+### 任务日志
+
+每个任务目录下的 `worker.log` 由 worker 写入，每行带时间戳（集群时区）：
+
+- `<分子> start`：开始计算，基函数个数和方法；
+- `<分子> scf cycle N: E=... dE=... |g|=... cycle_time=...s elapsed=...s`：程序每调用一次 `log` 写一行，`cycle_time` 是 worker 自己量的两次调用之间的墙钟时间，`elapsed` 是从 `solve` 开始算起的时间；最终网格上的能量写成 `final cycle N`；
+- `<分子> running: elapsed=... cycles_logged=... last=... max_rss=...GB`：心跳，每 `cluster.heartbeat_s`（300 s）一行，程序在一轮里算很久时也能看出它还活着、算到了哪一轮；
+- 程序自己 `print` 的内容原样写入；
+- `<分子> done: E=... converged=... time=...s cycles_logged=...`，或出错时的 `job failed` 和完整回溯。
+
+同样的逐轮记录（`stage`、`cycle`、`energy`、`delta_e`、`grad_norm`、`cycle_time_s`、`elapsed_s`）写进 `result.json`，打分后进入轨迹 `trajectory.jsonl` 的 `eval.cases[].iterations`；反馈给模型的结果里附上 SCF 轮数和平均每轮耗时。`cluster.require_iteration_log: true` 时，`solve` 不接受 `log` 参数、或返回前一次都没有调用 `log` 的程序记为 `error`。
+
+在集群上查看：`tail -f fieldquantum/esm-harness-eval/<job>/worker.log`。在 harness 里查看所有正在评测的任务（只读，需要 `ESM_CLUSTER_PASSWORD`）：
+
+```bash
+python -m esm_harness cluster-log --lines 20
+```
 
 由于大分子要跑几个小时，这个会话的打分是异步的：`round end` 只提交任务，会话状态变为 `evaluating`；之后每次 `round begin` 先去集群收结果，全部分子都有结果后才打分、写下一代提示；还在算时 `round begin` 报“waiting for cluster evaluations”并退出，不加锁。`round begin` 在启动任何子代理之前先检查集群可连、提交脚本和 `uv` 可用。`round abort --agent-id <id> --reason <原因>` 让持锁的主代理不打分地结束本轮：会话原样保留，已写好的回复由下一轮评测，轮报告里记下原因。
 
