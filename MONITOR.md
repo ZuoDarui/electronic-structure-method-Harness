@@ -21,7 +21,7 @@
 2. 有锁：报告轮次号、主代理 id、开始时间和已用时间。超过 60 分钟还没释放，提示可能卡住，给出主代理链接 `https://cursor.com/agents/<id>`。需要更多细节时，用 `cursor-cloud` 的 `batch-fetch-details`（`includeTranscripts: true`）取主代理对话，看它启动的子代理和模型；再用
    `git diff --stat <round: begin 那个提交> origin/<branch> -- esm_harness configs ablations baselines benchmarks tests pyproject.toml loop.yaml LOOP.md`
    确认 harness 没变。到此结束，不做别的。
-3. 没有锁：`git pull --ff-only origin <branch>`，然后运行 `python3 -m esm_harness monitor`，报告各会话的代数、最佳候选（适应度、误差、耗时比）、历次轮次。处于 `evaluating` 的会话会列出正在集群上评测的候选和 TI-ONE 任务 id；只报告，不去收结果（收结果属于下一轮主代理的 `round begin`）。最佳候选只会是通过 1e-8 验收底线的程序。
+3. 没有锁：`git pull --ff-only origin <branch>`，然后运行 `python3 -m esm_harness monitor`，报告各会话的代数、最佳候选（适应度、误差、耗时比）、历次轮次。处于 `evaluating` 的会话会列出正在集群上评测的候选和 TI-ONE 任务 id；再用 `python3 -m esm_harness cluster-log` 看每个任务 `worker.log` 的最后几行（当前 SCF 轮次、能量、每轮耗时、心跳），报告各分子算到了哪一轮。只报告，不去收结果（收结果属于下一轮主代理的 `round begin`），也不停任何任务：任务没有时限，算多久都等。最佳候选只会是通过 1e-8 验收底线的程序。
 4. 如果有还没审计过的轮次（`trajectories/rounds/round-NNN.json` 比各会话 `audit.json` 里的 `audited_at` 新，或会话还没有 `audit.json`），按下一节审计。
 
 ## 审计

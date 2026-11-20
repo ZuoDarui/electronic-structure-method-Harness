@@ -1,4 +1,5 @@
 import json
+import os
 import shlex
 from pathlib import Path
 
@@ -102,6 +103,7 @@ class FakeTione:
         self.local = LocalSubmitter(REPO_ROOT)
         self.finished = set()
         self.started = []
+        self.stopped = []
 
     def preflight(self):
         return None
@@ -115,6 +117,9 @@ class FakeTione:
                   "returncode": submission.returncode}
         self.started.append(handle)
         return handle
+
+    def stop(self, handle, reason):
+        self.stopped.append((handle["task_id"], reason))
 
     def poll(self, handle):
         if handle["task_id"] not in self.finished:
@@ -214,10 +219,12 @@ def test_a_finished_molecule_off_the_floor_rules_the_program_out_at_once(tmp_pat
     [record] = [json.loads(line) for line in session.trajectory.read_text(encoding="utf-8").splitlines()]
     evaluation = record["eval"]
     assert evaluation["status"] == "inaccurate" and evaluation["unfinished"] == ["h2a"]
+    assert evaluation["stopped"] == ["h2a"]
+    assert submitter.stopped == [("t0", "program ruled out (inaccurate) by h2b")]
     assert evaluation["accepted"] is False and evaluation["fitness"] is None
     assert evaluation["max_abs_err"] == pytest.approx(5e-8, rel=1e-3)
     prompt = session.path("prompts", "hf-opus55-cluster-g01-s0").read_text(encoding="utf-8")
-    assert "ruled out before these molecules finished (their results are not shown): h2a" in prompt
+    assert "ruled out before these molecules finished (their jobs were stopped, no results): h2a" in prompt
 
 
 def test_an_accurate_molecule_does_not_end_the_wait(tmp_path):
@@ -307,6 +314,8 @@ class FakeRemote:
             return 0, 'name_ok=true\n{"submit": "created", "task_id": "train-123", "name": "x"}\n', ""
         if "tione_status.py" in command:
             return 0, json.dumps({"train-123": {"status": self.status, "reason": "oom"}}) + "\n", ""
+        if "tione_stop.py" in command:
+            return 0, json.dumps({"train-123": "stopped"}) + "\n", ""
         return 0, "", ""
 
     def put_text(self, path, text, mode=None):
@@ -336,10 +345,12 @@ def test_tione_submitter_deploys_submits_and_collects(tmp_path):
     assert handle["task_id"] == "train-123" and "submit_error" not in handle
     job = json.loads(remote.files["/cfs/eval/abc123/job.json"])
     assert job["program"] == "candidate.py" and job["output"] == "result.json" and job["warmup"] is False
+    assert job["require_iteration_log"] is True and job["heartbeat_s"] == 300
     assert remote.files["/cfs/eval/abc123/candidate.py"] == EXACT
     assert "def run_job" in remote.files["/cfs/eval/abc123/worker.py"]
     script = remote.files["/cfs/eval/abc123/esm-abc123.sh"]
-    assert "timeout --kill-after=60 900 python -u worker.py --job job.json" in script
+    assert "\npython -u worker.py --job job.json > worker.log 2>&1\n" in script
+    assert "timeout" not in script
     assert "miniforge3/bin/activate pyscf" in script and "OMP_NUM_THREADS=8" in script
     assert "*PASSWORD*" in script
     [submit] = [command for command in remote.commands if "esm_tione_submit.py" in command]
@@ -360,38 +371,49 @@ def test_tione_submitter_deploys_submits_and_collects(tmp_path):
     assert result["submission"]["scheduler_id"] == "train-123" and result["submission"]["returncode"] == 0
 
 
-def test_a_timeout_reruns_the_job_with_twice_the_limit(tmp_path):
+def test_a_job_killed_by_an_old_time_limit_reruns_without_one(tmp_path):
     remote = FakeRemote()
     submitter, spec, job_file = _tione(tmp_path, remote)
-    submitter.cluster["max_timeout_s"] = 3600
     handle = submitter.start(spec, job_file)
+    handle["timeout_s"] = 900.0
+    remote.files["/cfs/eval/abc123/esm-abc123.sh"] = "timeout --kill-after=60 900 python -u worker.py\n"
+    remote.files["/cfs/eval/abc123/worker.py"] = "old worker"
     remote.files["/cfs/eval/abc123/exit_code"] = "124\n"
     assert submitter.poll(handle) is None
-    assert handle["timeout_s"] == 1800 and handle["timeouts"] == [{"limit_s": 900, "task_id": "train-123"}]
-    assert "timeout --kill-after=60 1800 python" in remote.files["/cfs/eval/abc123/esm-abc123.sh"]
-    assert handle["task_id"] == "train-123"
+    assert handle["timeouts"] == [{"limit_s": 900.0, "task_id": "train-123", "rerun_without_limit": True}]
+    assert "timeout_s" not in handle and handle["task_id"] == "train-123"
+    assert "timeout" not in remote.files["/cfs/eval/abc123/esm-abc123.sh"]
+    assert "def run_job" in remote.files["/cfs/eval/abc123/worker.py"]
     assert sum("esm_tione_submit.py" in command for command in remote.commands) == 2
     assert any("rm -f /cfs/eval/abc123/exit_code" in command for command in remote.commands)
 
-    remote.files["/cfs/eval/abc123/exit_code"] = "124\n"
-    assert submitter.poll(handle) is None and handle["timeout_s"] == 3600
-    remote.files["/cfs/eval/abc123/exit_code"] = "124\n"
-    result = submitter.poll(handle)
-    assert result["payload"]["status"] == "timeout" and "3600 s" in result["payload"]["stderr"]
 
+def test_a_running_job_is_never_timed_out(tmp_path, monkeypatch):
+    from esm_harness.eval import submit as submit_module
 
-def test_tione_submitter_reports_timeouts_and_dead_tasks(tmp_path):
     remote = FakeRemote()
     submitter, spec, job_file = _tione(tmp_path, remote)
-    submitter.cluster["max_timeout_s"] = 0
     handle = submitter.start(spec, job_file)
-    remote.files["/cfs/eval/abc123/exit_code"] = "124\n"
-    assert submitter.poll(handle)["payload"]["status"] == "timeout"
+    monkeypatch.setattr(submit_module, "_now_s", lambda: handle["submitted"] + 365 * 86400)
+    assert submitter.poll(handle) is None
 
-    del remote.files["/cfs/eval/abc123/exit_code"]
     remote.status = "FAILED"
+    remote.files["/cfs/eval/abc123/worker.log"] = "[t] h2a scf cycle 3: E=-1.0\nKilled\n"
     result = submitter.poll(handle)
     assert result["payload"]["status"] == "error" and "FAILED" in result["payload"]["stderr"]
+    assert "Killed" in result["payload"]["stderr"]
+
+
+def test_stop_and_log_tail_reach_the_task(tmp_path):
+    remote = FakeRemote()
+    submitter, spec, job_file = _tione(tmp_path, remote)
+    handle = submitter.start(spec, job_file)
+    submitter.stop(handle, "program ruled out (inaccurate) by h2b")
+    assert handle["stopped"]["reason"] == "program ruled out (inaccurate) by h2b"
+    assert handle["stopped"]["result"] == "stopped"
+    assert "client.stop_training_task(task_id)" in remote.files["/cfs/eval/tione_stop.py"]
+    submitter.log_tail(handle, 5)
+    assert remote.commands[-1] == "tail -n 5 /cfs/eval/abc123/worker.log 2>/dev/null"
 
 
 def test_failed_task_creation_is_retried_not_scored(tmp_path, monkeypatch):
@@ -448,3 +470,62 @@ def test_worker_passes_the_suite_method_to_solve(tmp_path):
     )
     assert result["status"] == "ok", result["stderr"]
     assert result["accepted"] is True and result["cases"][0]["abs_err"] == 0.0
+
+
+LOGGING = """\
+def solve(mol, method, log):
+    e = None
+    for cycle, energy in enumerate((-0.9, -0.99, -1.0), start=1):
+        log(cycle, energy, None if e is None else energy - e, 10.0 ** -cycle)
+        e = energy
+    print("program says hi")
+    log(1, -1.0, stage="final")
+    return {"e_tot": -1.0, "converged": True}
+"""
+
+
+def _run_worker(tmp_path, code, **job):
+    import subprocess
+    import sys
+
+    (tmp_path / "candidate.py").write_text(code, encoding="utf-8")
+    case = {"id": "h2a", "atom": "H 0 0 0; H 0 0 0.74", "basis": "sto-3g", "method": {"final_energy": "single_point"}}
+    (tmp_path / "job.json").write_text(json.dumps({"program": "candidate.py", "output": "result.json", "cases": [case],
+                                                   "repeats": 1, "warmup": False, **job}), encoding="utf-8")
+    completed = subprocess.run([sys.executable, "-m", "esm_harness.eval.worker", "--job", "job.json"], cwd=tmp_path,
+                               capture_output=True, text=True, check=True, env={**os.environ, "PYTHONPATH": str(REPO_ROOT)})
+    return json.loads((tmp_path / "result.json").read_text(encoding="utf-8")), completed.stdout
+
+
+def test_worker_logs_every_scf_cycle_with_its_time(tmp_path):
+    result, log = _run_worker(tmp_path, LOGGING, require_iteration_log=True, heartbeat_s=0)
+    assert result["status"] == "ok", result["stderr"]
+    [case] = result["cases"]
+    assert case["scf_cycles"] == 4
+    assert [(item["stage"], item["cycle"], item["energy"]) for item in case["iterations"]] == [
+        ("scf", 1, -0.9), ("scf", 2, -0.99), ("scf", 3, -1.0), ("final", 1, -1.0)]
+    assert case["iterations"][0]["delta_e"] is None and case["iterations"][1]["delta_e"] == pytest.approx(-0.09)
+    assert all(item["cycle_time_s"] >= 0 and item["elapsed_s"] >= item["cycle_time_s"] for item in case["iterations"])
+    lines = log.splitlines()
+    assert any("h2a start:" in line for line in lines)
+    assert any("h2a scf cycle 2: E=-0.990000000000 dE=-9.000e-02 |g|=1.000e-02 cycle_time=" in line for line in lines)
+    assert any("h2a final cycle 1: E=-1.000000000000" in line for line in lines)
+    assert "program says hi" in log and "program says hi" in case["stdout"]
+    assert any("h2a done: E=-1.000000000000 converged=True" in line and "cycles_logged=4" in line for line in lines)
+
+
+def test_worker_rejects_a_program_that_does_not_log_when_required(tmp_path):
+    result, log = _run_worker(tmp_path, EXACT, require_iteration_log=True)
+    assert result["status"] == "error" and "must take a log argument" in result["stderr"]
+    assert "job failed" in log
+    silent = "def solve(mol, method, log):\n    return {'e_tot': -1.0, 'converged': True}\n"
+    result, _ = _run_worker(tmp_path, silent, require_iteration_log=True)
+    assert result["status"] == "error" and "without calling log()" in result["stderr"]
+    result, _ = _run_worker(tmp_path, EXACT)
+    assert result["status"] == "ok" and result["cases"][0]["scf_cycles"] == 0
+
+
+def test_worker_heartbeat_reports_progress(tmp_path):
+    slow = LOGGING.replace('    print("program says hi")', '    import time\n    time.sleep(1.5)')
+    _, log = _run_worker(tmp_path, slow, heartbeat_s=0.5)
+    assert any("h2a running: elapsed=" in line and "cycles_logged=3" in line for line in log.splitlines())

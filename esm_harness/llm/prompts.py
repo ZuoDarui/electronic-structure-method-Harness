@@ -8,11 +8,19 @@ PROMPT_IDS = ("hf_minimal", "hf_spec", "hf_show_baseline", "hf_rijcosx")
 
 RIJCOSX_INTERFACE = """\
 Write one self-contained Python program for closed-shell restricted Hartree–Fock (RHF)
-with the RIJCOSX approximation. Define solve(mol, method) and return
+with the RIJCOSX approximation. Define solve(mol, method, log) and return
 {{"e_tot": float, "converged": bool}}. mol is a built pyscf.gto.Mole (cc-pVTZ basis,
 even electron count, spin 0). method is a dict such as
 {{"jk": "rijcosx", "auxbasis": "weigend", "grid": [30, 110], "final_grid": [35, 302],
  "conv_tol": 1e-08, "final_energy": "single_point"}}.
+log is a callable that writes the job log. Call
+    log(cycle, energy, delta_e, grad_norm)
+at the end of every SCF cycle (cycle counts from 1; energy is that cycle's total
+energy, delta_e its change from the previous cycle or None on the first,
+grad_norm the orbital-gradient norm), and log(cycle, energy, stage="final") for
+the final-grid energy (with "reconverge", once per cycle on the final grid,
+stage="final" and delta_e/grad_norm given). The harness stamps each call with the
+cycle's wall time. A program that never calls log is rejected.
 You may import {imports}, and the pure standard-library modules math, cmath,
 itertools, functools, collections, typing, and dataclasses; any other import is
 rejected. Use mol.intor(...) for integrals, mol.eval_gto(...) for orbital values
@@ -65,7 +73,9 @@ RIJCOSX_SCORING = """\
 Acceptance: every molecule must converge, and its energy must be within 1e-8
 Hartree of the reference (PySCF where PySCF converged, otherwise the cluster's
 hf.py). A program that misses this on any molecule is rejected: it gets no score
-and is never used as the best program. Accepted programs are ranked by
+and is never used as the best program. Jobs have no time limit: each molecule
+runs until solve returns, and only its final energy decides acceptance. Accepted
+programs are ranked by
 solve(mol, method) wall time relative to the reference program's recorded time
 on each molecule (same node type, 8 threads); lower is better.
 """
@@ -138,7 +148,7 @@ def _result_lines(evaluation: dict) -> list[str]:
         lines.append(f"accepted (every molecule converged and within 1e-8 Hartree): {bool(evaluation['accepted'])}")
     if evaluation.get("unfinished"):
         lines.append(
-            "ruled out before these molecules finished (their results are not shown): "
+            "ruled out before these molecules finished (their jobs were stopped, no results): "
             + ", ".join(evaluation["unfinished"])
         )
     if evaluation.get("stderr"):
@@ -150,10 +160,14 @@ def _result_lines(evaluation: dict) -> list[str]:
         signed = None if energy is None or reference is None else float(energy) - float(reference)
         ratio = case.get("time_ratio")
         ratio_text = "n/a" if ratio is None else f"{ratio:.3f}"
-        lines.append(
-            f"- {case['id']}: converged={case['converged']} signed_err={signed} "
-            f"time_ratio={ratio_text}"
-        )
+        line = f"- {case['id']}: converged={case['converged']} signed_err={signed} time_ratio={ratio_text}"
+        scf = [item for item in case.get("iterations") or [] if item.get("stage") == "scf"]
+        if scf:
+            line += (
+                f" scf_cycles={len(scf)} mean_cycle_s={sum(item['cycle_time_s'] for item in scf) / len(scf):.2f}"
+                f" first_cycle_s={scf[0]['cycle_time_s']:.2f}"
+            )
+        lines.append(line)
     if evaluation.get("geomean_time_ratio") is not None:
         lines.append(
             f"max_abs_err={evaluation['max_abs_err']:.3e} "

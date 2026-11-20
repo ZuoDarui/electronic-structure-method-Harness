@@ -244,6 +244,22 @@ for task_id in sys.argv[1:]:
 print(json.dumps(out))
 """
 
+_TIONE_STOP = """\
+import json, sys
+from pathlib import Path
+import tikit
+key = json.loads(Path.home().joinpath("secrets/tencentcloud_tione.json").read_text())
+client = tikit.Client(key["secret_id"], key["secret_key"], "ap-beijing")
+out = {}
+for task_id in sys.argv[1:]:
+    try:
+        client.stop_training_task(task_id)
+        out[task_id] = "stopped"
+    except Exception as exc:
+        out[task_id] = str(exc)[:500]
+print(json.dumps(out))
+"""
+
 _TIONE_ENDED = {"FAILED", "STOPPED", "SUCCEED"}
 
 # Runs the user's own submit_training_task.py unchanged, except that the VPC and
@@ -300,10 +316,17 @@ class TioneSubmitter:
     ``_TIONE_SUBMIT``, with the resources in the config's ``cluster.task``.
 
     The job directory goes onto the CFS that every task mounts, the task runs
-    ``worker.py`` under ``timeout`` with the cluster's conda environment, and
-    the result is read back from CFS. ``start`` returns once the files are
-    deployed and a task creation was attempted; ``poll`` retries a failed
-    creation and returns None until the task has finished.
+    ``worker.py`` with the cluster's conda environment, and the result is read
+    back from CFS. ``start`` returns once the files are deployed and a task
+    creation was attempted; ``poll`` retries a failed creation and returns None
+    until the task has finished.
+
+    Only the final energy decides acceptance, so a job has no wall-clock limit:
+    it runs until ``solve`` returns. ``worker.log`` in the job directory shows
+    each SCF cycle's energy and time while it runs (``log_tail``). The harness
+    stops a task only when its program is already ruled out on accuracy
+    (``stop``). A job killed by the time limit of an earlier harness
+    (exit code 124) is rerun once without a limit.
 
     Connection settings come from the run config's ``cluster`` block, and the
     password from ``ESM_CLUSTER_PASSWORD`` (or a key file in
@@ -390,7 +413,7 @@ class TioneSubmitter:
         reason = [line for line in (err or out).splitlines() if line.startswith(("submit=", "reason="))]
         handle["submit_error"] = f"submit exited {code}: " + (" ".join(reason) or (err or out).strip()[-2000:])
 
-    def _script(self, timeout_s: float) -> str:
+    def _script(self) -> str:
         threads = int(self.cluster.get("threads", 8))
         return "\n".join(
             [
@@ -404,7 +427,7 @@ class TioneSubmitter:
                 f"export OMP_NUM_THREADS={threads} OPENBLAS_NUM_THREADS={threads} MKL_NUM_THREADS={threads}",
                 'export CUDA_VISIBLE_DEVICES="" PYTHONUNBUFFERED=1',
                 "hostname > host.txt",
-                f"timeout --kill-after=60 {int(timeout_s)} python -u worker.py --job job.json > worker.log 2>&1",
+                "python -u worker.py --job job.json > worker.log 2>&1",
                 "echo $? > exit_code",
                 "",
             ]
@@ -416,6 +439,8 @@ class TioneSubmitter:
         job = json.loads(job_file.read_text(encoding="utf-8"))
         job["program"] = "candidate.py"
         job["output"] = "result.json"
+        job["require_iteration_log"] = bool(self.cluster.get("require_iteration_log", True))
+        job["heartbeat_s"] = float(self.cluster.get("heartbeat_s", 300))
         script_name = f"esm-{spec.job_id}.sh"
         now = _now_s()
         handle = {
@@ -425,46 +450,61 @@ class TioneSubmitter:
             "label": label,
             "first_attempt": now,
             "submitted": now,
-            "timeout_s": float(spec.timeout_s),
         }
         remote.run(f"mkdir -p {shlex.quote(remote_dir)}")
         remote.put_text(f"{remote_dir}/candidate.py", (spec.workdir / "candidate.py").read_text(encoding="utf-8"))
         remote.put_text(f"{remote_dir}/job.json", json.dumps(job))
         remote.put_text(f"{remote_dir}/worker.py", (Path(__file__).with_name("worker.py")).read_text(encoding="utf-8"))
-        script = self._script(spec.timeout_s)
+        script = self._script()
         remote.put_text(f"{remote_dir}/{script_name}", script, mode=0o755)
         (spec.workdir / script_name).write_text(script, encoding="utf-8")
         self._submit(handle)
         return handle
 
-    def _extend(self, handle: dict) -> bool:
-        """A time limit is not a verdict: rerun the job with twice the limit, up to
-        ``max_timeout_s``. Returns False once the cap is reached."""
-        limit = 2 * float(handle["timeout_s"])
-        if limit > float(self.cluster.get("max_timeout_s", 0)):
-            return False
+    def _rerun_without_limit(self, handle: dict) -> None:
+        """Rerun a job that an earlier harness killed at its time limit, with no
+        limit and the current worker. Its job.json (program, cases) is kept."""
         remote = self.remote()
         remote_dir = handle["remote_dir"]
-        remote.run(f"rm -f {shlex.quote(remote_dir)}/exit_code {shlex.quote(remote_dir)}/host.txt")
-        remote.put_text(f"{remote_dir}/{handle['script']}", self._script(limit), mode=0o755)
-        handle.setdefault("timeouts", []).append({"limit_s": float(handle["timeout_s"]), "task_id": handle["task_id"]})
-        handle["timeout_s"] = limit
+        quoted = shlex.quote(remote_dir)
+        remote.run(f"rm -f {quoted}/exit_code {quoted}/host.txt; mv -f {quoted}/worker.log {quoted}/worker.timeout.log 2>/dev/null; true")
+        remote.put_text(f"{remote_dir}/worker.py", (Path(__file__).with_name("worker.py")).read_text(encoding="utf-8"))
+        remote.put_text(f"{remote_dir}/{handle['script']}", self._script(), mode=0o755)
+        handle.setdefault("timeouts", []).append(
+            {"limit_s": handle.pop("timeout_s", None), "task_id": handle["task_id"], "rerun_without_limit": True}
+        )
         handle["task_id"] = None
         self._submit(handle)
-        return True
+
+    def _helper(self, name: str, text: str, *args: str) -> dict:
+        helper = self._ensure(name, text)
+        code, out, _ = self.remote().run(
+            f"bash -lc {shlex.quote(shlex.join(['uv', 'run', '-q', '--with', 'tikit', 'python', helper, *args]))}",
+            timeout=600,
+        )
+        return json.loads(out.strip().splitlines()[-1])
 
     def _task_status(self, task_id: str) -> dict:
-        helper = f"{self.remote_root}/tione_status.py"
-        remote = self.remote()
-        if remote.read_text(helper) != _TIONE_STATUS:
-            remote.put_text(helper, _TIONE_STATUS)
         try:
-            code, out, _ = remote.run(
-                f"bash -lc {shlex.quote(f'uv run -q --with tikit python {helper} {task_id}')}", timeout=600
-            )
-            return json.loads(out.strip().splitlines()[-1])[task_id]
+            return self._helper("tione_status.py", _TIONE_STATUS, task_id)[task_id]
         except Exception as exc:
             return {"status": "UNKNOWN", "reason": f"status query failed: {exc}"[:500]}
+
+    def stop(self, handle: dict, reason: str) -> None:
+        """Stop the task of a job whose program has already been ruled out."""
+        handle["stopped"] = {"reason": reason, "at": _now_s()}
+        if not handle.get("task_id"):
+            return
+        try:
+            handle["stopped"]["result"] = self._helper("tione_stop.py", _TIONE_STOP, handle["task_id"])[handle["task_id"]]
+        except Exception as exc:
+            handle["stopped"]["result"] = f"stop failed: {exc}"[:500]
+
+    def log_tail(self, handle: dict, lines: int = 20) -> str:
+        """The last lines of the job's worker.log (SCF cycles, heartbeats)."""
+        path = shlex.quote(f"{handle['remote_dir']}/worker.log")
+        _, out, _ = self.remote().run(f"tail -n {int(lines)} {path} 2>/dev/null", timeout=120)
+        return out
 
     def poll(self, handle: dict) -> dict | None:
         submission = {
@@ -497,30 +537,23 @@ class TioneSubmitter:
             result = remote.read_text(f"{handle['remote_dir']}/result.json")
             if result:
                 payload = json.loads(result)
-            elif exit_code == 124 and self._extend(handle):
-                return None
             elif exit_code == 124:
-                payload = {"status": "timeout", "stderr": f"job exceeded {int(handle['timeout_s'])} s", "cases": []}
+                self._rerun_without_limit(handle)
+                return None
             else:
                 log = remote.read_text(f"{handle['remote_dir']}/worker.log") or ""
                 payload = {"status": "error", "stderr": f"worker exited {exit_code}\n{log[-8000:]}", "cases": []}
             return {"payload": payload, "submission": {**submission, "returncode": exit_code}}
         status = self._task_status(handle["task_id"])
         if status["status"] in _TIONE_ENDED:
+            if (remote.read_text(f"{handle['remote_dir']}/exit_code") or "").strip():
+                return None
+            log = remote.read_text(f"{handle['remote_dir']}/worker.log") or ""
             return {
                 "payload": {
                     "status": "error",
-                    "stderr": f"task {handle['task_id']} ended {status['status']} without a result: {status['reason']}",
-                    "cases": [],
-                },
-                "submission": {**submission, "returncode": None},
-            }
-        if _now_s() - float(handle["submitted"]) > float(handle["timeout_s"]) + max_queue_s:
-            return {
-                "payload": {
-                    "status": "timeout",
-                    "stderr": f"task {handle['task_id']} ({status['status']}) gave no result within "
-                    f"{int(handle['timeout_s'] + max_queue_s)} s of submission",
+                    "stderr": f"task {handle['task_id']} ended {status['status']} without a result: {status['reason']}"
+                    f"\n{log[-8000:]}",
                     "cases": [],
                 },
                 "submission": {**submission, "returncode": None},

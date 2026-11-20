@@ -14,9 +14,9 @@ references: benchmarks/rijcosx_cluster_references.json
 # (PySCF, or hf.py where PySCF has no result). Nothing is re-timed per round.
 baseline: recorded
 repeats: 1
-# Per-molecule limit: the larger of timeout_s and timeout_factor x reference time.
+# Cluster jobs have no wall-clock limit (see cluster below); timeout_s only
+# applies to the local and Slurm submitters.
 timeout_s: 3600
-timeout_factor: 3
 memory_mb: 245760
 submit: tione
 cluster:
@@ -35,12 +35,14 @@ cluster:
     memory: 256
     image: tione.tencentcloudcr.com/qcloud-ti-platform/notebook-conda-gpu:verl0.6.1-vllm0.11.0-torch2.8-py312-cuda12.8-gpu
     image_type: CCR
-  # Give up on a task that has produced no result this long after its time
-  # limit, and on a job whose task could not be created for this long.
+  # Give up on a job whose TI-ONE task could not be created for this long.
   max_queue_s: 259200
-  # A job that hits its time limit is rerun with twice the limit, up to this
-  # (7 days); only a timeout at this limit counts against the program.
-  max_timeout_s: 604800
+  # A job runs until solve() returns: there is no time limit, and only the final
+  # energy decides acceptance. The program must call log() once per SCF cycle;
+  # worker.log in the job directory shows each cycle's energy, change, gradient
+  # and wall time, plus a heartbeat every heartbeat_s seconds.
+  require_iteration_log: true
+  heartbeat_s: 300
 factors:
   model: claude-opus-5.5
   prompt_id: hf_rijcosx
