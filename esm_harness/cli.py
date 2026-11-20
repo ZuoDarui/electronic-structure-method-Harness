@@ -277,6 +277,29 @@ def _cmd_monitor(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_cluster_log(args: argparse.Namespace) -> int:
+    from esm_harness.loop import _infra_config
+
+    root, plan = _loop_args(args)
+    session = Session(resolve(args.session))
+    state = session.load()
+    submitter = make_submitter(_infra_config(plan, session, state["config"]), REPO_ROOT)
+    if not hasattr(submitter, "log_tail"):
+        raise SystemExit(f"{state['run_id']} does not run on the cluster")
+    evaluating = state.get("evaluating") or {}
+    if not evaluating:
+        print(f"{state['run_id']}: nothing is evaluating on the cluster")
+    for cid, started in sorted(evaluating.items()):
+        for job in started.get("jobs") or []:
+            handle = job["handle"]
+            if "result" in job:
+                print(f"== {cid} {job['case_id']}: finished ({job['result']['payload'].get('status')})")
+                continue
+            print(f"== {cid} {job['case_id']}: task {handle.get('task_id')} {handle['remote_dir']}/worker.log")
+            print(submitter.log_tail(handle, args.lines).rstrip() or "(empty)")
+    return 0
+
+
 def _cmd_reference(args: argparse.Namespace) -> int:
     cases = load_cases(resolve(args.suite))
     _print(write_references(cases, resolve(args.out)))
@@ -393,6 +416,15 @@ def build_parser() -> argparse.ArgumentParser:
     monitor.add_argument("--root", default=".", help=argparse.SUPPRESS)
     monitor.add_argument("--plan", default="loop.yaml", help=argparse.SUPPRESS)
     monitor.set_defaults(func=_cmd_monitor)
+
+    cluster_log = commands.add_parser(
+        "cluster-log", help="read-only: tail worker.log (SCF cycles, timings) of every job still on the cluster"
+    )
+    cluster_log.add_argument("--session", default="trajectories/hf-opus55-cluster")
+    cluster_log.add_argument("--lines", type=int, default=20)
+    cluster_log.add_argument("--root", default=".", help=argparse.SUPPRESS)
+    cluster_log.add_argument("--plan", default="loop.yaml", help=argparse.SUPPRESS)
+    cluster_log.set_defaults(func=_cmd_cluster_log)
 
     reference = commands.add_parser("reference", help="cache PySCF RHF energies for the suite")
     reference.add_argument("--suite", default="benchmarks/hf_rhf.yaml")

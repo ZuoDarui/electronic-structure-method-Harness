@@ -129,6 +129,8 @@ def _join(
                 "time_s": case.get("time_s"),
                 "baseline_time_s": base_time,
                 "time_ratio": ratio,
+                "scf_cycles": case.get("scf_cycles"),
+                "iterations": case.get("iterations"),
             }
         )
     status = payload.get("status", "error")
@@ -229,7 +231,8 @@ def collect_evaluation(
     once a finished molecule failed to converge, missed the floor, or crashed, the
     program cannot be accepted, and it is scored at once on the molecules that
     have finished (``status: inaccurate`` or ``error``, ``unfinished`` lists the
-    rest). Jobs still running are left alone.
+    rest). Jobs have no time limit, so the jobs still running for that program
+    are stopped (``submitter.stop``) instead of being left to run on.
     """
     if "evaluation" in started:
         return started["evaluation"]
@@ -277,6 +280,13 @@ def collect_evaluation(
     )
     if unfinished:
         evaluation["unfinished"] = unfinished
+        stop = getattr(submitter, "stop", None)
+        if stop is not None:
+            ruled_out_by = ", ".join(job["case_id"] for job, result in finished if _failure(result["payload"], references, limit))
+            for job in started["jobs"]:
+                if "result" not in job:
+                    stop(job["handle"], f"program ruled out ({status}) by {ruled_out_by}")
+            evaluation["stopped"] = unfinished
         if status == "inaccurate":
             evaluation.update(summarize_cases(evaluation["cases"], factors["speed_weight"], factors["fitness_err_ceiling"]))
             evaluation["fitness"] = None
