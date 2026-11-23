@@ -1,0 +1,15 @@
+{
+  "ssh_host": "gpu-worker",
+  "ssh_port": 22,
+  "remote_root": "/tmp",
+  "cpu_image": "hf-harness-cpu:local",
+  "gpu_image": "hf-harness-gpu:local",
+  "gpu_device": "0",
+  "timeout_s": 300,
+  "memory_mb": 2048,
+  "cpus": 1,
+  "pids_limit": 64,
+  "require_external_trace": true,
+  "nsys_path": "nsys",
+  "ssh_options": []
+}

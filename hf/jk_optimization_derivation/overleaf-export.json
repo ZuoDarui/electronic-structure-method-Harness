@@ -1,0 +1,14 @@
+{
+  "url": "https://www.overleaf.com/project/6af6bb114ed66a0cad9ae782",
+  "compiler": "XeLaTeX",
+  "texlive": "2026",
+  "pages": 17,
+  "errors": 0,
+  "warnings": 0,
+  "typesetting_info": 1,
+  "source_sha256": "0df2bb4e5c09d1f8709725e05289354d62f40ae73e4849597e40cbf86ffab022",
+  "compiled_at": "2026-11-18",
+  "compiler_log": "Overleaf XeLaTeX: Errors 0, Warnings 0, Info 1 (underfull hbox). Adds section 15 (repair and speedup derivations, before the appendix) and the 2026-11-18 status note.",
+  "local_compile": "No TeX engine installed locally; verified on Overleaf only.",
+  "user_scope": "Code and formula derivations delivered; subsequent testing by user"
+}

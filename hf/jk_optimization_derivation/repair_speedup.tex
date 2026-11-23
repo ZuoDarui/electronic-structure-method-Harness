@@ -1,0 +1,318 @@
+\section{修复与加速：完整公式推导（2026-11-18 更新）}
+\label{sec:repair}
+本节对应生产代码 \code{hf.py} 中的
+\code{scf_energy_terms}、\code{check_physical_energy}、
+\code{build_df_j}、\code{build_sgx_k}、\code{DenseLinearAlgebra}、
+\code{job_k_memory_mb}、\code{_sgx_block_size} 与网格切换逻辑。
+前文第 \ref{sec:ri}--\ref{sec:bugs} 节给出的是局域 RI-J 的设计目标；
+本节记录实际采用的修复路线：全局 DF-J 加 PySCF SGX（COSX），
+以及在其上不改变能量的加速。
+
+\subsection{闭壳层能量分解与物理下界}
+\label{sec:repair-energy}
+对占据系数 \(C\equiv C_{\mathrm{occ}}\in\mathbb R^{n\times n_{\mathrm{occ}}}\)，
+\begin{equation}
+D=2CC^T,\qquad C^TSC=I,\qquad
+E=E_{\mathrm{nuc}}+\underbrace{\Tr(Dh)}_{E_1}
++\underbrace{\tfrac12\Tr(DJ)}_{E_J}
+\underbrace{-\tfrac14\Tr(DK)}_{E_K}.
+\label{eq:rep-energy}
+\end{equation}
+代码逐项计算这四个量，并另算 \(\Tr(DS)\)。
+
+\paragraph{\(E_J>0\)：库仑度量正定。}
+记 \(\rho(\bm r)=\sum_{\mu\nu}D_{\mu\nu}\phi_\mu(\bm r)\phi_\nu(\bm r)\)，则
+\begin{equation}
+\Tr(DJ)=\sum_{\mu\nu\lambda\sigma}D_{\mu\nu}D_{\lambda\sigma}(\mu\nu|\lambda\sigma)
+=\inner{\rho}{\rho}
+=\int\frac{4\pi}{k^2}\,|\hat\rho(\bm k)|^2\,\frac{d\bm k}{(2\pi)^3}>0,
+\label{eq:rep-ej}
+\end{equation}
+因为 \(1/r\) 的 Fourier 变换 \(4\pi/k^2\) 处处为正；
+只要 \(\rho\not\equiv0\) 就严格为正。
+DF 近似下，令拟合右端
+\(\gamma_P=\sum_{\mu\nu}(P|\mu\nu)D_{\mu\nu}\)
+（任务记录中记作 \(d_P\)），\(M_{PQ}=(P|Q)\) 对称正定，则
+\begin{equation}
+E_J^{\mathrm{DF}}=\tfrac12\Tr(DJ^{\mathrm{DF}})
+=\tfrac12\sum_{\mu\nu}D_{\mu\nu}\sum_P(\mu\nu|P)c_P
+=\tfrac12\gamma^TM^{-1}\gamma
+=\tfrac12\norm{L^{-1}\gamma}_2^2\geq0,
+\label{eq:rep-ejdf}
+\end{equation}
+其中 \(M=LL^T\) 为 Cholesky 分解。
+正性不依赖密度是否幂等，也不依赖辅助基是否完备；
+它只依赖“同一个正定 \(M\) 同时出现在拟合和回代中”。
+这正是第 \ref{sec:repair-root} 小节局域实现失去的性质。
+
+\paragraph{\(E_K<0\)：交换收缩半正定。}
+把 \(D=2CC^T\) 代入式 \eqref{eq:Kdef}：
+\begin{equation}
+\Tr(DK)=\sum D_{\mu\nu}D_{\lambda\sigma}(\mu\lambda|\nu\sigma)
+=4\sum_{i,j=1}^{n_{\mathrm{occ}}}
+\inner{\varphi_i\varphi_j}{\varphi_i\varphi_j}\geq0,
+\qquad \varphi_i=\sum_\mu C_{\mu i}\phi_\mu .
+\label{eq:rep-ek}
+\end{equation}
+每一项都是“交换电荷” \(\varphi_i\varphi_j\) 的库仑自能，
+由式 \eqref{eq:rep-ej} 同理非负，且 \(i=j\) 项严格为正。
+因此 \(E_K=-\sum_{ij}\inner{\varphi_i\varphi_j}{\varphi_i\varphi_j}<0\)。
+若 \(D\) 只是半正定（如初猜），用谱分解
+\(D=\sum_kd_kv_kv_k^T\)（\(d_k\geq0\)）可得同样结论：
+\(\Tr(DK)=\sum_{kl}d_kd_l\inner{v_kv_l}{v_kv_l}\geq0\)。
+同时 \(K\) 作为 \(D\) 的线性映射在 Frobenius 内积下半正定，
+SGX 近似只要保持对称，就不应使 \(E_K\) 变号。
+
+\paragraph{电子数。}
+\(\Tr(DS)=2\Tr(C^TSC)=2n_{\mathrm{occ}}=N_e\)。
+C\(_{172}\)H\(_{346}\) 有 \(N_e=6\times172+346=1378\)，
+cc-pVTZ 下 \(n=30\times172+14\times346=10004\)。
+
+\paragraph{MINAO 初猜为何不检查电子数。}
+MINAO 先在原子最小基中放入球平均占据 \(o_k\)，
+再把原子轨道 \(\psi_k\) 以最小二乘投影到目标基：
+\(\tilde\psi_k=\Pi\psi_k\)，\(\Pi=S^{-1}S_{12}\)（不再归一化），
+\(D_0=\sum_ko_k\tilde c_k\tilde c_k^T\)。投影是压缩的，
+\(\norm{\Pi\psi_k}^2\leq\norm{\psi_k}^2=1\)，所以
+\begin{equation}
+\Tr(D_0S)=\sum_ko_k\norm{\Pi\psi_k}^2\leq\sum_ko_k=N_e .
+\end{equation}
+C172 实测 \(\Tr(D_0S)=1377.9487\)，比 1378 少 \(0.0513\)，
+平均每个原子约 \(10^{-4}\)。\(D_0\) 也不满足 \(D_0SD_0=2D_0\)。
+因此初始 Fock 只检查 \(E_J>0\)、\(E_K<0\)、\(E<0\)；
+第一次对角化后 \(D=2CC^T\) 精确满足电子数，
+此后每轮都检查 \(|\Tr(DS)-N_e|\leq10^{-6}\)。
+
+\subsection{根因：局域 RI-J 失去正定度量}
+\label{sec:repair-root}
+v3 GPU 路线的自定义局域 RI-J 有两处偏离式 \eqref{eq:rep-ejdf}：
+\begin{enumerate}
+\item 输出端复用了密度筛选：\(D_{\mu\nu}\) 小的位置直接令 \(J_{\mu\nu}=0\)，
+等价于在输出加掩码 \(\Pi_{\mathrm{out}}\)；
+\item 每个区域 \(R\)（含 halo）各自求逆 \(M_R^{-1}\)，
+只把“owned”辅助函数的系数拼回全局。
+\end{enumerate}
+写成算子：令 \(R_R\) 为限制到区域 \(R\) 的选择矩阵，
+\(E_R\) 为只保留 owned 行的延拓，
+\begin{equation}
+c_{\mathrm{loc}}=G\gamma,\qquad
+G=\sum_RE_RM_R^{-1}R_R,\qquad
+J_{\mathrm{loc}}=\Pi_{\mathrm{out}}\,B\,G\,B^Td .
+\label{eq:rep-gloc}
+\end{equation}
+一般 \(E_R\neq R_R^T\)，所以 \(G\neq G^T\)，且 \(G\neq M^{-1}\)：
+\(c_{\mathrm{loc}}\neq(P|Q)^{-1}(Q|D)\)。由它算出的库仑能
+\begin{equation}
+E_J^{\mathrm{loc}}=\tfrac12\gamma^TG\gamma
+=\tfrac12\gamma^T\sym(G)\gamma
+\end{equation}
+只由 \(\sym(G)\) 决定。各块 \(M_R^{-1}\) 正定并不保证 \(\sym(G)\) 正定，
+其特征值可以为负，也可以远大于 \(\lambda_{\max}(M^{-1})\)。
+所以 \(E_J\geq0\) 的保证不再成立，量值也没有上界；
+\(\Pi_{\mathrm{out}}\) 还会进一步破坏互易性式 \eqref{eq:reciprocity}。
+
+\paragraph{误差界：变分（robust）拟合与局域拟合。}
+令 \(c^\ast=M^{-1}\gamma\)，任取系数 \(c=c^\ast+\delta c\)。
+Dunlap 的 robust 泛函
+\begin{equation}
+\widetilde E_J[c]=\gamma^Tc-\tfrac12c^TMc
+=E_J^{\mathrm{DF}}-\tfrac12\delta c^TM\delta c
+\label{eq:rep-robust}
+\end{equation}
+对 \(\delta c\) 只有二阶误差，且符号确定（总是低估）。
+同样有 \(E_J^{\mathrm{exact}}-E_J^{\mathrm{DF}}
+=\frac12\inner{\rho-\widetilde\rho}{\rho-\widetilde\rho}\geq0\)。
+局域实现的 \(J=Bc_{\mathrm{loc}}\) 对应的是非 robust 形式
+\(\frac12\gamma^Tc_{\mathrm{loc}}\)，误差是一阶的：
+\begin{equation}
+E_J^{\mathrm{loc}}-E_J^{\mathrm{DF}}=\tfrac12\gamma^T\delta c,
+\qquad \delta c=(G-M^{-1})\gamma .
+\end{equation}
+在 \(M\) 度量下用 Cauchy--Schwarz：
+\(|\gamma^T\delta c|\leq\norm{\gamma}_{M^{-1}}\norm{\delta c}_M\)，
+\(\norm{\delta c}_M\leq\norm{M^{1/2}GM^{1/2}-I}_2\norm{\gamma}_{M^{-1}}\)，
+且 \(\norm{\gamma}_{M^{-1}}^2=2E_J^{\mathrm{DF}}\)，于是
+\begin{equation}
+\frac{|E_J^{\mathrm{loc}}-E_J^{\mathrm{DF}}|}{E_J^{\mathrm{DF}}}
+\leq\norm{M^{1/2}GM^{1/2}-I}_2 .
+\label{eq:rep-bound}
+\end{equation}
+\(G=M^{-1}\) 时右端为零；局域求逆只在 \(G\) 接近 \(M^{-1}\)
+（即谱意义下逼近）时才可控，“每块都正定”不足以保证这一点。
+
+\paragraph{C21 与 C172 的数值。}
+C21/cc-pVTZ 初始密度下，局域 J 给出 \(E_J=230711\) Ha，
+参考 DF-J 为 \(1839\) Ha，比值约 125。
+由式 \eqref{eq:rep-bound}，
+\(\norm{M^{1/2}GM^{1/2}-I}_2\geq(230711-1839)/1839\approx124\)，
+说明局域度量算子远离 \(M^{-1}\)，而不是普通截断误差。
+错误 \(J\) 进入 \(F=h+J-\frac12K\) 后，占据轨道按扭曲的谱排序；
+一阶响应 \(\delta D\) 的分母是轨道能差 \(\varepsilon_a-\varepsilon_i\)，
+\(\delta J\) 与能隙同量级以上时线性响应不再成立，
+新密度把电荷堆到错误区域，下一轮 \(E_J\) 继续放大。
+C172 第 1 轮能量因此为 \(+1.280\times10^{10}\) Ha，
+第 2 轮 \(+4.41\times10^{10}\) Ha。
+加入 \(E_J>0\)、\(E_K<0\)、\(E<0\) 守卫后，此类状态会在第一轮被拒绝。
+
+\subsection{修复：全局 DF-J 与 SGX/COSX}
+\label{sec:repair-fix}
+\paragraph{DF-J（weigend 辅助基）。}
+\begin{align}
+\gamma_P&=\sum_{\mu\nu}(P|\mu\nu)D_{\mu\nu}, \label{eq:rep-dfj1}\\
+LL^T&=M,\quad L\,y=\gamma,\quad L^Tc=y
+\quad(\Rightarrow c=M^{-1}\gamma), \label{eq:rep-dfj2}\\
+J_{\mu\nu}&=\sum_P(\mu\nu|P)\,c_P . \label{eq:rep-dfj3}
+\end{align}
+三中心积分按 AO 对 \(\mu\geq\nu\) 打包，\(D\) 非对角元乘 2（第 \ref{sec:packing} 小节）。
+式 \eqref{eq:rep-dfj1} 与 \eqref{eq:rep-dfj3} 各 \(O(N_{\mathrm{aux}}n^2)\)，
+Cholesky 为 \(O(N_{\mathrm{aux}}^3)\) 但只做一次，三角回代 \(O(N_{\mathrm{aux}}^2)\)。
+同一个 \(M\) 出现在拟合和回代中，式 \eqref{eq:rep-ejdf} 自动成立。
+代码 \code{build_df_j} 调用 PySCF \code{df_jk.get_j}（\code{hermi=1}，
+\code{direct_scf_tol=1e-13}）。
+
+\paragraph{SGX/COSX 交换。}
+在 \(\bm r\) 上做数值积分、在 \(\bm r'\) 上解析积分：
+\begin{align}
+K_{\mu\nu}&=\sum_{\lambda\sigma}D_{\lambda\sigma}
+\iint\frac{\phi_\mu(\bm r)\phi_\lambda(\bm r)\phi_\nu(\bm r')\phi_\sigma(\bm r')}{|\bm r-\bm r'|}
+\approx\sum_gw_g\phi_\mu(\bm r_g)\sum_{\lambda\sigma}\phi_\lambda(\bm r_g)D_{\lambda\sigma}A_{\nu\sigma}(g),\\
+A_{\nu\sigma}(g)&=\int\frac{\phi_\nu(\bm r')\phi_\sigma(\bm r')}{|\bm r'-\bm r_g|}\,d\bm r' .
+\end{align}
+令 \(X_{g\mu}=\phi_\mu(\bm r_g)\)，三步为
+\begin{equation}
+F_{g\sigma}=w_g\sum_\lambda X_{g\lambda}D_{\lambda\sigma},\qquad
+G_{g\nu}=\sum_\sigma A_{\nu\sigma}(g)F_{g\sigma},\qquad
+K_{\mu\nu}=\sum_gX_{g\mu}G_{g\nu}.
+\label{eq:rep-sgx}
+\end{equation}
+第一、三步是 GEMM，各 \(O(N_gn^2)\)；
+第二步需要每个格点的 ESP 积分 \(A(g)\)，形式上也是 \(O(N_gn^2)\)，
+由于高斯乘积 \(\phi_\nu\phi_\sigma\) 的筛选，有效对数随 \(n\) 线性增长，
+总成本接近 \(O(N_gn)\)，而 \(N_g\propto N_{\mathrm{atom}}\)。
+数值 \(K\) 不严格对称，结果取 \(\sym(K)\)，
+并用重叠拟合（第 \ref{sec:overlap} 节）消除网格一阶误差。
+\paragraph{两级网格。}
+先用粗网格 \(30\times110\)（径向 \(\times\) 角向）收敛，
+再在细网格 \(35\times302\) 上从粗网格密度出发、用完整 J/K 重新收敛，
+最后再做一次完整 J/K 重建。最终能量只属于细网格。
+
+\paragraph{增量 K。}
+\(K\) 对 \(D\) 线性，故
+\(K(D_{k})=K(D_{k-1})+K(\Delta D_k)\)，\(\Delta D_k=D_k-D_{k-1}\)。
+增量步只对 \(\Delta D\) 做 SGX，筛选阈值 \(10^{-10}\)，
+筛选所用的壳对仍由完整 \(D_k\) 决定，使增量与完整 K 用同一组壳对。
+累积的筛选误差每 \(k_{\mathrm{full}}=5\) 轮清零一次（阈值 \(10^{-13}\) 的完整 K）。
+若增量步已满足收敛判据，先重建完整 K 再判停，
+避免“\(\Delta D\) 小所以看起来已收敛”的假象。
+
+\paragraph{物理守卫（每轮执行）。}
+代码函数为 \code{check_physical_energy}：
+\begin{enumerate}
+\item \(E,D,F\) 全部有限；
+\item \(E_J=\frac12\Tr(DJ)>0\)；
+\item \(E_K=-\frac14\Tr(DK)<0\)；
+\item \(E<0\)（束缚分子）；
+\item 第一次对角化之后 \(|\Tr(DS)-N_e|\leq10^{-6}\)；
+\item 增量 K 判停前完整重建并重新检查；最终完整 J/K 重建后再检查一次。
+\end{enumerate}
+任一条失败即抛出异常并打印各能量分量，不进入下一轮。
+
+\subsection{加速：不改变能量的四项措施}
+\label{sec:repair-speed}
+\paragraph{(1) K 内存预算决定 SGX 块大小。}
+SGX 每个格点同时保存 4 个长度为 \(n\) 的双精度数组，
+即每格点 \(b=8\times4\times n\) 字节。
+\code{job_k_memory_mb} 给出固定预算 \(M_K\)（\code{k_memory_gib}）
+与进程上限 \(M_{\max}=0.75\,M_{\mathrm{job}}\)；
+\code{_sgx_block_size} 取
+\begin{align}
+M_{\mathrm{avail}}&=\min\!\bigl(M_K,\;M_{\max}-M_{\mathrm{RSS}}-M_J\bigr),
+\qquad M_J=(n_{\mathrm{thr}}+1)\cdot8n^2,\\
+\mathrm{blksize}&=\min\!\Bigl(N_g,\;
+B_0\Bigl\lfloor\frac{\max(B_0,\lfloor M_{\mathrm{avail}}/b\rfloor)}{B_0}\Bigr\rfloor\Bigr),
+\end{align}
+\(B_0\) 为 PySCF 的 \code{SGX_BLKSIZE} 对齐单位。
+未设 \(M_K\) 时退回 PySCF 原规则 \(M_{\mathrm{avail}}=M_{\mathrm{max\_memory}}-M_{\mathrm{RSS}}\)：
+DIIS 历史增长后 RSS 上升，块被压到最小值，GEMM 效率下降。
+C172 时 \(b\approx320\) kB，每 GB 约 3100 个格点。
+块大小只改变循环划分，不改变求和结果（至多浮点舍入顺序）。
+
+\paragraph{(2) 粗网格提前切换。}
+粗网格阶段改为 \(|\Delta E|<10^{-5}\) Ha 即切换，不再收敛到 \(10^{-8}\)。
+细网格 SCF 的不动点 \(D^\ast_{\mathrm{fine}}\) 与初始密度无关（同一收敛域内），
+细网格仍按 \(\tau=10^{-8}\) 的能量与梯度判据收敛并做最终完整重建。
+SCF 能量对密度变分稳定：
+\(E(D^\ast+\delta)-E(D^\ast)=O(\norm{\delta}^2)\)，
+所以起点差别只影响迭代数，最终能量差受 \(\tau\) 控制。
+C172 实测两种协议最终能量相差 \(-1.8\times10^{-10}\) Ha。
+
+\paragraph{(3) 稠密线性代数：密度一次 GEMM，DIIS 误差两次 GEMM。}
+密度 \(D=2C_{\mathrm{occ}}C_{\mathrm{occ}}^T\) 只需一次
+\(n\times n_{\mathrm{occ}}\) 乘 \(n_{\mathrm{occ}}\times n\) 的 GEMM，
+约 \(2n^2n_{\mathrm{occ}}\) flop。
+DIIS 误差 \(e=FDS-SDF\)：由于 \(F,D,S\) 均对称，
+\begin{equation}
+(FDS)^T=S^TD^TF^T=SDF
+\quad\Longrightarrow\quad
+H=(FD)S,\qquad e=H-H^T,
+\end{equation}
+只需两次 \(n^3\) GEMM，原写法需四次；转置是零成本的视图。
+新误差向量只与已存向量做内积，DIIS Gram 矩阵每轮增加一行而不是重算。
+
+\paragraph{(4) 为什么不把 SGX 的 GEMM 搬到 GPU。}
+SGX 计时中 ESP 积分 \(A(g)\) 占 \(K\) 时间的 84--87\%，GEMM 只占其余部分。
+Blackwell GPU 双精度峰值约 0.98 TFLOP/s，与 CPU 的 0.93 TFLOP/s 相当，
+GEMM 加速比 \(s\approx1.05\)。按 Amdahl 定律
+\begin{equation}
+\frac{t_{\mathrm{old}}}{t_{\mathrm{new}}}
+=\frac{1}{f+(1-f)/s}
+\approx\frac{1}{0.84+0.16/1.05}\approx1.008 ,
+\end{equation}
+上限不到 1\%，还要加上主机--设备拷贝，所以保留 CPU 路线。
+
+\subsection{验收与标度}
+\label{sec:repair-validation}
+\paragraph{链长外推。}
+烷烃每增加一个 CH\(_2\) 单元，能量近似增加常数
+\(\Delta_{\mathrm{CH_2}}=-39.04779646\) Ha，
+\begin{equation}
+E(\mathrm C_{172})\approx E(\mathrm C_{21})+151\,\Delta_{\mathrm{CH_2}}
+=-821.1618495437+151\times(-39.04779646)
+=-6717.37912\ \mathrm{Ha}.
+\end{equation}
+实算值与外推值相差 \(-7.0\times10^{-5}\) Ha（约 0.04 kcal/mol），
+说明 C172 结果与短链一致，而失败的 \(+1.28\times10^{10}\) Ha 差了十个数量级以上。
+
+\begin{center}
+\small
+\begin{tabular}{p{3.1cm}p{3.6cm}p{5.2cm}r}
+\toprule
+体系/协议 & 能量 / Ha & 对照 & 墙钟 / s\\
+\midrule
+C21，修复后 & \(-821.1618495437\) & 参考 \(-821.1618494204\)，差 \(-1.23\times10^{-7}\) & --\\
+C43，Phase 1 \(\to\) 加速 & -- & -- & 2191.6 \(\to\) 1959.9\\
+C86，Phase 1 \(\to\) 加速 & -- & -- & 5813.6 \(\to\) 5466.0\\
+C172，Phase 1 & \(-6717.379184800415\) & 外推 \(-6717.3791\) & 16538\\
+C172，加速 & \(-6717.379184800597\) & 与 Phase 1 差 \(-1.8\times10^{-10}\) & 15315\\
+\bottomrule
+\end{tabular}
+\end{center}
+加速版在 C43、C86、C172 上分别节省 10.6\%、6.0\%、7.4\% 墙钟时间，
+能量差在 SCF 收敛阈值以下。
+
+\paragraph{标度指数。}
+设 \(t=aN^p\)，取两个规模 \(N_1,N_2\)：
+\begin{equation}
+\frac{t_2}{t_1}=\Bigl(\frac{N_2}{N_1}\Bigr)^p
+\quad\Longrightarrow\quad
+p=\frac{\ln(t_2/t_1)}{\ln(N_2/N_1)} .
+\end{equation}
+以碳数 \(N_1=43,N_2=86\)（基函数数 2522、5016，比值 1.99，结果几乎相同）：
+Phase 1 为 \(\ln(5813.6/2191.6)/\ln2=1.41\)，
+加速版为 \(\ln(5466.0/1959.9)/\ln2=1.48\)，总体约 1.45。
+分项看，PySCF 路径 J 约 \(N^{2.1}\)、K 约 \(N^{1.5}\)；
+自研层次 RI 路径 J 预处理约 \(N^{2.3}\)、J 构建约 \(N^{1.7}\)、K 约 \(N^{2.1}\)。
+因此层次路径目前没有达到近线性目标，生产仍用 PySCF 路径。
+两点拟合只给局部指数；常数项和预处理的 \(O(N^3)\) 部分
+（如 \(M\) 的 Cholesky、\(n^3\) 的对角化）在更大体系中会逐渐占主导，
+需要三个以上规模做对数线性回归才能判断渐近指数。

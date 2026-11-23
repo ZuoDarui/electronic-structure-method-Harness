@@ -1,0 +1,175 @@
+----------------------------------------------------------------------
+Ran 15 tests in 0.145s
+
+OK
+{
+  "decision": {
+    "details": {},
+    "metrics": {
+      "error": 0.0
+    },
+    "passed": true,
+    "reasons": []
+  },
+  "run": {
+    "command": [
+      "/Users/darui/workspace/fieldquantum/.pyscf-env/bin/python",
+      "-c",
+      "import json,os; json.dump({'metrics': {'error': 0.0}}, open(os.environ['HARNESS_REPORT_PATH'], 'w'))"
+    ],
+    "duration_s": 0.018680958999539143,
+    "failure_kind": null,
+    "report_path": "/private/var/folders/np/4vyt63wd7293qmb1t6xtmk7h0000gn/T/tmpjw15rtb5/reports/cli-archive.report.json",
+    "returncode": 0,
+    "status": "completed",
+    "stderr": "",
+    "stdout": ""
+  },
+  "task": {
+    "cases": [],
+    "command": [
+      "/Users/darui/workspace/fieldquantum/.pyscf-env/bin/python",
+      "-c",
+      "import json,os; json.dump({'metrics': {'error': 0.0}}, open(os.environ['HARNESS_REPORT_PATH'], 'w'))"
+    ],
+    "correctness_tolerances": {
+      "error": 1e-06
+    },
+    "description": "",
+    "env": {},
+    "name": "cli-archive",
+    "performance": {},
+    "required_metrics": [
+      "error"
+    ],
+    "timeout_s": 300.0
+  }
+}
+{
+  "decision": {
+    "details": {},
+    "metrics": {
+      "error": 1e-09
+    },
+    "passed": true,
+    "reasons": []
+  },
+  "run": {
+    "command": [
+      "/Users/darui/workspace/fieldquantum/.pyscf-env/bin/python",
+      "-c",
+      "import json,os; json.dump({'metrics': {'error': 1e-9}}, open(os.environ['HARNESS_REPORT_PATH'], 'w'))"
+    ],
+    "duration_s": 0.016660666999996465,
+    "failure_kind": null,
+    "report_path": "/private/var/folders/np/4vyt63wd7293qmb1t6xtmk7h0000gn/T/tmpjw15rtb5/reports/cli-archive.report.json",
+    "returncode": 0,
+    "status": "completed",
+    "stderr": "",
+    "stdout": ""
+  },
+  "task": {
+    "cases": [],
+    "command": [
+      "/Users/darui/workspace/fieldquantum/.pyscf-env/bin/python",
+      "-c",
+      "import json,os; json.dump({'metrics': {'error': 1e-9}}, open(os.environ['HARNESS_REPORT_PATH'], 'w'))"
+    ],
+    "correctness_tolerances": {
+      "error": 1e-06
+    },
+    "description": "",
+    "env": {},
+    "name": "cli-archive",
+    "performance": {},
+    "required_metrics": [
+      "error"
+    ],
+    "timeout_s": 300.0
+  }
+}
+{
+  "decision": {
+    "details": {},
+    "metrics": {},
+    "passed": false,
+    "reasons": [
+      "candidate did not produce a JSON metric report",
+      "missing required metric: error"
+    ]
+  },
+  "run": {
+    "command": [
+      "/Users/darui/workspace/fieldquantum/.pyscf-env/bin/python",
+      "-c",
+      "pass"
+    ],
+    "duration_s": 0.011966875000325672,
+    "failure_kind": null,
+    "report_path": null,
+    "returncode": 0,
+    "status": "completed",
+    "stderr": "",
+    "stdout": ""
+  },
+  "task": {
+    "cases": [],
+    "command": [
+      "/Users/darui/workspace/fieldquantum/.pyscf-env/bin/python",
+      "-c",
+      "pass"
+    ],
+    "correctness_tolerances": {},
+    "description": "",
+    "env": {},
+    "name": "cli-missing",
+    "performance": {},
+    "required_metrics": [
+      "error"
+    ],
+    "timeout_s": 300.0
+  }
+}
+{
+  "decision": {
+    "details": {},
+    "metrics": {
+      "error": 0.0
+    },
+    "passed": true,
+    "reasons": []
+  },
+  "run": {
+    "command": [
+      "/Users/darui/workspace/fieldquantum/.pyscf-env/bin/python",
+      "-c",
+      "import json,os; json.dump({'metrics': {'error': 0.0}}, open(os.environ['HARNESS_REPORT_PATH'], 'w'))"
+    ],
+    "duration_s": 0.018143457999940438,
+    "failure_kind": null,
+    "report_path": "/private/var/folders/np/4vyt63wd7293qmb1t6xtmk7h0000gn/T/tmprod7d4t3/reports/cli-artifact.report.json",
+    "returncode": 0,
+    "status": "completed",
+    "stderr": "",
+    "stdout": ""
+  },
+  "task": {
+    "cases": [],
+    "command": [
+      "/Users/darui/workspace/fieldquantum/.pyscf-env/bin/python",
+      "-c",
+      "import json,os; json.dump({'metrics': {'error': 0.0}}, open(os.environ['HARNESS_REPORT_PATH'], 'w'))"
+    ],
+    "correctness_tolerances": {
+      "error": 1e-06
+    },
+    "description": "",
+    "env": {},
+    "name": "cli-artifact",
+    "performance": {},
+    "required_metrics": [
+      "error"
+    ],
+    "timeout_s": 300.0
+  }
+}

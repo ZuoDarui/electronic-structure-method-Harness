@@ -1,0 +1,44 @@
+{
+  "name": "occupy-density-oracle",
+  "description": "Compare the replaceable occupy_density with the dense reference on one water monomer and the smallest water, benzene, and alkane cases. The core Hamiltonian is the matrix. This does not run the ladder.",
+  "command": ["python3", "harness_engineering/examples/occupy_density_oracle_candidate.py"],
+  "cases": [
+    {"name": "water-monomer", "basis": "cc-pvtz"},
+    {"name": "water-8", "family": "water", "basis": "cc-pvtz"},
+    {"name": "benzene-2", "family": "benzene", "basis": "cc-pvtz"},
+    {"name": "alkane-8", "family": "alkane", "basis": "cc-pvtz"}
+  ],
+  "correctness_tolerances": {
+    "density_max_abs": 1e-8,
+    "density_asymmetry_max": 1e-8,
+    "density_electron_abs_max": 1e-8
+  },
+  "required_metrics": [
+    "all_finite",
+    "density_max_abs",
+    "density_asymmetry_max",
+    "density_electron_abs_max"
+  ],
+  "timeout_s": 600,
+  "generation": {
+    "editable": ["harness_engineering/generated/occupy_density.py"],
+    "forbidden": [
+      "../hf.py",
+      "harness_engineering/training_hf.py",
+      "harness/tasks/occupy_density_oracle.json",
+      "harness/tasks/occupy_density_budget.json"
+    ],
+    "forbidden_changes": [
+      "correctness tolerances",
+      "electron count",
+      "occupy_density_reference"
+    ],
+    "oracle_task": "harness/tasks/occupy_density_oracle.json",
+    "budget_task": "harness/tasks/occupy_density_budget.json",
+    "stop": {
+      "syntax_fixes": 1,
+      "revert_on_numerical": true,
+      "stall_rounds": 2
+    }
+  }
+}

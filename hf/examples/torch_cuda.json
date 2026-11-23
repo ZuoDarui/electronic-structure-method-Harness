@@ -1,0 +1,27 @@
+{
+  "xyz": "torch_h2o.xyz",
+  "basis": "cc-pvtz",
+  "unit": "Angstrom",
+  "resources": {
+    "cpu_cores": 8,
+    "threads": 8,
+    "memory_gib": 16,
+    "dense_backend": "torch",
+    "torch_device": "cuda"
+  },
+  "output_dir": "../outputs/torch_examples",
+  "output_prefix": "water_torch_cuda",
+  "solver_options": {
+    "jk_mode": "rijcosx",
+    "jk_engine": "pyscf_reference",
+    "auxbasis": "weigend",
+    "tol": 1e-8,
+    "grid_rad": 30,
+    "grid_ang": 110,
+    "final_grid_rad": 35,
+    "final_grid_ang": 302,
+    "max_iteration": 200,
+    "incremental_k": true,
+    "grid_switch_energy_tol": 1e-5
+  }
+}

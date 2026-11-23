@@ -1,0 +1,29 @@
+{
+  "xyz": "alk375.xyz",
+  "basis": "cc-pvtz",
+  "unit": "Angstrom",
+  "charge": 0,
+  "spin": 0,
+  "expected_basis_functions": 21778,
+  "resources": {
+    "cpu_cores": 48,
+    "threads": 8,
+    "parallel_backend": "cpu",
+    "parallel_workers": 4,
+    "parallel_chunk_size": 16,
+    "parallel_min_shells": 12
+  },
+  "output_dir": "outputs",
+  "output_prefix": "alk375_ccpvtz",
+  "solver_options": {
+    "jk_mode": "rijcosx",
+    "auxbasis": "weigend",
+    "tol": 1e-08,
+    "grid_rad": 30,
+    "grid_ang": 110,
+    "final_grid_rad": 35,
+    "final_grid_ang": 302,
+    "batch_size": 512,
+    "max_iteration": 200
+  }
+}

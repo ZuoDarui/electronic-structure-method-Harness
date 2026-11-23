@@ -1,0 +1,22 @@
+{
+  "name": "water-cluster-ccpvtz-scale",
+  "description": "Record cc-pVTZ scale, dense-memory estimate, core Hamiltonian time, and one diagonalization for 16, 32, 64, and 128 water molecules. Long-term target: about 50000 basis functions, 20 SCF iterations, convergence 1e-8, within 48 hours. This stage does not run J/K or full SCF.",
+  "command": ["python3", "harness_engineering/examples/water_cluster_scale_candidate.py"],
+  "cases": [
+    {"name": "water16-ccpvtz", "molecules": 16, "basis": "cc-pvtz"},
+    {"name": "water32-ccpvtz", "molecules": 32, "basis": "cc-pvtz"},
+    {"name": "water64-ccpvtz", "molecules": 64, "basis": "cc-pvtz"},
+    {"name": "water128-ccpvtz", "molecules": 128, "basis": "cc-pvtz"}
+  ],
+  "correctness_tolerances": {
+    "nao_mismatch_max": 0
+  },
+  "required_metrics": [
+    "nao_16", "nao_32", "nao_64", "nao_128",
+    "nao_mismatch_max", "all_finite", "memory_128_gib",
+    "hcore_16_median_s", "hcore_32_median_s", "hcore_64_median_s", "hcore_128_median_s",
+    "overlap_16_median_s", "overlap_32_median_s", "overlap_64_median_s", "overlap_128_median_s",
+    "eigh_16_median_s", "eigh_32_median_s", "eigh_64_median_s", "eigh_128_median_s"
+  ],
+  "timeout_s": 1800
+}

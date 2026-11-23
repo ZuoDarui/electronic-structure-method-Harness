@@ -1,0 +1,92 @@
+{
+  "name": "gpu-rhf-correctness",
+  "description": "Validate self-written exact and density-fitted RHF against independent PySCF SCF, invariants, linearity, and an H2 energy anchor. CPU validation of the portable numerical implementation; does not certify CUDA execution.",
+  "command": [
+    "python3",
+    "harness_engineering/examples/gpu_rhf_candidate.py",
+    "--task",
+    "harness/tasks/gpu_rhf_correctness.json"
+  ],
+  "cases": [
+    {
+      "name": "h2-sto3g",
+      "atom": "H 0 0 0; H 0 0 0.74",
+      "basis": "sto-3g",
+      "anchor_energy": -1.1167593073964255
+    },
+    {
+      "name": "h2-stretched-631g",
+      "atom": "H 0 0 0; H 0 0 1.5",
+      "basis": "6-31g"
+    },
+    {
+      "name": "water-631g",
+      "atom": "O 0 0 0; H 0 -0.757 0.587; H 0 0.757 0.587",
+      "basis": "6-31g"
+    },
+    {
+      "name": "lih-631g",
+      "atom": "Li 0 0 0; H 0 0 1.6",
+      "basis": "6-31g"
+    },
+    {
+      "name": "ammonia-sto3g",
+      "atom": "N 0 0 0; H 0.9377 0 -0.3816; H -0.46885 0.8121 -0.3816; H -0.46885 -0.8121 -0.3816",
+      "basis": "sto-3g"
+    },
+    {
+      "name": "helium-ccpvdz",
+      "atom": "He 0 0 0",
+      "basis": "cc-pvdz"
+    }
+  ],
+  "validation": {
+    "integral_modes": [
+      "exact",
+      "df"
+    ],
+    "auxbasis": "weigend",
+    "random_seed": 20261110
+  },
+  "correctness_tolerances": {
+    "energy_max_abs": 1e-08,
+    "jk_max_abs": 1e-09,
+    "jk_symmetry_max_abs": 1e-11,
+    "jk_linearity_max_abs": 1e-09,
+    "density_max_abs": 1e-06,
+    "electron_count_abs": 1e-09,
+    "idempotency_max_abs": 1e-08,
+    "residual_max_abs": 1e-07,
+    "orthogonality_max_abs": 1e-10,
+    "orbital_equation_max_abs": 1e-07,
+    "density_reconstruction_max_abs": 1e-10,
+    "energy_reconstruction_abs": 1e-10,
+    "anchor_energy_abs": 1e-09
+  },
+  "required_metrics": [
+    "energy_max_abs",
+    "jk_max_abs",
+    "jk_symmetry_max_abs",
+    "jk_linearity_max_abs",
+    "density_max_abs",
+    "electron_count_abs",
+    "idempotency_max_abs",
+    "residual_max_abs",
+    "orthogonality_max_abs",
+    "orbital_equation_max_abs",
+    "density_reconstruction_max_abs",
+    "energy_reconstruction_abs",
+    "anchor_energy_abs",
+    "all_finite",
+    "scf_converged",
+    "case_count",
+    "gpu_executed"
+  ],
+  "timeout_s": 600,
+  "env": {
+    "GPU_HF_BACKEND": "numpy",
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1"
+  }
+}

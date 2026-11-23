@@ -1,0 +1,13 @@
+{
+  "cpu_image": "hf-harness-cpu:local",
+  "gpu_image": "hf-harness-gpu:local",
+  "gpu_device": "0",
+  "timeout_s": 300,
+  "memory_mb": 2048,
+  "cpus": 1,
+  "pids_limit": 64,
+  "max_log_bytes": 1048576,
+  "max_artifact_bytes": 268435456,
+  "require_external_trace": true,
+  "nsys_path": "nsys"
+}

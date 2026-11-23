@@ -1,0 +1,775 @@
+{
+  "decision": {
+    "details": {
+      "auxbasis": "weigend",
+      "batch_size": 256,
+      "cases": {
+        "benzene-631g": {
+          "basis": "6-31g",
+          "modules": {
+            "cosx_k": {
+              "1": {
+                "all_finite": true,
+                "backend": "serial",
+                "matrix_error_vs_pyscf_analytic": 0.00010725906692200284,
+                "matrix_error_vs_serial": 0.0,
+                "nao": 66,
+                "parallel_active": false,
+                "symmetric": true,
+                "timing": {
+                  "median_s": 3.094824083000276,
+                  "minimum_s": 3.094824083000276,
+                  "p90_s": 3.094824083000276,
+                  "repeats": 1,
+                  "samples_s": [
+                    3.094824083000276
+                  ],
+                  "warmups": 1
+                },
+                "workers": 1
+              },
+              "2": {
+                "all_finite": true,
+                "backend": "cpu",
+                "matrix_error_vs_pyscf_analytic": 0.00010725906692200284,
+                "matrix_error_vs_serial": 0.0,
+                "nao": 66,
+                "parallel_active": true,
+                "symmetric": true,
+                "timing": {
+                  "median_s": 1.7838072499998816,
+                  "minimum_s": 1.7838072499998816,
+                  "p90_s": 1.7838072499998816,
+                  "repeats": 1,
+                  "samples_s": [
+                    1.7838072499998816
+                  ],
+                  "warmups": 1
+                },
+                "workers": 2
+              },
+              "4": {
+                "all_finite": true,
+                "backend": "cpu",
+                "matrix_error_vs_pyscf_analytic": 0.00010725906692200284,
+                "matrix_error_vs_serial": 0.0,
+                "nao": 66,
+                "parallel_active": true,
+                "symmetric": true,
+                "timing": {
+                  "median_s": 1.1512110419998862,
+                  "minimum_s": 1.1512110419998862,
+                  "p90_s": 1.1512110419998862,
+                  "repeats": 1,
+                  "samples_s": [
+                    1.1512110419998862
+                  ],
+                  "warmups": 1
+                },
+                "workers": 4
+              }
+            },
+            "ri_j": {
+              "1": {
+                "all_finite": true,
+                "backend": "serial",
+                "matrix_error_vs_pyscf_df": 1.3177597679714381e-08,
+                "matrix_error_vs_serial": 0.0,
+                "nao": 66,
+                "parallel_active": false,
+                "symmetric": true,
+                "timing": {
+                  "median_s": 0.08502170799965825,
+                  "minimum_s": 0.08502170799965825,
+                  "p90_s": 0.08502170799965825,
+                  "repeats": 1,
+                  "samples_s": [
+                    0.08502170799965825
+                  ],
+                  "warmups": 1
+                },
+                "workers": 1
+              },
+              "2": {
+                "all_finite": true,
+                "backend": "cpu",
+                "matrix_error_vs_pyscf_df": 1.3177597679714381e-08,
+                "matrix_error_vs_serial": 0.0,
+                "nao": 66,
+                "parallel_active": true,
+                "symmetric": true,
+                "timing": {
+                  "median_s": 0.056120000000191794,
+                  "minimum_s": 0.056120000000191794,
+                  "p90_s": 0.056120000000191794,
+                  "repeats": 1,
+                  "samples_s": [
+                    0.056120000000191794
+                  ],
+                  "warmups": 1
+                },
+                "workers": 2
+              },
+              "4": {
+                "all_finite": true,
+                "backend": "cpu",
+                "matrix_error_vs_pyscf_df": 1.3177597679714381e-08,
+                "matrix_error_vs_serial": 0.0,
+                "nao": 66,
+                "parallel_active": true,
+                "symmetric": true,
+                "timing": {
+                  "median_s": 0.05092412500016508,
+                  "minimum_s": 0.05092412500016508,
+                  "p90_s": 0.05092412500016508,
+                  "repeats": 1,
+                  "samples_s": [
+                    0.05092412500016508
+                  ],
+                  "warmups": 1
+                },
+                "workers": 4
+              }
+            },
+            "rijcosx_scf": {
+              "1": {
+                "backend": "serial",
+                "density_finite": true,
+                "density_shape": [
+                  66,
+                  66
+                ],
+                "energy_error_vs_pyscf": 0.006765798200660811,
+                "energy_error_vs_serial": 0.0,
+                "energy_hartree": -230.61682502636975,
+                "parallel_active": false,
+                "scf_converged": true,
+                "timing": {
+                  "median_s": 50.04892470899995,
+                  "minimum_s": 50.04892470899995,
+                  "p90_s": 50.04892470899995,
+                  "repeats": 1,
+                  "samples_s": [
+                    50.04892470899995
+                  ],
+                  "warmups": 1
+                },
+                "workers": 1
+              },
+              "2": {
+                "backend": "cpu",
+                "density_finite": true,
+                "density_shape": [
+                  66,
+                  66
+                ],
+                "energy_error_vs_pyscf": 0.006765798200660811,
+                "energy_error_vs_serial": 0.0,
+                "energy_hartree": -230.61682502636975,
+                "parallel_active": true,
+                "scf_converged": true,
+                "timing": {
+                  "median_s": 28.139404666999326,
+                  "minimum_s": 28.139404666999326,
+                  "p90_s": 28.139404666999326,
+                  "repeats": 1,
+                  "samples_s": [
+                    28.139404666999326
+                  ],
+                  "warmups": 1
+                },
+                "workers": 2
+              },
+              "4": {
+                "backend": "cpu",
+                "density_finite": true,
+                "density_shape": [
+                  66,
+                  66
+                ],
+                "energy_error_vs_pyscf": 0.006765798200660811,
+                "energy_error_vs_serial": 0.0,
+                "energy_hartree": -230.61682502636975,
+                "parallel_active": true,
+                "scf_converged": true,
+                "timing": {
+                  "median_s": 18.328078874999846,
+                  "minimum_s": 18.328078874999846,
+                  "p90_s": 18.328078874999846,
+                  "repeats": 1,
+                  "samples_s": [
+                    18.328078874999846
+                  ],
+                  "warmups": 1
+                },
+                "workers": 4
+              }
+            }
+          },
+          "nao": 66,
+          "run_scf": true
+        },
+        "water-dimer-sto3g": {
+          "basis": "sto-3g",
+          "modules": {
+            "cosx_k": {
+              "1": {
+                "all_finite": true,
+                "backend": "serial",
+                "matrix_error_vs_pyscf_analytic": 2.644975875987221e-05,
+                "matrix_error_vs_serial": 0.0,
+                "nao": 14,
+                "parallel_active": false,
+                "symmetric": true,
+                "timing": {
+                  "median_s": 0.15084545799982152,
+                  "minimum_s": 0.15064737500051706,
+                  "p90_s": 0.15096510860003037,
+                  "repeats": 5,
+                  "samples_s": [
+                    0.15064737500051706,
+                    0.15103995899971778,
+                    0.15085283300049923,
+                    0.15084545799982152,
+                    0.15075387500019133
+                  ],
+                  "warmups": 1
+                },
+                "workers": 1
+              },
+              "2": {
+                "all_finite": true,
+                "backend": "cpu",
+                "matrix_error_vs_pyscf_analytic": 2.644975875987221e-05,
+                "matrix_error_vs_serial": 0.0,
+                "nao": 14,
+                "parallel_active": false,
+                "symmetric": true,
+                "timing": {
+                  "median_s": 0.1508309159999044,
+                  "minimum_s": 0.1504116249998333,
+                  "p90_s": 0.15129844999974013,
+                  "repeats": 5,
+                  "samples_s": [
+                    0.15098074999968958,
+                    0.1507665419994737,
+                    0.1508309159999044,
+                    0.1515102499997738,
+                    0.1504116249998333
+                  ],
+                  "warmups": 1
+                },
+                "workers": 2
+              },
+              "4": {
+                "all_finite": true,
+                "backend": "cpu",
+                "matrix_error_vs_pyscf_analytic": 2.644975875987221e-05,
+                "matrix_error_vs_serial": 0.0,
+                "nao": 14,
+                "parallel_active": false,
+                "symmetric": true,
+                "timing": {
+                  "median_s": 0.15789820800000598,
+                  "minimum_s": 0.14903774999947927,
+                  "p90_s": 0.16041778320013692,
+                  "repeats": 5,
+                  "samples_s": [
+                    0.15789820800000598,
+                    0.16136275000008027,
+                    0.15900033300022187,
+                    0.15340974999980972,
+                    0.14903774999947927
+                  ],
+                  "warmups": 1
+                },
+                "workers": 4
+              }
+            },
+            "ri_j": {
+              "1": {
+                "all_finite": true,
+                "backend": "serial",
+                "matrix_error_vs_pyscf_df": 1.0658141036401503e-14,
+                "matrix_error_vs_serial": 0.0,
+                "nao": 14,
+                "parallel_active": false,
+                "symmetric": true,
+                "timing": {
+                  "median_s": 0.0035586249996413244,
+                  "minimum_s": 0.0034279999999853317,
+                  "p90_s": 0.003661866599577479,
+                  "repeats": 5,
+                  "samples_s": [
+                    0.003584915999454097,
+                    0.003542875000675849,
+                    0.003713166999659734,
+                    0.0035586249996413244,
+                    0.0034279999999853317
+                  ],
+                  "warmups": 1
+                },
+                "workers": 1
+              },
+              "2": {
+                "all_finite": true,
+                "backend": "cpu",
+                "matrix_error_vs_pyscf_df": 1.0658141036401503e-14,
+                "matrix_error_vs_serial": 0.0,
+                "nao": 14,
+                "parallel_active": false,
+                "symmetric": true,
+                "timing": {
+                  "median_s": 0.003554832999725477,
+                  "minimum_s": 0.003477041000223835,
+                  "p90_s": 0.003624408599898743,
+                  "repeats": 5,
+                  "samples_s": [
+                    0.003477041000223835,
+                    0.0036261249997551204,
+                    0.003554832999725477,
+                    0.0035509589997673174,
+                    0.003621834000114177
+                  ],
+                  "warmups": 1
+                },
+                "workers": 2
+              },
+              "4": {
+                "all_finite": true,
+                "backend": "cpu",
+                "matrix_error_vs_pyscf_df": 1.0658141036401503e-14,
+                "matrix_error_vs_serial": 0.0,
+                "nao": 14,
+                "parallel_active": false,
+                "symmetric": true,
+                "timing": {
+                  "median_s": 0.003746583000065584,
+                  "minimum_s": 0.0036791249995076214,
+                  "p90_s": 0.003935792000447691,
+                  "repeats": 5,
+                  "samples_s": [
+                    0.003716625000379281,
+                    0.0038937919998716097,
+                    0.0036791249995076214,
+                    0.003963792000831745,
+                    0.003746583000065584
+                  ],
+                  "warmups": 1
+                },
+                "workers": 4
+              }
+            },
+            "rijcosx_scf": {
+              "1": {
+                "backend": "serial",
+                "density_finite": true,
+                "density_shape": [
+                  14,
+                  14
+                ],
+                "energy_error_vs_pyscf": 0.06300458434537859,
+                "energy_error_vs_serial": 0.0,
+                "energy_hartree": -149.9850183287777,
+                "parallel_active": false,
+                "scf_converged": true,
+                "timing": {
+                  "median_s": 2.3812788750001346,
+                  "minimum_s": 2.3812788750001346,
+                  "p90_s": 2.3812788750001346,
+                  "repeats": 1,
+                  "samples_s": [
+                    2.3812788750001346
+                  ],
+                  "warmups": 1
+                },
+                "workers": 1
+              },
+              "2": {
+                "backend": "cpu",
+                "density_finite": true,
+                "density_shape": [
+                  14,
+                  14
+                ],
+                "energy_error_vs_pyscf": 0.06300458434537859,
+                "energy_error_vs_serial": 0.0,
+                "energy_hartree": -149.9850183287777,
+                "parallel_active": false,
+                "scf_converged": true,
+                "timing": {
+                  "median_s": 2.4065336249996108,
+                  "minimum_s": 2.4065336249996108,
+                  "p90_s": 2.4065336249996108,
+                  "repeats": 1,
+                  "samples_s": [
+                    2.4065336249996108
+                  ],
+                  "warmups": 1
+                },
+                "workers": 2
+              },
+              "4": {
+                "backend": "cpu",
+                "density_finite": true,
+                "density_shape": [
+                  14,
+                  14
+                ],
+                "energy_error_vs_pyscf": 0.06300458434537859,
+                "energy_error_vs_serial": 0.0,
+                "energy_hartree": -149.9850183287777,
+                "parallel_active": false,
+                "scf_converged": true,
+                "timing": {
+                  "median_s": 2.3559438749998662,
+                  "minimum_s": 2.3559438749998662,
+                  "p90_s": 2.3559438749998662,
+                  "repeats": 1,
+                  "samples_s": [
+                    2.3559438749998662
+                  ],
+                  "warmups": 1
+                },
+                "workers": 4
+              }
+            }
+          },
+          "nao": 14,
+          "run_scf": true
+        },
+        "water-sto3g": {
+          "basis": "sto-3g",
+          "modules": {
+            "cosx_k": {
+              "1": {
+                "all_finite": true,
+                "backend": "serial",
+                "matrix_error_vs_pyscf_analytic": 3.0014847173243098e-05,
+                "matrix_error_vs_serial": 0.0,
+                "nao": 7,
+                "parallel_active": false,
+                "symmetric": true,
+                "timing": {
+                  "median_s": 0.027638499999738997,
+                  "minimum_s": 0.027175791999979992,
+                  "p90_s": 0.027671683599692187,
+                  "repeats": 5,
+                  "samples_s": [
+                    0.027638499999738997,
+                    0.027691499999491498,
+                    0.02763262499956909,
+                    0.027175791999979992,
+                    0.02764195899999322
+                  ],
+                  "warmups": 1
+                },
+                "workers": 1
+              },
+              "2": {
+                "all_finite": true,
+                "backend": "cpu",
+                "matrix_error_vs_pyscf_analytic": 3.0014847173243098e-05,
+                "matrix_error_vs_serial": 0.0,
+                "nao": 7,
+                "parallel_active": false,
+                "symmetric": true,
+                "timing": {
+                  "median_s": 0.027436332999968727,
+                  "minimum_s": 0.027226625000366766,
+                  "p90_s": 0.027627075200143736,
+                  "repeats": 5,
+                  "samples_s": [
+                    0.027226625000366766,
+                    0.027436332999968727,
+                    0.027595250000558735,
+                    0.02740970800005016,
+                    0.02764829199986707
+                  ],
+                  "warmups": 1
+                },
+                "workers": 2
+              },
+              "4": {
+                "all_finite": true,
+                "backend": "cpu",
+                "matrix_error_vs_pyscf_analytic": 3.0014847173243098e-05,
+                "matrix_error_vs_serial": 0.0,
+                "nao": 7,
+                "parallel_active": false,
+                "symmetric": true,
+                "timing": {
+                  "median_s": 0.027610957999968377,
+                  "minimum_s": 0.02743049999935465,
+                  "p90_s": 0.0277638499999739,
+                  "repeats": 5,
+                  "samples_s": [
+                    0.02766275000067253,
+                    0.027610957999968377,
+                    0.027544624999791267,
+                    0.027831249999508145,
+                    0.02743049999935465
+                  ],
+                  "warmups": 1
+                },
+                "workers": 4
+              }
+            },
+            "ri_j": {
+              "1": {
+                "all_finite": true,
+                "backend": "serial",
+                "matrix_error_vs_pyscf_df": 1.0658141036401503e-14,
+                "matrix_error_vs_serial": 0.0,
+                "nao": 7,
+                "parallel_active": false,
+                "symmetric": true,
+                "timing": {
+                  "median_s": 0.0007469579995813547,
+                  "minimum_s": 0.0007290000003195019,
+                  "p90_s": 0.0009437830003662384,
+                  "repeats": 5,
+                  "samples_s": [
+                    0.0008975830005510943,
+                    0.00073691699981282,
+                    0.0007469579995813547,
+                    0.0007290000003195019,
+                    0.0009745830002430012
+                  ],
+                  "warmups": 1
+                },
+                "workers": 1
+              },
+              "2": {
+                "all_finite": true,
+                "backend": "cpu",
+                "matrix_error_vs_pyscf_df": 1.0658141036401503e-14,
+                "matrix_error_vs_serial": 0.0,
+                "nao": 7,
+                "parallel_active": false,
+                "symmetric": true,
+                "timing": {
+                  "median_s": 0.0007231250001495937,
+                  "minimum_s": 0.0007063339999149321,
+                  "p90_s": 0.0008295833999000024,
+                  "repeats": 5,
+                  "samples_s": [
+                    0.0007063339999149321,
+                    0.0008834170002955943,
+                    0.0007214580000436399,
+                    0.0007488329993066145,
+                    0.0007231250001495937
+                  ],
+                  "warmups": 1
+                },
+                "workers": 2
+              },
+              "4": {
+                "all_finite": true,
+                "backend": "cpu",
+                "matrix_error_vs_pyscf_df": 1.0658141036401503e-14,
+                "matrix_error_vs_serial": 0.0,
+                "nao": 7,
+                "parallel_active": false,
+                "symmetric": true,
+                "timing": {
+                  "median_s": 0.0007182919998740545,
+                  "minimum_s": 0.0007012079995547538,
+                  "p90_s": 0.000755474999823491,
+                  "repeats": 5,
+                  "samples_s": [
+                    0.0007598749998578569,
+                    0.0007083749997036648,
+                    0.0007488749997719424,
+                    0.0007182919998740545,
+                    0.0007012079995547538
+                  ],
+                  "warmups": 1
+                },
+                "workers": 4
+              }
+            },
+            "rijcosx_scf": {
+              "1": {
+                "backend": "serial",
+                "density_finite": true,
+                "density_shape": [
+                  7,
+                  7
+                ],
+                "energy_error_vs_pyscf": 0.03109734920781193,
+                "energy_error_vs_serial": 0.0,
+                "energy_hartree": -74.99416047893702,
+                "parallel_active": false,
+                "scf_converged": true,
+                "timing": {
+                  "median_s": 0.47025870800007397,
+                  "minimum_s": 0.47025870800007397,
+                  "p90_s": 0.47025870800007397,
+                  "repeats": 1,
+                  "samples_s": [
+                    0.47025870800007397
+                  ],
+                  "warmups": 1
+                },
+                "workers": 1
+              },
+              "2": {
+                "backend": "cpu",
+                "density_finite": true,
+                "density_shape": [
+                  7,
+                  7
+                ],
+                "energy_error_vs_pyscf": 0.03109734920781193,
+                "energy_error_vs_serial": 0.0,
+                "energy_hartree": -74.99416047893702,
+                "parallel_active": false,
+                "scf_converged": true,
+                "timing": {
+                  "median_s": 0.470959166999819,
+                  "minimum_s": 0.470959166999819,
+                  "p90_s": 0.470959166999819,
+                  "repeats": 1,
+                  "samples_s": [
+                    0.470959166999819
+                  ],
+                  "warmups": 1
+                },
+                "workers": 2
+              },
+              "4": {
+                "backend": "cpu",
+                "density_finite": true,
+                "density_shape": [
+                  7,
+                  7
+                ],
+                "energy_error_vs_pyscf": 0.03109734920781193,
+                "energy_error_vs_serial": 0.0,
+                "energy_hartree": -74.99416047893702,
+                "parallel_active": false,
+                "scf_converged": true,
+                "timing": {
+                  "median_s": 0.46932099999958155,
+                  "minimum_s": 0.46932099999958155,
+                  "p90_s": 0.46932099999958155,
+                  "repeats": 1,
+                  "samples_s": [
+                    0.46932099999958155
+                  ],
+                  "warmups": 1
+                },
+                "workers": 4
+              }
+            }
+          },
+          "nao": 7,
+          "run_scf": true
+        }
+      },
+      "df_tol": 1e-09,
+      "final_grid_ang": 74,
+      "final_grid_rad": 12,
+      "grid_ang": 146,
+      "grid_rad": 40,
+      "numpy": "2.5.4",
+      "parallel_chunk_size": 16,
+      "parallel_min_shells": 12,
+      "pyscf": "2.14.0",
+      "python": "3.12.16 (main, Oct 26 2026, 11:31:43) [Clang 21.1.8 ]",
+      "scipy": "1.18.1",
+      "threads": 1,
+      "workers": [
+        1,
+        2,
+        4
+      ]
+    },
+    "metrics": {
+      "all_finite": true,
+      "cosx_k_max_abs": 0.00010725906692200284,
+      "cosx_k_parallel_max_abs": 0.0,
+      "cosx_k_serial_total_median_seconds": 3.2733080409998365,
+      "cosx_k_speedup": 2.4487607963207942,
+      "cosx_k_worker4_total_median_seconds": 1.3367202079998606,
+      "ri_j_max_abs": 1.3177597679714381e-08,
+      "ri_j_parallel_max_abs": 0.0,
+      "ri_j_serial_total_median_seconds": 0.08932729099888093,
+      "ri_j_speedup": 1.612726191097728,
+      "ri_j_worker4_total_median_seconds": 0.055389000000104716,
+      "rijcosx_scf_serial_total_median_seconds": 52.90046229200016,
+      "rijcosx_scf_speedup": 2.5008085207333672,
+      "rijcosx_scf_worker4_total_median_seconds": 21.153343749999294,
+      "scf_converged": true,
+      "scf_parallel_energy_max_abs": 0.0,
+      "scf_pyscf_energy_max_abs": 0.06300458434537859,
+      "speedup": 1.612726191097728
+    },
+    "passed": true,
+    "reasons": []
+  },
+  "run": {
+    "command": [
+      "/Users/darui/workspace/fieldquantum/.pyscf-env/bin/python3",
+      "harness_engineering/examples/rhf_rijcosx_parallel_candidate.py"
+    ],
+    "duration_s": 226.67833616699954,
+    "failure_kind": null,
+    "report_path": "/Users/darui/workspace/fieldquantum/hf/outputs/benchmark/rhf-rijcosx-parallel.report.json",
+    "returncode": 0,
+    "status": "completed",
+    "stderr": "",
+    "stdout": "RIJCOSX: auxbasis=weigend, df_tol=1e-09, cosx_tol=1e-10, ao_tol=1e-10, grid=40x146, final_grid=12x74, incremental_k=False\nRIJCOSX: auxbasis=weigend, df_tol=1e-09, cosx_tol=1e-10, ao_tol=1e-10, grid=40x146, final_grid=12x74, incremental_k=False\nRIJCOSX: auxbasis=weigend, df_tol=1e-09, cosx_tol=1e-10, ao_tol=1e-10, grid=40x146, final_grid=12x74, incremental_k=False\nRIJCOSX: auxbasis=weigend, df_tol=1e-09, cosx_tol=1e-10, ao_tol=1e-10, grid=40x146, final_grid=12x74, incremental_k=False\nRIJCOSX: auxbasis=weigend, df_tol=1e-09, cosx_tol=1e-10, ao_tol=1e-10, grid=40x146, final_grid=12x74, incremental_k=False\nRIJCOSX: auxbasis=weigend, df_tol=1e-09, cosx_tol=1e-10, ao_tol=1e-10, grid=40x146, final_grid=12x74, incremental_k=False\nRIJCOSX: auxbasis=weigend, df_tol=1e-09, cosx_tol=1e-10, ao_tol=1e-10, grid=40x146, final_grid=12x74, incremental_k=False\nRIJCOSX: auxbasis=weigend, df_tol=1e-09, cosx_tol=1e-10, ao_tol=1e-10, grid=40x146, final_grid=12x74, incremental_k=False\nRIJCOSX: auxbasis=weigend, df_tol=1e-09, cosx_tol=1e-10, ao_tol=1e-10, grid=40x146, final_grid=12x74, incremental_k=False\nRIJCOSX: auxbasis=weigend, df_tol=1e-09, cosx_tol=1e-10, ao_tol=1e-10, grid=40x146, final_grid=12x74, incremental_k=False\nRIJCOSX: auxbasis=weigend, df_tol=1e-09, cosx_tol=1e-10, ao_tol=1e-10, grid=40x146, final_grid=12x74, incremental_k=False\nRIJCOSX: auxbasis=weigend, df_tol=1e-09, cosx_tol=1e-10, ao_tol=1e-10, grid=40x146, final_grid=12x74, incremental_k=False\nRIJCOSX: auxbasis=weigend, df_tol=1e-09, cosx_tol=1e-10, ao_tol=1e-10, grid=40x146, final_grid=12x74, incremental_k=False\nRIJCOSX: auxbasis=weigend, df_tol=1e-09, cosx_tol=1e-10, ao_tol=1e-10, grid=40x146, final_grid=12x74, incremental_k=False\nRIJCOSX: auxbasis=weigend, df_tol=1e-09, cosx_tol=1e-10, ao_tol=1e-10, grid=40x146, final_grid=12x74, incremental_k=False\nRIJCOSX: auxbasis=weigend, df_tol=1e-09, cosx_tol=1e-10, ao_tol=1e-10, grid=40x146, final_grid=12x74, incremental_k=False\nRIJCOSX: auxbasis=weigend, df_tol=1e-09, cosx_tol=1e-10, ao_tol=1e-10, grid=40x146, final_grid=12x74, incremental_k=False\nRIJCOSX: auxbasis=weigend, df_tol=1e-09, cosx_tol=1e-10, ao_tol=1e-10, grid=40x146, final_grid=12x74, incremental_k=False\n"
+  },
+  "task": {
+    "cases": [
+      {
+        "basis": "sto-3g",
+        "name": "water-sto3g",
+        "run_scf": true
+      },
+      {
+        "basis": "sto-3g",
+        "name": "water-dimer-sto3g",
+        "run_scf": true
+      },
+      {
+        "basis": "6-31g",
+        "name": "benzene-631g",
+        "run_scf": true
+      }
+    ],
+    "command": [
+      "python3",
+      "harness_engineering/examples/rhf_rijcosx_parallel_candidate.py"
+    ],
+    "correctness_tolerances": {
+      "cosx_k_max_abs": 0.0002,
+      "cosx_k_parallel_max_abs": 2e-10,
+      "ri_j_max_abs": 2e-08,
+      "ri_j_parallel_max_abs": 2e-08,
+      "scf_parallel_energy_max_abs": 1e-08
+    },
+    "description": "Validate and benchmark RI-J, COSX, and RIJCOSX-SCF on CPU backends.",
+    "env": {},
+    "name": "rhf-rijcosx-parallel",
+    "performance": {
+      "min_speedup": 1.05
+    },
+    "required_metrics": [
+      "ri_j_max_abs",
+      "ri_j_parallel_max_abs",
+      "cosx_k_max_abs",
+      "cosx_k_parallel_max_abs",
+      "scf_parallel_energy_max_abs",
+      "scf_converged",
+      "all_finite",
+      "ri_j_speedup",
+      "cosx_k_speedup",
+      "rijcosx_scf_speedup",
+      "speedup"
+    ],
+    "timeout_s": 900.0
+  }
+}

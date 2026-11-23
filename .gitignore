@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.DS_Store
+.pyscf-env/
+.conda-env/
+.miniforge3/
+secrets/
+*.npz
+hf/outputs/
+hf/harness_framework/outputs/*
+!hf/harness_framework/outputs/single_shot_reference_20261123/
+hf/harness_framework/outputs/single_shot_reference_20261123/*
+!hf/harness_framework/outputs/single_shot_reference_20261123/report.md
+!hf/harness_framework/outputs/single_shot_reference_20261123/result.json
+!hf/harness_framework/outputs/single_shot_reference_20261123/events.jsonl

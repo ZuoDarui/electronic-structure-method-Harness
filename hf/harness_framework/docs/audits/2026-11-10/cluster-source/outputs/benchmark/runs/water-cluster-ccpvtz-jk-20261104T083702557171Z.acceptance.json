@@ -1,0 +1,121 @@
+{
+  "decision": {
+    "details": {},
+    "metrics": {},
+    "passed": false,
+    "reasons": [
+      "runtime_error",
+      "candidate did not produce a JSON metric report",
+      "missing required metric: nao_16",
+      "missing required metric: nao_32",
+      "missing required metric: nao_64",
+      "missing required metric: nao_128",
+      "missing required metric: nao_mismatch_max",
+      "missing required metric: all_finite",
+      "missing required metric: significant_pair_fraction_16",
+      "missing required metric: significant_pair_fraction_32",
+      "missing required metric: significant_pair_fraction_64",
+      "missing required metric: significant_pair_fraction_128",
+      "missing required metric: memory_16_gib",
+      "missing required metric: memory_32_gib",
+      "missing required metric: memory_64_gib",
+      "missing required metric: memory_128_gib",
+      "missing required metric: ri_j_16_max_abs",
+      "missing required metric: j_parallel_16_max_abs",
+      "missing required metric: k_parallel_16_max_abs",
+      "missing required metric: j_asymmetry_16",
+      "missing required metric: k_asymmetry_16",
+      "missing required metric: cosx_monomer_max_abs",
+      "missing required metric: cosx_full_tensor_calls",
+      "missing required metric: jk_16_s",
+      "missing correctness metric: nao_mismatch_max",
+      "missing correctness metric: ri_j_16_max_abs",
+      "missing correctness metric: j_parallel_16_max_abs",
+      "missing correctness metric: k_parallel_16_max_abs",
+      "missing correctness metric: j_asymmetry_16",
+      "missing correctness metric: k_asymmetry_16",
+      "missing correctness metric: cosx_monomer_max_abs",
+      "missing correctness metric: cosx_full_tensor_calls"
+    ]
+  },
+  "run": {
+    "command": [
+      "/Users/darui/workspace/fieldquantum/.pyscf-env/bin/python3",
+      "harness_engineering/examples/water_cluster_jk_candidate.py"
+    ],
+    "duration_s": 0.7727612500020768,
+    "failure_kind": "runtime_error",
+    "report_path": null,
+    "returncode": 1,
+    "status": "completed",
+    "stderr": "Traceback (most recent call last):\n  File \"/Users/darui/workspace/fieldquantum/hf/harness_engineering/examples/water_cluster_jk_candidate.py\", line 268, in <module>\n    raise SystemExit(main())\n                     ^^^^^^\n  File \"/Users/darui/workspace/fieldquantum/hf/harness_engineering/examples/water_cluster_jk_candidate.py\", line 163, in main\n    monomer = monomer_cosx()\n              ^^^^^^^^^^^^^^\n  File \"/Users/darui/workspace/fieldquantum/hf/harness_engineering/examples/water_cluster_jk_candidate.py\", line 113, in monomer_cosx\n    _, k_matrix = solver.build_cosx_k(\n    ^^^^^^^^^^^\nValueError: too many values to unpack (expected 2)\n",
+    "stdout": ""
+  },
+  "task": {
+    "cases": [
+      {
+        "basis": "cc-pvtz",
+        "molecules": 16,
+        "name": "water16-ccpvtz"
+      },
+      {
+        "basis": "cc-pvtz",
+        "molecules": 32,
+        "name": "water32-ccpvtz"
+      },
+      {
+        "basis": "cc-pvtz",
+        "molecules": 64,
+        "name": "water64-ccpvtz"
+      },
+      {
+        "basis": "cc-pvtz",
+        "molecules": 128,
+        "name": "water128-ccpvtz"
+      }
+    ],
+    "command": [
+      "python3",
+      "harness_engineering/examples/water_cluster_jk_candidate.py"
+    ],
+    "correctness_tolerances": {
+      "cosx_full_tensor_calls": 0,
+      "cosx_monomer_max_abs": 0.0002,
+      "j_asymmetry_16": 1e-08,
+      "j_parallel_16_max_abs": 2e-08,
+      "k_asymmetry_16": 1e-08,
+      "k_parallel_16_max_abs": 2e-10,
+      "nao_mismatch_max": 0,
+      "ri_j_16_max_abs": 2e-08
+    },
+    "description": "One RI-J plus COSX get_jk on 16, 32, 64, and 128 water molecules with cc-pVTZ. No SCF. 16 waters must finish and match PySCF density fitting. Larger sizes may be skipped when the estimated time exceeds the remaining task budget.",
+    "env": {},
+    "name": "water-cluster-ccpvtz-jk",
+    "performance": {},
+    "required_metrics": [
+      "nao_16",
+      "nao_32",
+      "nao_64",
+      "nao_128",
+      "nao_mismatch_max",
+      "all_finite",
+      "significant_pair_fraction_16",
+      "significant_pair_fraction_32",
+      "significant_pair_fraction_64",
+      "significant_pair_fraction_128",
+      "memory_16_gib",
+      "memory_32_gib",
+      "memory_64_gib",
+      "memory_128_gib",
+      "ri_j_16_max_abs",
+      "j_parallel_16_max_abs",
+      "k_parallel_16_max_abs",
+      "j_asymmetry_16",
+      "k_asymmetry_16",
+      "cosx_monomer_max_abs",
+      "cosx_full_tensor_calls",
+      "jk_16_s"
+    ],
+    "timeout_s": 3600.0
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "rhf-rijcosx-parallel",
+  "description": "Validate and benchmark RI-J, COSX, and RIJCOSX-SCF on CPU backends.",
+  "command": ["python3", "harness_engineering/examples/rhf_rijcosx_parallel_candidate.py"],
+  "cases": [
+    {"name": "water-sto3g", "basis": "sto-3g", "run_scf": true},
+    {"name": "water-dimer-sto3g", "basis": "sto-3g", "run_scf": true},
+    {"name": "benzene-631g", "basis": "6-31g", "run_scf": true}
+  ],
+  "correctness_tolerances": {
+    "ri_j_max_abs": 2e-8,
+    "ri_j_parallel_max_abs": 2e-8,
+    "cosx_k_max_abs": 2e-4,
+    "cosx_k_parallel_max_abs": 2e-10,
+    "scf_parallel_energy_max_abs": 1e-8
+  },
+  "required_metrics": [
+    "ri_j_max_abs", "ri_j_parallel_max_abs", "cosx_k_max_abs",
+    "cosx_k_parallel_max_abs", "scf_parallel_energy_max_abs", "scf_converged",
+    "all_finite", "ri_j_speedup", "cosx_k_speedup",
+    "rijcosx_scf_speedup", "speedup"
+  ],
+  "performance": {"min_speedup": 1.05},
+  "timeout_s": 900
+}

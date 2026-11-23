@@ -1,0 +1,32 @@
+{
+  "name": "linear-get-jk",
+  "description": "One RI-J plus COSX get_jk on one-dimensional water chains, benzene rows, and alkanes, plus the 16-water density-fitting regression. The exponent of the largest completed step in each family must be at most 1.5. No SCF.",
+  "command": ["python3", "harness_engineering/examples/linear_get_jk_candidate.py"],
+  "cases": [
+    {"name": "water-chain", "family": "water", "basis": "cc-pvtz"},
+    {"name": "benzene-row", "family": "benzene", "basis": "cc-pvtz"},
+    {"name": "alkane", "family": "alkane", "basis": "cc-pvtz"},
+    {"name": "water16-ccpvtz", "molecules": 16, "basis": "cc-pvtz"}
+  ],
+  "correctness_tolerances": {
+    "ri_j_16_max_abs": 2e-8,
+    "j_parallel_16_max_abs": 2e-8,
+    "k_parallel_16_max_abs": 2e-10,
+    "j_asymmetry_16": 1e-8,
+    "k_asymmetry_16": 1e-8,
+    "jk_asymmetry_max": 1e-8,
+    "cosx_monomer_max_abs": 2e-4,
+    "cosx_full_tensor_calls": 0,
+    "exponent_water": 1.5,
+    "exponent_benzene": 1.5,
+    "exponent_alkane": 1.5
+  },
+  "required_metrics": [
+    "nao_16", "all_finite",
+    "ri_j_16_max_abs", "j_parallel_16_max_abs", "k_parallel_16_max_abs",
+    "j_asymmetry_16", "k_asymmetry_16", "jk_asymmetry_max",
+    "cosx_monomer_max_abs", "cosx_full_tensor_calls",
+    "exponent_water", "exponent_benzene", "exponent_alkane"
+  ],
+  "timeout_s": 3600
+}

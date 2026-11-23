@@ -1,0 +1,768 @@
+% !TeX program = xelatex
+\documentclass[UTF8,fontset=fandol,11pt,a4paper]{ctexart}
+\usepackage{amsmath,amssymb,bm,geometry,booktabs,longtable,array,xcolor,hyperref}
+\geometry{margin=2.25cm}
+\hypersetup{colorlinks=true,linkcolor=blue!45!black,urlcolor=blue!45!black}
+\setlength{\emergencystretch}{3em}
+\linespread{1.12}
+\numberwithin{equation}{section}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\sym}{\operatorname{sym}}
+\newcommand{\norm}[1]{\left\lVert #1\right\rVert}
+\newcommand{\inner}[2]{\left(#1\,\middle|\,#2\right)}
+\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
+\title{局域 RI-J 与 COSX 修复\\公式推导、优化条件与数值验收}
+\author{C172H346 计算修复记录}
+\date{2026 年 11 月 13 日}
+\begin{document}
+\maketitle
+\input{status.tex}
+\begin{abstract}
+本文从闭壳层 Hartree--Fock 的密度矩阵出发，推导库仑矩阵 \(J\)、交换矩阵
+\(K\)、RI 拟合、层次低秩远场、预条件迭代求解，以及 COSX 的重叠校正。
+重点解释原局域实现为什么破坏计算一致性、修复必须保持哪些恒等式，
+以及局域和近线性各自需要什么条件。
+假设为实数、非相对论、闭壳层、有限分子高斯基组。
+数学目标不等于实现已经通过验收；原始故障、设计条件与新实现状态分别记录。
+\end{abstract}
+\tableofcontents
+\newpage
+
+\section{先把计算链连接起来}
+\label{sec:roadmap}
+每轮 SCF 的依赖关系是
+\begin{equation}
+D\longrightarrow\{J(D),K(D)\}\longrightarrow F=h+J-\tfrac12K
+\longrightarrow C_{\mathrm{occ}}\longrightarrow D_{\mathrm{new}}.
+\label{eq:flow}
+\end{equation}
+错误 \(J\) 会改变 Fock 和占据轨道，再通过新密度影响下一轮。
+因此增加迭代次数不能修复一个已经错误的积分映射。
+
+RI-J 必须保持
+\begin{equation}
+\boxed{\gamma=B^Td,\qquad Mc=\gamma,\qquad j=Bc.}
+\label{eq:roadJ}
+\end{equation}
+这里 \(d,j\) 按第 \ref{sec:packing} 节打包。
+优化的是算子存储和作用方式，而非改变这三条关系。
+
+本次实际参考 SGX 默认采用双边对称重叠拟合：
+\begin{equation}
+Q=S_{\mathrm{num}}^{-1}S,\quad P=\tfrac12(Q+I),\qquad
+\boxed{K=\sym\!\left(P^T\mathcal R(PD)\right).}
+\label{eq:roadK}
+\end{equation}
+\(\mathcal R\) 是第 \ref{sec:cosx} 节的网格交换映射。
+两个 \(P\) 的位置都要保留，不能只做原子对角块修正。
+
+正确性和性能分别验收：最终
+\(|E-E_{\mathrm{ref}}|\leq10^{-6}\) Ha；
+指定烷烃序列的 J、K 实测标度指数分别不超过 1.5。
+能量通过不自动证明近线性，计时通过也不证明物理结果正确。
+
+\section{符号、指标与单位}
+\begin{longtable}{p{0.19\textwidth}p{0.71\textwidth}}
+\toprule 符号&含义\\\midrule\endhead
+\(\mu,\nu,\lambda,\sigma\)&AO 指标，范围 \(1,\ldots,n\)。\\
+\(P,Q\) 作为下标&辅助基指标，范围 \(1,\ldots,m\)。\\
+\(i,g\)&占据轨道指标、网格点指标。\\
+\(\phi_\mu,\chi_P\)&实数 AO、实数辅助基函数。\\
+\(D,S,h,F\)&自旋求和密度、重叠、单电子 Hamiltonian、Fock 矩阵。\\
+\(M,B,\gamma,c\)&辅助库仑度量、打包三中心积分、拟合右端、拟合系数。\\
+\(X,W,S_{\mathrm{num}}\)&网格 AO 值、权重对角矩阵、数值重叠。\\
+\(Q,P\) 作为矩阵&完整重叠投影、对称 SGX 投影；见式 \eqref{eq:roadK}。\\
+\(\sym(A)\)&\((A+A^T)/2\)。\\
+\(\norm{A}_F,\norm{A}_2\)&Frobenius 范数、谱范数。\\
+\bottomrule
+\end{longtable}
+使用原子单位：长度为 Bohr，能量为 Hartree（Ha）。
+Angstrom 输入在分子构建时统一转换。
+通常 AO 矩阵约定下 \(D,S,C\) 无量纲，\(h,F,J,K\) 数值单位为 Ha。
+辅助函数可以采用不同归一化，但 \(B,M,c\) 必须一起一致变换。
+
+\section{从 RHF 密度得到 Fock 与总能量}
+闭壳层每个占据空间轨道含两个电子：
+\begin{equation}
+D_{\mu\nu}=2\sum_{i=1}^{n_{\mathrm{occ}}}C_{\mu i}C_{\nu i},
+\qquad C_{\mathrm{occ}}^TSC_{\mathrm{occ}}=I.
+\end{equation}
+因此轨道更新后的密度满足
+\begin{equation}
+\Tr(DS)=2n_{\mathrm{occ}}=N_e,\qquad DSD=2D.
+\label{eq:count}
+\end{equation}
+电子数不是 \(\Tr(D)\)。原子叠加初猜未必严格幂等，
+应与占据轨道产生的密度分开检查。
+
+定义双电子积分
+\begin{equation}
+(\mu\nu|\lambda\sigma)=
+\iint\frac{\phi_\mu(\bm r)\phi_\nu(\bm r)
+\phi_\lambda(\bm r')\phi_\sigma(\bm r')}
+{|\bm r-\bm r'|}\,d\bm r\,d\bm r'.
+\end{equation}
+库仑与交换矩阵是
+\begin{align}
+J_{\mu\nu}(D)&=\sum_{\lambda\sigma}D_{\lambda\sigma}
+(\mu\nu|\lambda\sigma),\label{eq:Jdef}\\
+K_{\mu\nu}(D)&=\sum_{\lambda\sigma}D_{\lambda\sigma}
+(\mu\lambda|\nu\sigma).\label{eq:Kdef}
+\end{align}
+自旋求和约定对应
+\begin{align}
+F&=h+J-\tfrac12K,\\
+E&=E_{\mathrm{nuc}}+\Tr(Dh)+\tfrac12\Tr(DJ)-\tfrac14\Tr(DK)
+\label{eq:energy}\\
+ &=E_{\mathrm{nuc}}+\tfrac12\Tr[D(h+F)].
+\end{align}
+库仑项的 \(1/2\) 消除电子对重复计数，交换项额外的 \(1/2\)
+来自闭壳层自旋求和。若改为单自旋密度，必须同时改变这些系数。
+能量在轨道正交约束下取极值，得到
+\begin{equation}
+FC=SC\varepsilon.
+\end{equation}
+错误 Fock 也可能产生严格满足式 \eqref{eq:count} 的轨道；
+电子数正确只检查归一化，不能替代 J/K 正确性检查。
+
+\section{RI-J 的变分推导}
+\label{sec:ri}
+\subsection{在库仑内积中拟合密度}
+电子密度及辅助展开为
+\begin{equation}
+\rho(\bm r)=\sum_{\mu\nu}D_{\mu\nu}\phi_\mu(\bm r)\phi_\nu(\bm r),
+\qquad \widetilde\rho(\bm r)=\sum_Pc_P\chi_P(\bm r).
+\end{equation}
+定义
+\begin{equation}
+\inner{u}{v}=\iint\frac{u(\bm r)v(\bm r')}{|\bm r-\bm r'|}
+\,d\bm r\,d\bm r',
+\quad
+M_{PQ}=\inner{\chi_P}{\chi_Q},
+\quad
+b_{\mu\nu,P}=\inner{\phi_\mu\phi_\nu}{\chi_P}.
+\end{equation}
+辅助函数在库仑内积下线性无关时 \(M\) 对称正定。
+真实线性相关和数值病态须显式处理，不能无记录地添加对角偏移。
+
+最小化拟合误差
+\begin{align}
+\mathcal L(c)&=\inner{\rho-\widetilde\rho}{\rho-\widetilde\rho}\\
+&=\inner{\rho}{\rho}-2c^T\gamma+c^TMc,\\
+\gamma_P&=\sum_{\mu\nu}D_{\mu\nu}b_{\mu\nu,P}.
+\end{align}
+对系数求导：
+\begin{equation}
+\frac{\partial\mathcal L}{\partial c}=2Mc-2\gamma=0
+\quad\Longrightarrow\quad Mc=\gamma.
+\label{eq:normal}
+\end{equation}
+求解线性方程即可，不需要显式形成 \(M^{-1}\)。
+
+\subsection{AO 对打包与二重权重}
+\label{sec:packing}
+令 \(p=(\mu,\nu)\)、\(\mu\geq\nu\)，定义
+\begin{equation}
+w_p=\begin{cases}1,&\mu=\nu,\\2,&\mu>\nu,\end{cases}
+\qquad
+d_p=\sqrt{w_p}D_{\mu\nu},\quad
+B_{pP}=\sqrt{w_p}\,b_{\mu\nu,P}.
+\label{eq:pack}
+\end{equation}
+于是
+\begin{equation}
+(B^Td)_P=\sum_{\mu\geq\nu}w_pb_{\mu\nu,P}D_{\mu\nu}
+=\sum_{\mu\nu}b_{\mu\nu,P}D_{\mu\nu}=\gamma_P.
+\end{equation}
+令 \(j_p=\sqrt{w_p}J_{\mu\nu}\)，则
+\begin{equation}
+j=Bc,\qquad J_{\mu\nu}=j_p/\sqrt{w_p},\qquad
+J_{\nu\mu}=J_{\mu\nu}.
+\label{eq:unpack}
+\end{equation}
+因此
+\begin{equation}
+E_J^{\mathrm{RI}}=\tfrac12d^Tj
+=\tfrac12\gamma^TM^{-1}\gamma=\tfrac12c^TMc.
+\label{eq:rijenergy}
+\end{equation}
+
+\textbf{与实际实现的映射。}
+当前 J 模块采用等价的原始积分打包：
+\begin{equation}
+B^{\mathrm{code}}_{pP}=b_{\mu\nu,P},\quad
+d^{\mathrm{code}}_p=w_pD_{\mu\nu},\quad
+j^{\mathrm{code}}_p=J_{\mu\nu}.
+\end{equation}
+它仍满足 \(\gamma=(B^{\mathrm{code}})^Td^{\mathrm{code}}\)、
+\(j^{\mathrm{code}}=B^{\mathrm{code}}c\)、
+\(E_J=\tfrac12(d^{\mathrm{code}})^Tj^{\mathrm{code}}\)。
+若 \(W_p=\diag(w_p)\)，
+\begin{equation}
+B=W_p^{1/2}B^{\mathrm{code}},\quad
+d=W_p^{-1/2}d^{\mathrm{code}},\quad
+j=W_p^{1/2}j^{\mathrm{code}}.
+\end{equation}
+正文的平方根权重使普通欧氏转置直接对应密度空间的伴随；
+实现无需真的额外乘平方根，但所有能量和互易性检查须使用一致权重。
+
+\subsection{对称性、互易性和能量正性}
+三步合并：
+\begin{equation}
+j=\mathcal A d,\qquad \mathcal A=BM^{-1}B^T.
+\label{eq:operator}
+\end{equation}
+若 \(M\) 正定，
+\begin{equation}
+\mathcal A^T=\mathcal A,\qquad
+d^T\mathcal A d=(B^Td)^TM^{-1}(B^Td)\geq0,
+\end{equation}
+并有
+\begin{equation}
+d_1^Tj(d_2)=d_2^Tj(d_1).
+\label{eq:reciprocity}
+\end{equation}
+互易性比 AO 矩阵 \(J=J^T\) 更强。
+事后转置平均不能修复密度到 J 的错误映射。
+
+同一固定密度下
+\begin{equation}
+E_J^{\mathrm{exact}}-E_J^{\mathrm{RI}}
+=\tfrac12\inner{\rho-\widetilde\rho}{\rho-\widetilde\rho}\geq0.
+\end{equation}
+本次实现误差对照相同辅助基组的 RI-J；
+RI 相对四中心积分的模型误差另行报告。
+
+\section{原局域 J 为什么会出错}
+\label{sec:bugs}
+\subsection{密度元素为零不代表输出 J 为零}
+式 \eqref{eq:Jdef} 表明
+\begin{equation}
+D_{\mu\nu}=0\quad\not\Longrightarrow\quad J_{\mu\nu}=0,
+\end{equation}
+因为 \(J_{\mu\nu}\) 接收所有 \(D_{\lambda\sigma}\) 的作用。
+密度可筛选 \(\gamma=B^Td\) 的收缩工作；
+输出 \(j=Bc\) 必须按拟合系数与输出误差独立处理。
+
+H$_2$/STO-3G、键长 \(1\) \AA、weigend、\(D=I\) 的已复现结果是
+\begin{align}
+J_{\mathrm{ref}}=
+\begin{pmatrix}1.252553646591&0.618671094989\\
+0.618671094989&1.252553646591\end{pmatrix},\\
+J_{\mathrm{old}}=
+\begin{pmatrix}1.252553646591&0\\0&1.252553646591\end{pmatrix}.
+\end{align}
+该算例只有一个区域，全部辅助壳层保留，已排除空间截断。
+但因 \(D_{12}=0\)，漏掉的非对角项不直接贡献该密度的 \(\Tr(DJ)\)；
+这个反例不能单独解释 C21 库仑能放大的全部量值。
+
+\subsection{高斯局域不等于库仑势没有远场}
+若局域分布总电荷 \(q=\int u\,d\bm r\)，其远场通常为
+\begin{equation}
+V_u(\bm R)=q/|\bm R|+O(|\bm R|^{-2}).
+\end{equation}
+高斯函数值衰减快，但其库仑势具有长程尾部。
+辅助函数中心不在邻域内，不足以作为删除全部三中心库仑贡献的理由。
+即使单极为零，仍可能有偶极及更高阶贡献。
+
+\subsection{局域求逆与 owned 拼接不保证一致}
+旧实现对带 halo 的区域求逆，再只输出该区域所属辅助函数。
+其输入投影、求逆区域和输出投影一般不互为伴随，
+总体映射通常不能写成同一个 \(BM^{-1}B^T\)。
+局部度量各自正定并不保证拼接后满足式 \eqref{eq:reciprocity}。
+修复保留局域区域用于精确近场和预条件，
+用同一个压缩算子保留跨区域耦合。
+各个缺陷对异常量值的贡献仍需消融实验，不能把一条条件当成完整定量解释。
+
+\section{近场精确、远场层次低秩}
+\label{sec:hierarchy}
+对辅助函数和 AO 乘积建立空间树。
+几何及积分误差控制决定可忽略的 AO 乘积，输出空间不随密度零元素改变。
+近场块使用精确积分，充分分离的远场块尝试
+\begin{equation}
+A_{ts}\approx U_{ts}V_{ts}^T,\qquad
+U_{ts}\in\mathbb R^{n_t\times r},\quad
+V_{ts}\in\mathbb R^{n_s\times r}.
+\end{equation}
+库仑核在分离区域的平滑性提供低秩机会，但并不保证任意块都低秩。
+Gaussian 非紧支撑，空间半径本身不是能量误差定理。
+
+初始参数为叶节点最多 128 个自由度、远场分离系数 2、
+最大块秩 64、容差 \(10^{-12}\)。
+秩不足时细分，精度不足时收紧至 \(10^{-13}\)、\(10^{-14}\)。
+近场可以流式重新计算并使用有界缓存；数学定义不要求长期存下全部近场块。
+
+设 ACA 残差 \(R^{(k)}=A-A^{(k)}\)，选非零主元 \((i_k,j_k)\)：
+\begin{align}
+u_k&=R^{(k)}(:,j_k),\\
+v_k^T&=R^{(k)}(i_k,:)/R^{(k)}(i_k,j_k),\\
+A^{(k+1)}&=A^{(k)}+u_kv_k^T.
+\end{align}
+每步查询必要行列的精确积分，避免预先形成整个远场块。
+需要主元保护、确定性抽样检查；必要时可重压缩。
+当前实现另取独立的保留行列检查拟合，若检查失败，将新行列加入主元搜索，
+继续增秩；达到最大秩仍不足时细分块。只在参与拟合的行列上检查残差
+会漏掉未采样的方向，本次 C21 修复过程中已实际遇到这一问题。
+ACA 抽样残差不是严格谱误差上界，不能替代独立全量参考验收。
+
+正向和转置必须共用因子：
+\begin{equation}
+y_t\mathrel{+}=U_{ts}(V_{ts}^Tx_s),\qquad
+z_s\mathrel{+}=V_{ts}(U_{ts}^Tx_t).
+\label{eq:adjoint}
+\end{equation}
+度量 \(M\) 的对称块成对应用同一份因子。
+对称不等于正定，仍需线性求解和能量检查。
+
+\section{缩放、两层预条件与 PCG}
+\label{sec:pcg}
+令
+\begin{equation}
+L=\diag(\sqrt{M_{11}},\ldots,\sqrt{M_{mm}}),\quad
+A=L^{-1}ML^{-1},\quad b=L^{-1}\gamma,\quad y=Lc.
+\end{equation}
+原问题转为 \(Ay=b\)、\(c=L^{-1}y\)。
+变量缩放不改变模型，也不能消除真实线性相关。
+
+令 \(R_s\) 提取区域，\(W_s\) 为重叠权重，\(A_s=R_sAR_s^T\)。
+对称加性 Schwarz 为
+\begin{equation}
+H_{\mathrm{local}}=\sum_sR_s^TW_sA_s^{-1}W_sR_s.
+\end{equation}
+左右对称使用权重，所有自由度必须被覆盖。
+当前实现使用经典对称加性 Schwarz，即 \(W_s=I\)。
+重叠次数归一化并非必须；即使另一组权重仍保持正定，
+也可能恶化预条件效果。权重只影响求解效率，不应改变被求解的全局方程。
+加入粗空间 \(Z\)：
+\begin{equation}
+A_c=Z^TAZ,\qquad H=H_{\mathrm{local}}+ZA_c^{-1}Z^T.
+\label{eq:precond}
+\end{equation}
+粗层处理长波误差。
+一般理论方案需要粗层大小或其递归作用保持受控；
+当前首版采用有上限的聚合粗空间，不能仅凭“两层”二字保证链长无关的迭代数，
+必须实测 PCG 次数与体系大小的关系。
+
+取 \(r_k=b-Ay_k,z_k=Hr_k\)，PCG 为
+\begin{align}
+p_0&=z_0,&
+\alpha_k&=\frac{r_k^Tz_k}{p_k^TAp_k},\\
+y_{k+1}&=y_k+\alpha_kp_k,&
+r_{k+1}&=r_k-\alpha_kAp_k,\\
+z_{k+1}&=Hr_{k+1},&
+\beta_k&=\frac{r_{k+1}^Tz_{k+1}}{r_k^Tz_k},\\
+p_{k+1}&=z_{k+1}+\beta_kp_k.
+\end{align}
+一次求解内算子、预条件与筛选固定；改变压缩精度后重新启动。
+除递推残差外，重算真实残差 \(b-Ay_k\)。
+非正曲率、非有限值、停滞和超限必须报告，不能用静默对角修正隐藏。
+
+\section{残差小不等于能量误差已经合格}
+\label{sec:error}
+暂时假设 \(B,M\) 精确。令
+\begin{equation}
+c_\star=M^{-1}\gamma,\quad r=\gamma-M\widehat c,\quad
+e=c_\star-\widehat c=M^{-1}r.
+\end{equation}
+二次目标 \(\Phi(c)=\tfrac12c^TMc-c^T\gamma\) 满足
+\begin{equation}
+\Phi(\widehat c)-\Phi(c_\star)
+=\tfrac12e^TMe=\tfrac12r^TM^{-1}r.
+\label{eq:resquad}
+\end{equation}
+稳健拟合能量为
+\begin{equation}
+E_{\mathrm{rob}}(\widehat c)
+=\gamma^T\widehat c-\tfrac12\widehat c^TM\widehat c
+=E_\star-\tfrac12r^TM^{-1}r.
+\end{equation}
+但直接由 \(j=B\widehat c\) 组装的普通 RI 能量是
+\begin{equation}
+E_{\mathrm{assembled}}=\tfrac12\gamma^T\widehat c,\qquad
+E_\star-E_{\mathrm{assembled}}=\tfrac12\gamma^TM^{-1}r.
+\label{eq:reslinear}
+\end{equation}
+不能把式 \eqref{eq:resquad} 的二次残差误差直接套到式 \eqref{eq:reslinear}。
+Cauchy--Schwarz 给出
+\begin{equation}
+|E_\star-E_{\mathrm{assembled}}|
+\leq\tfrac12\sqrt{\gamma^TM^{-1}\gamma}\sqrt{r^TM^{-1}r}.
+\end{equation}
+若知道 \(\lambda_{\min}(M)>0\)，可用
+\(r^TM^{-1}r\leq\norm{r}_2^2/\lambda_{\min}(M)\)。
+相对残差不能直接读作 Hartree 误差。
+
+层次表示还引入 \(\widetilde B=B+\Delta B\)、\(\widetilde M=M+\Delta M\)。
+近似方程解得精确不代表算子准确。
+先令 \(\Delta B=0\)，若
+\(\eta=\norm{M^{-1/2}\Delta M M^{-1/2}}_2<1\)，则
+\begin{equation}
+\left|\tfrac12\gamma^T(\widetilde M^{-1}-M^{-1})\gamma\right|
+\leq\frac{\eta}{2(1-\eta)}\norm{M^{-1/2}\gamma}_2^2.
+\end{equation}
+还需计入 \(\Delta B\) 对右端与输出的影响。
+固定密度下
+\begin{equation}
+|\delta E_J|=\tfrac12|\Tr(D\,\delta J)|
+\leq\tfrac12\norm{D}_F\norm{\delta J}_F.
+\end{equation}
+因此独立矩阵与能量参考不可被 ACA 或 PCG 内部指标替代。
+
+\section{从四中心交换积分推导 COSX}
+\label{sec:cosx}
+定义网格位置的解析势积分
+\begin{equation}
+A_{\nu\sigma}(\bm r_g)
+=\int\frac{\phi_\nu(\bm r')\phi_\sigma(\bm r')}
+{|\bm r_g-\bm r'|}\,d\bm r'.
+\label{eq:potential}
+\end{equation}
+带网格参数的三指标 \(A_{\nu\sigma}(\bm r_g)\)
+与前面的缩放辅助度量矩阵不同。
+重排式 \eqref{eq:Kdef}：
+\begin{align}
+K_{\mu\nu}
+&=\int d\bm r\ \phi_\mu(\bm r)
+ \sum_{\lambda\sigma}\phi_\lambda(\bm r)
+ D_{\lambda\sigma}A_{\nu\sigma}(\bm r)\\
+&\approx\sum_gw_gX_{g\mu}\sum_\sigma A_{\nu\sigma}(\bm r_g)
+ \sum_\lambda X_{g\lambda}D_{\lambda\sigma}.
+\end{align}
+对任意矩阵 \(Y\) 定义
+\begin{align}
+f_{g\sigma}[Y]&=\sum_\lambda X_{g\lambda}Y_{\lambda\sigma},\\
+G_{g\nu}[Y]&=\sum_\sigma A_{\nu\sigma}(\bm r_g)f_{g\sigma}[Y],\\
+\mathcal R(Y)&=X^TWG[Y],\qquad W=\diag(w_g).
+\label{eq:raw}
+\end{align}
+不做重叠校正时 \(K=\sym(\mathcal R(D))\)。
+全量 \(A_{g\nu\sigma}\) 需 \(O(N_gn^2)\) 存储，
+应按网格和壳层对现场计算并立即收缩。
+分批减少峰值内存，总工作量仍取决于访问了多少壳层对。
+
+\subsection{将积分与收缩融合执行}
+当前实现复用 PySCF/libcint 的 C 层
+\code{SGXnr_direct_k_drv}，融合执行
+\(G_{g\nu}=\sum_\sigma A_{\nu\sigma}(\bm r_g)f_{g\sigma}\)，
+避免在 Python 中形成网格乘两个 AO 指标的完整张量。
+本程序仍负责投影密度、局域支持和筛选、原始
+\(R=X^TWG\) 积累以及 \(P^T\) 输出校正；
+生产路径不调用高层 \code{get_k_only} 或 SCF 参考求解器。
+C 层积分收缩在 CPU 执行，GPU 只计入实际的 CuPy 运算阶段。
+这个改动改变执行方式，式 \eqref{eq:raw} 的数学定义保持不变。
+参考与候选共享底层积分原语，因此独立对照覆盖投影、组装和 SCF，
+不宣称独立验证该共享 C 内核。显式张量分块模式仍用于复核融合原语。
+
+\section{SGX 重叠拟合：默认需要双边对称校正}
+\label{sec:overlap}
+\subsection{完整投影与非对称选项}
+数值重叠和解析重叠分别为
+\begin{equation}
+S_{\mathrm{num}}=X^TWX,\qquad
+S_{\mu\nu}=\int\phi_\mu\phi_\nu\,d\bm r.
+\end{equation}
+求
+\begin{equation}
+S_{\mathrm{num}}Q=S,\qquad Q=S_{\mathrm{num}}^{-1}S,
+\label{eq:Q}
+\end{equation}
+则 \(\overline X=XQ\) 满足 \(X^TW\overline X=S\)。
+这是离散交叉重叠条件，不代表所有交换积分精确。
+PySCF 的非对称拟合选项为
+\begin{equation}
+K_{\mathrm{unsym}}=\sym(\mathcal R(QD)).
+\end{equation}
+
+\subsection{实际默认与一阶误差消除}
+实施检查确认，实际 SGX 对象默认开启对称拟合；
+不能把内部数据类构造函数的默认值当成实际配置。
+默认使用
+\begin{equation}
+P=\tfrac12(Q+I),\qquad
+K_{\mathrm{sym}}=\sym(P^T\mathcal R(PD)).
+\label{eq:symK}
+\end{equation}
+它相当于数值积分一侧的两个 AO 因子都使用 \(XP\)。
+令 \(\Delta=Q-I\)。因 \(S_{\mathrm{num}}Q=S\)，有
+\begin{align}
+P^TS_{\mathrm{num}}P
+&=S_{\mathrm{num}}
++\tfrac12\Delta^TS_{\mathrm{num}}
++\tfrac12S_{\mathrm{num}}\Delta
++\tfrac14\Delta^TS_{\mathrm{num}}\Delta\\
+&=S+\tfrac14\Delta^TS_{\mathrm{num}}\Delta.
+\end{align}
+对称校正将重叠误差消到一阶，剩余项为二阶。
+它不同于 \(Q\) 的精确交叉重叠关系。
+
+这是实施过程中对初始方案的明确修正：
+只用 \(S_{\mathrm{num}}^{-1}SD\) 对应非对称路径，
+不能直接与默认对称 SGX 做精密对照。
+两种模式都须使候选与参考选项一致；本次默认采用式 \eqref{eq:symK}。
+
+\subsection{不形成稠密投影矩阵的等价求解}
+输入投影可写为
+\begin{equation}
+S_{\mathrm{num}}Z_D=SD,\qquad
+Y=PD=\tfrac12(Z_D+D).
+\label{eq:inputsolve}
+\end{equation}
+令 \(R=\mathcal R(Y)\)，输出投影为
+\begin{equation}
+S_{\mathrm{num}}Z_R=R,\qquad
+P^TR=\tfrac12(SZ_R+R),\qquad
+K=\sym\!\left[\tfrac12(SZ_R+R)\right].
+\label{eq:outputsolve}
+\end{equation}
+用到 \(Q^T=SS_{\mathrm{num}}^{-1}\)，要求两种重叠矩阵对称。
+这允许逐列或逐块稀疏求解。
+
+\(PD\) 一般不对称，不能在输入时先对称化。
+原始矩阵方向必须是 \(R=X^TWG\)；
+若保存的是 \(R^T=G^TWX\)，对应投影应转到右侧，不能仍左乘 \(P^T\)。
+没有输出投影时，转置后对称化等价；
+加入投影后，中间方向会影响结果。
+
+旧实现只修正每个原子的 \(K_{aa}\)，缺少跨原子重叠、逆作用和密度耦合。
+局域化应通过稀疏支持与完整方程残差实现，
+不能先删掉跨原子项再假定与全局投影等价。
+
+\section{局域支持、残差扩域与增量 K}
+\label{sec:screen}
+对任意投影方程 \(S_{\mathrm{num}}Z=B_{\mathrm{rhs}}\)，
+近似解 \(\widehat Z\) 满足
+\begin{equation}
+R_Z=B_{\mathrm{rhs}}-S_{\mathrm{num}}\widehat Z,\qquad
+Z-\widehat Z=S_{\mathrm{num}}^{-1}R_Z.
+\end{equation}
+残差必须包含区域外的行；只检查局域子问题会漏掉边界误差。
+扩域仍无法达到目标时应失败或报告标度退化，不能静默放宽精度。
+两次投影和全部筛选误差都应传播到
+\begin{equation}
+|\delta E_K|=\tfrac14|\Tr(D\,\delta K)|
+\leq\tfrac14\norm{D}_F\norm{\delta K}_F.
+\end{equation}
+
+原始网格贡献包含
+\begin{equation}
+w_gX_{g\mu}A_{\nu\sigma}(\bm r_g)f_{g\sigma}.
+\end{equation}
+可按绝对贡献上界筛选：
+\begin{equation}
+|\Delta R_{\mu\nu}|
+\leq\sum_{\text{被忽略 }(g,\sigma)}
+|w_g|\,|X_{g\mu}|\,|A_{\nu\sigma}(\bm r_g)|\,|f_{g\sigma}|.
+\end{equation}
+这约束原始 \(R\)，最终还需考虑输出投影。
+网格权重可能有负值，上界使用 \(|w_g|\)。
+应区分网格附近 AO 支持、密度耦合后的 \(f=XY\) 支持、
+以及解析势和输出支持。三者使用同一裸半径会漏项。
+交换局域性依赖 AO、密度衰减与贡献上界共同作用，
+不能对金属或任意随机稠密密度承诺相同标度。
+
+固定网格、投影、积分与筛选时
+\begin{equation}
+K(D_n)=K(D_{n-1})+K(\Delta D_n).
+\end{equation}
+若掩码依赖输入，一般
+\begin{equation}
+K_{\mathcal S(D_n)}(D_n)\ne
+K_{\mathcal S(D_{n-1})}(D_{n-1})
++K_{\mathcal S(\Delta D_n)}(\Delta D_n).
+\end{equation}
+增量 K 应由完整密度决定支持，掩码变化时完整重建或补偿。
+每五轮及收敛前完整重建是控制策略，不替代完整 K 自身精度验证。
+最终细网格改变 \(X,W,S_{\mathrm{num}},P\)，
+需要清除不兼容缓存与 DIIS，重新构建并继续收敛。
+只在旧密度上重算一次能量不能称为细网格自洽。
+
+\section{近线性优化的条件与计时口径}
+\label{sec:complexity}
+设体系规模 \(N\)，固定基组下 \(n,m,N_g=O(N)\)。
+若固定精度时有效 AO 乘积数为 \(O(N)\)、远场平均秩为 \(r\)，
+典型层次存储与应用成本为
+\begin{equation}
+{\rm storage}=O(rN\log N),\qquad
+{\rm matvec}=O(rN\log N).
+\end{equation}
+若 PCG 次数为 \(q\)，J 成本必须累计为
+\begin{equation}
+T_J=T_{B^Td}+qT_{M\,\mathrm{apply}}
++qT_{\mathrm{precond}}+T_{Bc}.
+\end{equation}
+秩、邻域、预条件成本与迭代次数都要受控。
+仅看到局域积分循环不能推出整个求解近线性。
+
+K 还要求每批 AO、密度耦合、积分对与投影求解工作受控。
+计时包含筛选、积分、搬运和 GPU 同步。
+稠密 J/K 接口展开与存储为 \(O(n^2)\)，
+稠密广义本征求解主要成本为 \(O(n^3)\)；
+它们单独报告，完整 SCF 不宣称近线性。
+
+相邻实际完成规模的指数是
+\begin{equation}
+p=\log(T_2/T_1)/\log(n_2/n_1).
+\end{equation}
+C21/C43/C86/C172 使用同设备同精度，预热一次、测三次取中位数。
+初始化与稳态时间分开，每次重置线性求解初值，
+避免相同右端已收敛解制造零迭代加速。
+报告秩、PCG 次数、峰值内存和稠密展开。
+指定序列上的实测结论不是任意分子的复杂度定理。
+
+\section{原实现证据与修复验收分开}
+\label{sec:evidence}
+C21H44/cc-pVTZ/weigend 同一正常初猜的独立诊断为
+\begin{align}
+\max|D_0|&=1.9249278484,\\
+\lambda_{\min}(S)&=1.63808007\times10^{-4},\\
+E_{J,\mathrm{old}}&=230710.83169559\ {\rm Ha},\\
+E_{J,\mathrm{ref}}&=1839.34748314\ {\rm Ha},\\
+|E_{K,\mathrm{old}}-E_{K,\mathrm{ref}}|
+&\simeq7.40\times10^{-4}\ {\rm Ha}.
+\end{align}
+J 误差约 \(2.2887\times10^5\) Ha，主导该对照。
+错误初始 Fock 第一次对角化后
+\begin{equation}
+\max|D_1|=2337.73048640,\qquad
+\Tr(D_1S)=169.99999999999.
+\end{equation}
+这显示反馈放大，并说明电子数正确仍不足以认证结果。
+C172 原日志 \code{c172h346\_ccpvtz\_4} 第 13 轮约为
+\(+1.35901636\times10^{11}\) Ha，未收敛；
+该任务在北京时间 2026-11-13 11:30:50 已停止。
+更新的 \code{c172h346\_ccpvtz\_5}（2026-11-13 20:18:01）仍由同一
+\texttt{89832978} 生产源码生成，第 1 轮能量与上一份日志相同，为
+\(+1.280213786785741\times10^{10}\) Ha，第 2 轮为
+\(+4.412647949115224\times10^{10}\) Ha，并在第 3 轮开始处中断。
+两次运行的首轮能量一致，说明巨大正值来自同一局域 J 故障，
+而不是能量组装符号或一次偶然的浮点异常。
+这些均为原实现数据，不能作为新算法通过的证据。
+
+验收依次为：
+\begin{enumerate}
+\item 小体系完整 \(B,M\) 对照：伴随、互易、线性、正性和压缩误差。
+\item 固定密度 J/K 最大元素误差各 \(\leq10^{-8}\) Ha；
+库仑能和交换能误差各 \(\leq10^{-7}\) Ha。
+\item 双方完整 SCF 收敛，能量差 \(\leq10^{-6}\) Ha；
+能量变化和轨道梯度 RMS 的 \(10^{-8}\) 门槛不放宽。
+\item 更新后密度电子数误差 \(\leq10^{-6}\)，检查对称性和幂等性。
+\item 最大档 J/K 时间指数各 \(\leq1.5\)，C172 必须实际完成。
+\end{enumerate}
+覆盖平移、旋转、远离二聚体、零块密度和原空间分支边界。
+随机密度测试算子正确性，绝缘烷烃测试性能，不共享无条件标度承诺。
+
+\section{公式如何对应修改流程}
+\begin{longtable}{p{0.23\textwidth}p{0.31\textwidth}p{0.35\textwidth}}
+\toprule 步骤&数学关系&应检查的输出\\\midrule\endhead
+积分与打包&式 \eqref{eq:pack}--\eqref{eq:unpack}&完整小体系积分、二重权重。\\
+层次远场&式 \eqref{eq:adjoint}&共用正向/转置因子、块秩。\\
+拟合求解&式 \eqref{eq:normal}、\eqref{eq:precond}&真实残差、正曲率、迭代数。\\
+J 与能量&式 \eqref{eq:operator}、\eqref{eq:rijenergy}&独立 J、互易性、库仑能。\\
+COSX&式 \eqref{eq:raw}&原始矩阵方向、网格收缩。\\
+双边投影&式 \eqref{eq:inputsolve}--\eqref{eq:outputsolve}&全局残差、跨原子项、同模式 SGX。\\
+增量与网格&固定映射线性、缓存一致性&完整重建差值、细网格再收敛。\\
+性能归因&各阶段成本累计&时间、内存、秩、次数、标度。\\
+\bottomrule
+\end{longtable}
+实际代码与日志以最终源码哈希为准。
+公式定义和设计条件不替代实现验证，尚未满足的条件必须在状态页写明。
+
+\input{repair_speedup.tex}
+
+\appendix
+\section{Gaussian 乘积如何给出距离相关筛选}
+两个 primitive 的指数部分满足 Gaussian 乘积定理：
+\begin{align}
+p&=\alpha+\beta,\qquad \kappa=\frac{\alpha\beta}{p},\qquad
+\bm P=\frac{\alpha\bm A+\beta\bm B}{p},\\
+e^{-\alpha|\bm r-\bm A|^2}e^{-\beta|\bm r-\bm B|^2}
+&=e^{-\kappa|\bm A-\bm B|^2}e^{-p|\bm r-\bm P|^2}.
+\end{align}
+令 \(t=|\bm r-\bm P|\)，角动量多项式的绝对值可用
+\begin{equation}
+(t+|\bm P-\bm A|)^{l_a}(t+|\bm P-\bm B|)^{l_b}
+=\sum_n b_nt^n,\qquad b_n\geq0
+\end{equation}
+控制。对各项分别使用
+\begin{align}
+\int_{\mathbb R^3}t^n e^{-pt^2}\,d\bm r
+&=2\pi\,\Gamma\!\left(\frac{n+3}{2}\right)p^{-(n+3)/2},\\
+\sup_{t\geq0}t^ne^{-pt^2}
+&=\left(\frac{n}{2ep}\right)^{n/2}\quad(n>0),
+\end{align}
+其中 \(n=0\) 时第二式取 1。
+乘上 primitive 绝对系数、保守角向归一化界和
+\(e^{-\kappa|\bm A-\bm B|^2}\)，再对所有 primitive 对求和，
+可得到下节使用的 \(L_1\) 和 \(L_\infty\) 上界。
+距离相关的 Gaussian 乘积衰减控制的是 AO 乘积本身；
+它不允许丢掉已保留乘积分布的长程库仑势。
+
+\section{交换筛选中解析势的一个统一上界}
+\label{sec:potentialbound}
+为避免把裸距离当作库仑误差界，可对
+\(u(\bm r)=\phi_\mu(\bm r)\phi_\nu(\bm r)\) 使用
+\begin{equation}
+L_1=\int |u(\bm r)|\,d\bm r,\qquad
+L_\infty=\sup_{\bm r}|u(\bm r)|.
+\end{equation}
+以任意网格点 \(\bm r_g\) 为中心，用半径 \(a>0\) 将积分分成两部分：
+\begin{align}
+|A_{\mu\nu}(\bm r_g)|
+&\leq
+\int_{|\bm r-\bm r_g|\leq a}\frac{|u(\bm r)|}{|\bm r-\bm r_g|}
+\,d\bm r
++\int_{|\bm r-\bm r_g|>a}\frac{|u(\bm r)|}{|\bm r-\bm r_g|}
+\,d\bm r\\
+&\leq 2\pi a^2L_\infty+\frac{L_1}{a}.
+\end{align}
+令导数为零得 \(a^3=L_1/(4\pi L_\infty)\)，因此
+\begin{equation}
+\boxed{|A_{\mu\nu}(\bm r_g)|
+\leq \tfrac32(4\pi L_\infty L_1^2)^{1/3}.}
+\label{eq:uniformV}
+\end{equation}
+当 \(u=0\) 时上界取零，不执行除零运算。
+AO 的 Cauchy--Schwarz 给出
+\begin{equation}
+L_1\leq\sqrt{S_{\mu\mu}S_{\nu\nu}},\qquad
+L_\infty\leq U_\mu U_\nu,\quad
+U_\mu\geq\sup_{\bm r}|\phi_\mu(\bm r)|.
+\end{equation}
+实现可由收缩 Gaussian 各 primitive 的绝对系数、径向最大值及保守角向上界
+构造 \(U_\mu\)。这些界需要覆盖所用的笛卡尔或球谐归一化，不能忽略收缩系数。
+
+记式 \eqref{eq:uniformV} 的上界为 \(V_{\mu\nu}^{\max}\)。
+若在一个网格批次内忽略 \(f\) 的第 \(\nu\) 列，
+其对原始交换矩阵最大元素的贡献可界为
+\begin{equation}
+\max_{\lambda\mu}|\Delta R_{\lambda\mu}|
+\leq
+\left(\max_\mu V_{\mu\nu}^{\max}\right)
+\sum_{g\ {\rm in\ batch}}|w_g|
+\left(\max_\lambda|X_{g\lambda}|\right)|f_{g\nu}|.
+\end{equation}
+在批次和被忽略列之间累计预算，才可将逐次筛选转换为全局原始矩阵误差控制。
+当前实现为该类 \(f\) 列筛选分配 \(10^{-12}\) 的原始矩阵预算。
+该界只控制这一种筛选误差：
+它不自动覆盖 AO 空间尾部、投影求解、输出投影放大或最终 SCF 能量。
+因此独立 SGX 与总能量验收仍然必要。
+
+\section*{复核资料}
+\addcontentsline{toc}{section}{复核资料}
+\begin{enumerate}
+\raggedright
+\item 原诊断目录：\path{outputs/c172_energy_diagnosis_20261113/}，
+含 \code{diagnosis_zh.md}、\code{local_kernel_numeric_checks.json}、
+\code{local_j_density_screen.json}。
+\item 原代码快照：
+\path{outputs/c172_repair_20261113/baseline/hf.py} 及 SHA-256 清单。
+\item PySCF 2.14.0：
+\code{pyscf.sgx.sgx_jk.SGXData._build_ovlp_fit}、
+\code{get_k_only}、SGX 实例的 \code{_symm_ovlp_fit} 配置、
+\code{pyscf.df.df_jk.get_j}。验收需保存实际版本和模式。
+\item Q. Sun 等，Recent developments in the PySCF program package，
+\emph{J. Chem. Phys.} \textbf{153}, 024109 (2020)。
+本文具体运算顺序以实际检查源码为准。
+\end{enumerate}
+\end{document}

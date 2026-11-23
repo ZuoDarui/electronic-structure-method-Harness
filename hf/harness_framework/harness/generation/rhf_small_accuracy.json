@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "name": "rhf-small-accuracy-v1",
+  "method": "RHF",
+  "description": "Single-shot generation gate: one generated program per run, CPU/NumPy only, correctness against trusted PySCF references on small closed-shell molecules. No large systems, no timing or speedup gate, no GPU stage.",
+  "dependency_boundary": {
+    "integrals": "trusted PySCF worker",
+    "candidate_allowed_imports": [
+      "__future__",
+      "collections",
+      "dataclasses",
+      "functools",
+      "itertools",
+      "math",
+      "numbers",
+      "numpy",
+      "operator",
+      "scipy",
+      "typing",
+      "warnings"
+    ],
+    "candidate_forbidden": [
+      "pyscf",
+      "gpu_hf",
+      "reference files",
+      "validation code"
+    ],
+    "generated_scope": [
+      "build_jk",
+      "solve"
+    ]
+  },
+  "integral_modes": [
+    "exact",
+    "df"
+  ],
+  "auxbasis": "weigend",
+  "tolerances": {
+    "energy_max_abs": 1e-08,
+    "jk_max_abs": 1e-09,
+    "jk_symmetry_max_abs": 1e-11,
+    "jk_linearity_max_abs": 1e-09,
+    "density_max_abs": 1e-06,
+    "density_symmetry_max_abs": 1e-11,
+    "electron_count_abs": 1e-09,
+    "idempotency_max_abs": 1e-08,
+    "residual_max_abs": 1e-07,
+    "orthogonality_max_abs": 1e-10,
+    "orbital_equation_max_abs": 1e-07,
+    "density_reconstruction_max_abs": 1e-10,
+    "energy_reconstruction_abs": 1e-09,
+    "occupation_max_abs": 1e-12,
+    "orbital_order_error": 1e-12,
+    "anchor_energy_abs": 1e-09
+  },
+  "memory_limit_mb": 2048,
+  "seed": 20261123,
+  "solver": {
+    "conv_tol": 1e-11,
+    "residual_tol": 1e-09,
+    "max_cycle": 150,
+    "diis_space": 8,
+    "df_block_size": 32
+  },
+  "execution": {
+    "timeout_s": 300,
+    "memory_limit_mb": 2048
+  },
+  "generation": {
+    "max_rounds": 1,
+    "candidate_file": "solution.py",
+    "provider": "openai_responses",
+    "empty_start": true
+  },
+  "accuracy_only": {
+    "max_atoms": 8,
+    "max_nao": 40,
+    "backend": "numpy"
+  },
+  "cases": [
+    {
+      "id": "h2-sto3g",
+      "atom": "H 0 0 0; H 0 0 0.74",
+      "basis": "sto-3g",
+      "anchor_energy": -1.1167593073964255
+    },
+    {
+      "id": "h2-stretched-631g",
+      "atom": "H 0 0 0; H 0 0 1.5",
+      "basis": "6-31g"
+    },
+    {
+      "id": "heh-cation-631g",
+      "atom": "He 0 0 0; H 0 0 0.774",
+      "basis": "6-31g",
+      "charge": 1
+    },
+    {
+      "id": "he-ccpvdz",
+      "atom": "He 0 0 0",
+      "basis": "cc-pvdz"
+    },
+    {
+      "id": "be-631g",
+      "atom": "Be 0 0 0",
+      "basis": "6-31g"
+    },
+    {
+      "id": "lih-631g",
+      "atom": "Li 0 0 0; H 0 0 1.6",
+      "basis": "6-31g"
+    },
+    {
+      "id": "hf-631g",
+      "atom": "F 0 0 0; H 0 0 0.917",
+      "basis": "6-31g"
+    },
+    {
+      "id": "water-631gs",
+      "atom": "O 0 0 0.1173; H 0 0.7572 -0.4692; H 0 -0.7572 -0.4692",
+      "basis": "6-31g*"
+    },
+    {
+      "id": "water-ccpvdz",
+      "atom": "O 0 0 0; H 0 -0.757 0.587; H 0 0.757 0.587",
+      "basis": "cc-pvdz"
+    },
+    {
+      "id": "ammonia-sto3g",
+      "atom": "N 0 0 0; H 0.9377 0 -0.3816; H -0.46885 0.8121 -0.3816; H -0.46885 -0.8121 -0.3816",
+      "basis": "sto-3g"
+    },
+    {
+      "id": "methane-631g",
+      "atom": "C 0 0 0; H 0.6276 0.6276 0.6276; H -0.6276 -0.6276 0.6276; H -0.6276 0.6276 -0.6276; H 0.6276 -0.6276 -0.6276",
+      "basis": "6-31g"
+    },
+    {
+      "id": "n2-ccpvdz",
+      "atom": "N 0 0 0; N 0 0 1.0977",
+      "basis": "cc-pvdz"
+    },
+    {
+      "id": "co-631g",
+      "atom": "C 0 0 0; O 0 0 1.128",
+      "basis": "6-31g"
+    },
+    {
+      "id": "ethylene-sto3g",
+      "atom": "C 0 0 0.6695; C 0 0 -0.6695; H 0 0.9289 1.2321; H 0 -0.9289 1.2321; H 0 0.9289 -1.2321; H 0 -0.9289 -1.2321",
+      "basis": "sto-3g"
+    },
+    {
+      "id": "formaldehyde-631g",
+      "atom": "C 0 0 0; O 0 0 1.205; H 0 0.9429 -0.5876; H 0 -0.9429 -0.5876",
+      "basis": "6-31g"
+    }
+  ]
+}

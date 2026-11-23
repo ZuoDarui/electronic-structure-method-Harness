@@ -1,0 +1,32 @@
+{
+  "xyz": "water64.xyz",
+  "basis": "cc-pvtz",
+  "unit": "Angstrom",
+  "charge": 0,
+  "spin": 0,
+  "expected_basis_functions": 3712,
+  "resources": {
+    "cpu_cores": 48,
+    "memory_gib": 256,
+    "threads": 8,
+    "parallel_backend": "serial",
+    "parallel_workers": 1,
+    "parallel_chunk_size": 16,
+    "parallel_min_shells": 12
+  },
+  "output_dir": "outputs",
+  "output_prefix": "water64_ccpvtz",
+  "solver_options": {
+    "jk_mode": "rijcosx",
+    "auxbasis": "weigend",
+    "tol": 1e-08,
+    "grid_rad": 30,
+    "grid_ang": 110,
+    "final_grid_rad": 35,
+    "final_grid_ang": 302,
+    "batch_size": 512,
+    "max_iteration": 200,
+    "incremental_k": true,
+    "kfull_every": 5
+  }
+}

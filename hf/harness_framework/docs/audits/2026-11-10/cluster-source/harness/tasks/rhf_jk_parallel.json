@@ -1,0 +1,18 @@
+{
+  "name": "rhf-jk-parallel",
+  "description": "Compare serial and CPU-parallel direct J/K on small and medium molecules.",
+  "command": ["python3", "harness_engineering/examples/rhf_jk_parallel_candidate.py"],
+  "cases": [
+    {"name": "h2-sto3g", "basis": "sto-3g", "atom": "H 0 0 0; H 0 0 1"},
+    {"name": "water-sto3g", "basis": "sto-3g", "atom": "O 0 0 0; H 0 -0.757 0.587; H 0 0.757 0.587"},
+    {"name": "water-dimer-sto3g", "basis": "sto-3g", "atom": "O 0 0 0; H 0 -0.757 0.587; H 0 0.757 0.587; O 2.8 0 0; H 2.8 -0.757 0.587; H 2.8 0.757 0.587"},
+    {"name": "benzene-631g", "basis": "6-31g", "atom": "C 0.000000 1.396792 0.000000; C -1.209657 0.698396 0.000000; C -1.209657 -0.698396 0.000000; C 0.000000 -1.396792 0.000000; C 1.209657 -0.698396 0.000000; C 1.209657 0.698396 0.000000; H 0.000000 2.481000 0.000000; H -2.147000 1.240500 0.000000; H -2.147000 -1.240500 0.000000; H 0.000000 -2.481000 0.000000; H 2.147000 -1.240500 0.000000; H 2.147000 1.240500 0.000000"}
+  ],
+  "correctness_tolerances": {
+    "jk_max_abs": 1e-7,
+    "parallel_max_abs": 1e-7
+  },
+  "required_metrics": ["jk_max_abs", "parallel_max_abs", "all_finite", "speedup", "median_seconds"],
+  "performance": {"min_speedup": 1.05},
+  "timeout_s": 300
+}

@@ -1,0 +1,12 @@
+# Build explicitly from the repository root:
+# docker build -f containers/Dockerfile.cpu -t hf-harness-cpu:local .
+# For release runs supply a digest-pinned base; the executor also records and
+# uses the final local image content ID, never a mutable image tag at runtime.
+ARG BASE_IMAGE=python:3.12.10-slim-bookworm
+FROM ${BASE_IMAGE}
+RUN python -m pip install --no-cache-dir numpy==2.2.6 scipy==1.15.3
+ENV PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1
+USER 65532:65532
+WORKDIR /tmp
+# No source tree, PySCF, reference code, API credentials or verifier is copied.
+CMD ["python3", "-c", "import numpy, scipy; print(numpy.__version__, scipy.__version__)"]

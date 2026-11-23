@@ -1,0 +1,423 @@
+{
+  "decision": {
+    "details": {
+      "case_repeats": {
+        "benzene-631g": 1,
+        "h2-sto3g": 5,
+        "water-dimer-sto3g": 5,
+        "water-sto3g": 5
+      },
+      "cases": {
+        "benzene-631g": {
+          "1": {
+            "all_finite": true,
+            "backend": "serial",
+            "j_symmetric": true,
+            "jk_max_abs_vs_pyscf": 6.011074048250232e-12,
+            "jk_max_abs_vs_serial": 0.0,
+            "k_symmetric": true,
+            "nao": 66,
+            "parallel_active": false,
+            "parallel_chunk_size": 16,
+            "parallel_min_shells": 12,
+            "timing": {
+              "median_s": 30.587302250001812,
+              "minimum_s": 30.587302250001812,
+              "p90_s": 30.587302250001812,
+              "repeats": 1,
+              "samples_s": [
+                30.587302250001812
+              ],
+              "warmups": 1
+            },
+            "workers": 1
+          },
+          "2": {
+            "all_finite": true,
+            "backend": "cpu",
+            "j_symmetric": true,
+            "jk_max_abs_vs_pyscf": 6.011074048250232e-12,
+            "jk_max_abs_vs_serial": 0.0,
+            "k_symmetric": true,
+            "nao": 66,
+            "parallel_active": true,
+            "parallel_chunk_size": 16,
+            "parallel_min_shells": 12,
+            "timing": {
+              "median_s": 25.85457504200167,
+              "minimum_s": 25.85457504200167,
+              "p90_s": 25.85457504200167,
+              "repeats": 1,
+              "samples_s": [
+                25.85457504200167
+              ],
+              "warmups": 1
+            },
+            "workers": 2
+          },
+          "4": {
+            "all_finite": true,
+            "backend": "cpu",
+            "j_symmetric": true,
+            "jk_max_abs_vs_pyscf": 6.011074048250232e-12,
+            "jk_max_abs_vs_serial": 0.0,
+            "k_symmetric": true,
+            "nao": 66,
+            "parallel_active": true,
+            "parallel_chunk_size": 16,
+            "parallel_min_shells": 12,
+            "timing": {
+              "median_s": 27.782010916998843,
+              "minimum_s": 27.782010916998843,
+              "p90_s": 27.782010916998843,
+              "repeats": 1,
+              "samples_s": [
+                27.782010916998843
+              ],
+              "warmups": 1
+            },
+            "workers": 4
+          }
+        },
+        "h2-sto3g": {
+          "1": {
+            "all_finite": true,
+            "backend": "serial",
+            "j_symmetric": true,
+            "jk_max_abs_vs_pyscf": 2.220446049250313e-16,
+            "jk_max_abs_vs_serial": 0.0,
+            "k_symmetric": true,
+            "nao": 2,
+            "parallel_active": false,
+            "parallel_chunk_size": 16,
+            "parallel_min_shells": 12,
+            "timing": {
+              "median_s": 0.00019916699966415763,
+              "minimum_s": 0.00019166601123288274,
+              "p90_s": 0.00022412480902858078,
+              "repeats": 5,
+              "samples_s": [
+                0.00020412501180544496,
+                0.000237458007177338,
+                0.00019916699966415763,
+                0.0001968329888768494,
+                0.00019166601123288274
+              ],
+              "warmups": 1
+            },
+            "workers": 1
+          },
+          "2": {
+            "all_finite": true,
+            "backend": "cpu",
+            "j_symmetric": true,
+            "jk_max_abs_vs_pyscf": 2.220446049250313e-16,
+            "jk_max_abs_vs_serial": 0.0,
+            "k_symmetric": true,
+            "nao": 2,
+            "parallel_active": false,
+            "parallel_chunk_size": 16,
+            "parallel_min_shells": 12,
+            "timing": {
+              "median_s": 0.00019570800941437483,
+              "minimum_s": 0.00018295898917131126,
+              "p90_s": 0.00021382519043982028,
+              "repeats": 5,
+              "samples_s": [
+                0.00019737498951144516,
+                0.00019570800941437483,
+                0.00022479199105873704,
+                0.00019225000869482756,
+                0.00018295898917131126
+              ],
+              "warmups": 1
+            },
+            "workers": 2
+          },
+          "4": {
+            "all_finite": true,
+            "backend": "cpu",
+            "j_symmetric": true,
+            "jk_max_abs_vs_pyscf": 2.220446049250313e-16,
+            "jk_max_abs_vs_serial": 0.0,
+            "k_symmetric": true,
+            "nao": 2,
+            "parallel_active": false,
+            "parallel_chunk_size": 16,
+            "parallel_min_shells": 12,
+            "timing": {
+              "median_s": 0.00019216700457036495,
+              "minimum_s": 0.00018850000924430788,
+              "p90_s": 0.00021318361395969987,
+              "repeats": 5,
+              "samples_s": [
+                0.00018991701654158533,
+                0.00018850000924430788,
+                0.00022475002333521843,
+                0.00019216700457036495,
+                0.00019583399989642203
+              ],
+              "warmups": 1
+            },
+            "workers": 4
+          }
+        },
+        "water-dimer-sto3g": {
+          "1": {
+            "all_finite": true,
+            "backend": "serial",
+            "j_symmetric": true,
+            "jk_max_abs_vs_pyscf": 1.7763568394002505e-14,
+            "jk_max_abs_vs_serial": 0.0,
+            "k_symmetric": true,
+            "nao": 14,
+            "parallel_active": false,
+            "parallel_chunk_size": 16,
+            "parallel_min_shells": 12,
+            "timing": {
+              "median_s": 0.07929008299834095,
+              "minimum_s": 0.07787316699977964,
+              "p90_s": 0.08664375900989399,
+              "repeats": 5,
+              "samples_s": [
+                0.07787316699977964,
+                0.08018295900546946,
+                0.07929008299834095,
+                0.09095095901284367,
+                0.07849108299706131
+              ],
+              "warmups": 1
+            },
+            "workers": 1
+          },
+          "2": {
+            "all_finite": true,
+            "backend": "cpu",
+            "j_symmetric": true,
+            "jk_max_abs_vs_pyscf": 1.7763568394002505e-14,
+            "jk_max_abs_vs_serial": 0.0,
+            "k_symmetric": true,
+            "nao": 14,
+            "parallel_active": false,
+            "parallel_chunk_size": 16,
+            "parallel_min_shells": 12,
+            "timing": {
+              "median_s": 0.07891087501775473,
+              "minimum_s": 0.07757779100211337,
+              "p90_s": 0.07965196598670446,
+              "repeats": 5,
+              "samples_s": [
+                0.07757779100211337,
+                0.07907379098469391,
+                0.07801729199127294,
+                0.07891087501775473,
+                0.08003741598804481
+              ],
+              "warmups": 1
+            },
+            "workers": 2
+          },
+          "4": {
+            "all_finite": true,
+            "backend": "cpu",
+            "j_symmetric": true,
+            "jk_max_abs_vs_pyscf": 1.7763568394002505e-14,
+            "jk_max_abs_vs_serial": 0.0,
+            "k_symmetric": true,
+            "nao": 14,
+            "parallel_active": false,
+            "parallel_chunk_size": 16,
+            "parallel_min_shells": 12,
+            "timing": {
+              "median_s": 0.07775612501427531,
+              "minimum_s": 0.07701137498952448,
+              "p90_s": 0.07841924140229821,
+              "repeats": 5,
+              "samples_s": [
+                0.07808641600422561,
+                0.07701137498952448,
+                0.07775612501427531,
+                0.07775124997715466,
+                0.07864112500101328
+              ],
+              "warmups": 1
+            },
+            "workers": 4
+          }
+        },
+        "water-sto3g": {
+          "1": {
+            "all_finite": true,
+            "backend": "serial",
+            "j_symmetric": true,
+            "jk_max_abs_vs_pyscf": 1.0658141036401503e-14,
+            "jk_max_abs_vs_serial": 0.0,
+            "k_symmetric": true,
+            "nao": 7,
+            "parallel_active": false,
+            "parallel_chunk_size": 16,
+            "parallel_min_shells": 12,
+            "timing": {
+              "median_s": 0.0056468750117346644,
+              "minimum_s": 0.0055118750024121255,
+              "p90_s": 0.005721241194987669,
+              "repeats": 5,
+              "samples_s": [
+                0.005748458002926782,
+                0.0056468750117346644,
+                0.0055118750024121255,
+                0.005614249996142462,
+                0.005680415983079001
+              ],
+              "warmups": 1
+            },
+            "workers": 1
+          },
+          "2": {
+            "all_finite": true,
+            "backend": "cpu",
+            "j_symmetric": true,
+            "jk_max_abs_vs_pyscf": 1.0658141036401503e-14,
+            "jk_max_abs_vs_serial": 0.0,
+            "k_symmetric": true,
+            "nao": 7,
+            "parallel_active": false,
+            "parallel_chunk_size": 16,
+            "parallel_min_shells": 12,
+            "timing": {
+              "median_s": 0.005656624998664483,
+              "minimum_s": 0.005460374988615513,
+              "p90_s": 0.0057722914032638075,
+              "repeats": 5,
+              "samples_s": [
+                0.00547804101370275,
+                0.005844125000294298,
+                0.005664541007718071,
+                0.005656624998664483,
+                0.005460374988615513
+              ],
+              "warmups": 1
+            },
+            "workers": 2
+          },
+          "4": {
+            "all_finite": true,
+            "backend": "cpu",
+            "j_symmetric": true,
+            "jk_max_abs_vs_pyscf": 1.0658141036401503e-14,
+            "jk_max_abs_vs_serial": 0.0,
+            "k_symmetric": true,
+            "nao": 7,
+            "parallel_active": false,
+            "parallel_chunk_size": 16,
+            "parallel_min_shells": 12,
+            "timing": {
+              "median_s": 0.005344625009456649,
+              "minimum_s": 0.005147040996234864,
+              "p90_s": 0.005462074995739386,
+              "repeats": 5,
+              "samples_s": [
+                0.005379125010222197,
+                0.005147040996234864,
+                0.005344625009456649,
+                0.005517374986084178,
+                0.005296500021358952
+              ],
+              "warmups": 1
+            },
+            "workers": 4
+          }
+        }
+      },
+      "default_repeats": 5,
+      "numpy": "2.5.4",
+      "parallel_chunk_size": 16,
+      "parallel_min_shells": 12,
+      "pyscf": "2.14.0",
+      "python": "3.12.16 (main, Oct 26 2026, 11:31:43) [Clang 21.1.8 ]",
+      "scipy": "1.18.1",
+      "threads": 1,
+      "warmups": 1,
+      "workers": [
+        1,
+        2,
+        4
+      ]
+    },
+    "metrics": {
+      "all_finite": true,
+      "case_count": 4,
+      "case_median_speedup": 1.0220961662297785,
+      "jk_max_abs": 6.011074048250232e-12,
+      "median_seconds": 0.04155037501186598,
+      "parallel_max_abs": 0.0,
+      "serial_median_seconds": 0.04246847900503781,
+      "serial_total_median_seconds": 30.672438375011552,
+      "speedup": 1.1007394198069547,
+      "worker4_median_seconds": 0.04155037501186598,
+      "worker4_total_median_seconds": 27.865303834027145,
+      "worker_count": 3
+    },
+    "passed": true,
+    "reasons": []
+  },
+  "run": {
+    "command": [
+      "/Users/darui/workspace/fieldquantum/.pyscf-env/bin/python",
+      "harness_engineering/examples/rhf_jk_parallel_candidate.py"
+    ],
+    "duration_s": 170.9323953340063,
+    "failure_kind": null,
+    "report_path": "/Users/darui/workspace/fieldquantum/hf/outputs/benchmark/rhf-jk-parallel.report.json",
+    "returncode": 0,
+    "status": "completed",
+    "stderr": "",
+    "stdout": ""
+  },
+  "task": {
+    "cases": [
+      {
+        "atom": "H 0 0 0; H 0 0 1",
+        "basis": "sto-3g",
+        "name": "h2-sto3g"
+      },
+      {
+        "atom": "O 0 0 0; H 0 -0.757 0.587; H 0 0.757 0.587",
+        "basis": "sto-3g",
+        "name": "water-sto3g"
+      },
+      {
+        "atom": "O 0 0 0; H 0 -0.757 0.587; H 0 0.757 0.587; O 2.8 0 0; H 2.8 -0.757 0.587; H 2.8 0.757 0.587",
+        "basis": "sto-3g",
+        "name": "water-dimer-sto3g"
+      },
+      {
+        "atom": "C 0.000000 1.396792 0.000000; C -1.209657 0.698396 0.000000; C -1.209657 -0.698396 0.000000; C 0.000000 -1.396792 0.000000; C 1.209657 -0.698396 0.000000; C 1.209657 0.698396 0.000000; H 0.000000 2.481000 0.000000; H -2.147000 1.240500 0.000000; H -2.147000 -1.240500 0.000000; H 0.000000 -2.481000 0.000000; H 2.147000 -1.240500 0.000000; H 2.147000 1.240500 0.000000",
+        "basis": "6-31g",
+        "name": "benzene-631g"
+      }
+    ],
+    "command": [
+      "python3",
+      "harness_engineering/examples/rhf_jk_parallel_candidate.py"
+    ],
+    "correctness_tolerances": {
+      "jk_max_abs": 1e-07,
+      "parallel_max_abs": 1e-07
+    },
+    "description": "Compare serial and CPU-parallel direct J/K on small and medium molecules.",
+    "env": {},
+    "name": "rhf-jk-parallel",
+    "performance": {
+      "min_speedup": 1.05
+    },
+    "required_metrics": [
+      "jk_max_abs",
+      "parallel_max_abs",
+      "all_finite",
+      "speedup",
+      "median_seconds"
+    ],
+    "timeout_s": 300.0
+  }
+}

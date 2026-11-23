@@ -1,0 +1,39 @@
+{
+  "name": "linear-scf-iteration",
+  "description": "One training RIJCOSX iteration on one-dimensional water chains, benzene rows, and alkanes, plus the 16-water density-fitting regression. J and K exponents must each be at most 1.5. The dense diagonalization exponent and the 50000-basis, 20-iteration projection are recorded and do not accept or reject the task. The iteration is Hartree_Fock.iteration_rijcosx; solve_rhf is unchanged.",
+  "command": ["python3", "harness_engineering/examples/linear_scf_iteration_candidate.py"],
+  "cases": [
+    {"name": "water-chain", "family": "water", "basis": "cc-pvtz"},
+    {"name": "benzene-row", "family": "benzene", "basis": "cc-pvtz"},
+    {"name": "alkane", "family": "alkane", "basis": "cc-pvtz"},
+    {"name": "water16-ccpvtz", "molecules": 16, "basis": "cc-pvtz"}
+  ],
+  "correctness_tolerances": {
+    "ri_j_16_max_abs": 2e-8,
+    "j_parallel_16_max_abs": 2e-8,
+    "k_parallel_16_max_abs": 2e-10,
+    "j_asymmetry_16": 1e-8,
+    "k_asymmetry_16": 1e-8,
+    "jk_asymmetry_max": 1e-8,
+    "cosx_monomer_max_abs": 2e-4,
+    "cosx_full_tensor_calls": 0,
+    "density_asymmetry_max": 1e-8,
+    "density_electron_abs_max": 1e-8,
+    "exponent_j_water": 1.5,
+    "exponent_j_benzene": 1.5,
+    "exponent_j_alkane": 1.5,
+    "exponent_k_water": 1.5,
+    "exponent_k_benzene": 1.5,
+    "exponent_k_alkane": 1.5
+  },
+  "required_metrics": [
+    "nao_16", "all_finite",
+    "ri_j_16_max_abs", "j_parallel_16_max_abs", "k_parallel_16_max_abs",
+    "j_asymmetry_16", "k_asymmetry_16", "jk_asymmetry_max",
+    "cosx_monomer_max_abs", "cosx_full_tensor_calls",
+    "density_asymmetry_max", "density_electron_abs_max",
+    "exponent_j_water", "exponent_j_benzene", "exponent_j_alkane",
+    "exponent_k_water", "exponent_k_benzene", "exponent_k_alkane"
+  ],
+  "timeout_s": 3600
+}

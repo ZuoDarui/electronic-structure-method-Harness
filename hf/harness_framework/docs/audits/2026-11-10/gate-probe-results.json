@@ -1,0 +1,17 @@
+[
+  {
+    "case": "nan_error",
+    "accepted": true,
+    "reasons": []
+  },
+  {
+    "case": "string_false",
+    "accepted": true,
+    "reasons": []
+  },
+  {
+    "case": "nan_speedup",
+    "accepted": true,
+    "reasons": []
+  }
+]

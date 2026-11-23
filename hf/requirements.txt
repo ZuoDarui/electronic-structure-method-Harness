@@ -1,0 +1,6 @@
+# Runtime and validation dependencies for the HF implementation and harness.
+numpy>=2.0,<3
+scipy>=1.13,<2
+pyscf>=2.4,<3
+torch>=2.2,<3
+requests>=2.31,<3

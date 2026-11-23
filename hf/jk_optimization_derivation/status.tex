@@ -1,0 +1,39 @@
+\noindent\textbf{2026-11-18 更新。}
+生产修复已改为全局 DF-J（weigend）加 PySCF SGX，
+C172H346/cc-pVTZ 收敛到 \(-6717.379184800415\) Ha（Phase 1，16538 s），
+加速版 \(-6717.379184800597\) Ha（15315 s，差 \(-1.8\times10^{-10}\) Ha）。
+推导与验收见第 \ref{sec:repair} 节。下文为 2026-11-13 的记录，
+其中“不改用全局 DF-J”的约束已被该修复路线取代。
+
+\medskip
+\noindent\textbf{文档状态：公式推导与修复验收说明。}
+2026-11-13 22:40（北京时间）只读复核集群后，最新生产日志是
+\path{outputs/c172h346_ccpvtz_5.stdout.log}，修改时间
+2026-11-13 20:18:01。生产目录 \code{hf.py} 的 SHA-256 仍为
+\texttt{89832978bd7f4feae0c82e601304b25a0ac86d64fc3531470058f0fe331c0f40}，
+与出错版本一致。该日志第 1 轮能量为 \(+1.280213786785741\times10^{10}\) Ha，
+第 2 轮为 \(+4.412647949115224\times10^{10}\) Ha，文件在第 3 轮开始处结束。
+第 1 轮能量与此前 \code{c172h346\_ccpvtz\_4} 打印到同一数值，
+说明故障没有换成新的能量公式错误，仍是原局域 J 进入 Fock 后的放大。
+能量定义保持
+\(E=E_{\mathrm{nuc}}+\Tr(Dh)+\frac12\Tr(DJ)-\frac14\Tr(DK)\)，
+不改用全局 DF-J，也不提高辅助基或网格。
+
+同日本地复测：66 项单元测试通过。
+C\(_2\)H\(_6\)/STO-3G 在最终 \(35\times302\) 网格收敛，
+候选能量 \(-78.3006696922162\) Ha，
+PySCF 参考 \(-78.30066969218089\) Ha，
+差值 \(3.531\times10^{-11}\) Ha；
+独立轨道梯度 RMS \(3.180\times10^{-9}\)，
+电子数误差 \(1.066\times10^{-14}\)。
+此前 C21/cc-pVTZ 初始密度对照仍有效：
+J 最大元素误差约 \(7.49\times10^{-12}\) Ha，
+库仑能误差约 \(5.97\times10^{-11}\) Ha。
+这些证据不代替 C172 收敛、GPU 对照或近线性标度验收。
+
+\medskip
+\noindent\textbf{阅读建议：}
+先读第 \ref{sec:roadmap} 节把握计算链；
+第 \ref{sec:ri}--\ref{sec:bugs} 节解释 J，
+第 \ref{sec:cosx}--\ref{sec:overlap} 节解释 K；
+第 \ref{sec:error}、\ref{sec:complexity}、\ref{sec:evidence} 节解释误差与验收。

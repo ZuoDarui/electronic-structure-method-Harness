@@ -1,0 +1,16 @@
+{
+  "name": "rhf-direct-baseline",
+  "description": "Validate the direct RHF candidate against PySCF on H2 and water.",
+  "command": ["python3", "harness_engineering/examples/rhf_direct_candidate.py"],
+  "cases": [
+    {"name": "h2-sto3g", "atom": "H 0 0 0; H 0 0 1", "basis": "sto-3g"},
+    {"name": "h2-631g", "atom": "H 0 0 0; H 0 0 1", "basis": "6-31g"},
+    {"name": "water-sto3g", "atom": "O 0 0 0; H 0 -0.757 0.587; H 0 0.757 0.587", "basis": "sto-3g"}
+  ],
+  "correctness_tolerances": {
+    "energy_max_abs": 1e-7,
+    "jk_max_abs": 1e-7
+  },
+  "required_metrics": ["energy_max_abs", "jk_max_abs", "all_finite", "scf_converged", "median_seconds"],
+  "timeout_s": 300
+}

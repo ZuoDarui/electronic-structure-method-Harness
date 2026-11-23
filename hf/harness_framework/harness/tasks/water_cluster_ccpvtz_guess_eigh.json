@@ -1,0 +1,30 @@
+{
+  "name": "water-cluster-ccpvtz-guess-eigh",
+  "description": "Time the MINAO density guess and one generalized diagonalization of the core Hamiltonian for 16, 32, 64, and 128 water molecules with cc-pVTZ. Record output size and peak RSS. No J/K and no SCF. 16 waters must finish. Larger diagonalizations may be skipped when the cubic estimate exceeds the remaining task budget.",
+  "command": ["python3", "harness_engineering/examples/water_cluster_guess_eigh_candidate.py"],
+  "cases": [
+    {"name": "water16-ccpvtz", "molecules": 16, "basis": "cc-pvtz"},
+    {"name": "water32-ccpvtz", "molecules": 32, "basis": "cc-pvtz"},
+    {"name": "water64-ccpvtz", "molecules": 64, "basis": "cc-pvtz"},
+    {"name": "water128-ccpvtz", "molecules": 128, "basis": "cc-pvtz"}
+  ],
+  "correctness_tolerances": {
+    "nao_mismatch_max": 0,
+    "guess_asymmetry_16": 1e-8,
+    "guess_electron_rel_16": 1e-2,
+    "eigh_residual_16": 1e-8,
+    "density_trace_16_abs": 1e-6,
+    "density_asymmetry_16": 1e-8
+  },
+  "required_metrics": [
+    "nao_16", "nao_32", "nao_64", "nao_128",
+    "nao_mismatch_max", "all_finite",
+    "memory_16_gib", "memory_32_gib", "memory_64_gib", "memory_128_gib",
+    "guess_16_s", "guess_32_s", "guess_64_s", "guess_128_s",
+    "guess_asymmetry_16", "guess_electron_rel_16",
+    "eigh_16_s", "eigh_residual_16",
+    "density_trace_16_abs", "density_asymmetry_16",
+    "rss_guess_16_gib", "rss_eigh_16_gib"
+  ],
+  "timeout_s": 3600
+}

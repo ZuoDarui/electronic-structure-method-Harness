@@ -1,0 +1,66 @@
+{
+  "name": "occupy-density-budget",
+  "description": "Project one training iteration to 50000 basis functions and 20 iterations. J and K exponents must be at most 1.5. Each projected_eigh_hours value must be at most 48. The dense reference is expected to miss that projection. hf.py is not modified.",
+  "command": ["python3", "harness_engineering/examples/linear_scf_iteration_candidate.py"],
+  "cases": [
+    {"name": "water-chain", "family": "water", "basis": "cc-pvtz"},
+    {"name": "benzene-row", "family": "benzene", "basis": "cc-pvtz"},
+    {"name": "alkane", "family": "alkane", "basis": "cc-pvtz"},
+    {"name": "water16-ccpvtz", "molecules": 16, "basis": "cc-pvtz"}
+  ],
+  "correctness_tolerances": {
+    "ri_j_16_max_abs": 2e-8,
+    "j_parallel_16_max_abs": 2e-8,
+    "k_parallel_16_max_abs": 2e-10,
+    "j_asymmetry_16": 1e-8,
+    "k_asymmetry_16": 1e-8,
+    "jk_asymmetry_max": 1e-8,
+    "cosx_monomer_max_abs": 2e-4,
+    "cosx_full_tensor_calls": 0,
+    "density_asymmetry_max": 1e-8,
+    "density_electron_abs_max": 1e-8,
+    "exponent_j_water": 1.5,
+    "exponent_j_benzene": 1.5,
+    "exponent_j_alkane": 1.5,
+    "exponent_k_water": 1.5,
+    "exponent_k_benzene": 1.5,
+    "exponent_k_alkane": 1.5,
+    "projected_eigh_hours_water": 48,
+    "projected_eigh_hours_benzene": 48,
+    "projected_eigh_hours_alkane": 48
+  },
+  "required_metrics": [
+    "nao_16", "all_finite",
+    "ri_j_16_max_abs", "j_parallel_16_max_abs", "k_parallel_16_max_abs",
+    "j_asymmetry_16", "k_asymmetry_16", "jk_asymmetry_max",
+    "cosx_monomer_max_abs", "cosx_full_tensor_calls",
+    "density_asymmetry_max", "density_electron_abs_max",
+    "exponent_j_water", "exponent_j_benzene", "exponent_j_alkane",
+    "exponent_k_water", "exponent_k_benzene", "exponent_k_alkane",
+    "projected_eigh_hours_water",
+    "projected_eigh_hours_benzene",
+    "projected_eigh_hours_alkane"
+  ],
+  "timeout_s": 3600,
+  "generation": {
+    "editable": ["harness_engineering/generated/occupy_density.py"],
+    "forbidden": [
+      "../hf.py",
+      "harness_engineering/training_hf.py",
+      "harness/tasks/occupy_density_oracle.json",
+      "harness/tasks/occupy_density_budget.json"
+    ],
+    "forbidden_changes": [
+      "correctness tolerances",
+      "electron count",
+      "occupy_density_reference"
+    ],
+    "oracle_task": "harness/tasks/occupy_density_oracle.json",
+    "budget_task": "harness/tasks/occupy_density_budget.json",
+    "stop": {
+      "syntax_fixes": 1,
+      "revert_on_numerical": true,
+      "stall_rounds": 2
+    }
+  }
+}

@@ -1,0 +1,213 @@
+{
+  "decision": {
+    "details": {
+      "auxbasis": "weigend",
+      "basis": "cc-pvtz",
+      "batch_size": 256,
+      "clusters": {
+        "128": {
+          "basis": "cc-pvtz",
+          "cost": 167030784,
+          "estimated_dense_working_set_gib": 3.28515625,
+          "estimated_seconds": 18197.58335700683,
+          "expected_nao": 7424,
+          "molecules": 128,
+          "nao": 7424,
+          "natm": 384,
+          "nelectron": 1280,
+          "nshells": 2688,
+          "parallel_workers": 4,
+          "significant_pair_fraction": 0.12035807257079105,
+          "significant_shell_pairs": 434976,
+          "skip_reason": "estimated get_jk time 18197.583 s exceeds the remaining 2429.535 s",
+          "skipped": true
+        },
+        "16": {
+          "basis": "cc-pvtz",
+          "cost": 1300224,
+          "cosx_full_tensor_calls": 0,
+          "estimated_dense_working_set_gib": 0.05133056640625,
+          "expected_nao": 928,
+          "jk_seconds": 141.74172295799872,
+          "molecules": 16,
+          "nao": 928,
+          "natm": 48,
+          "nelectron": 160,
+          "nshells": 336,
+          "parallel_workers": 4,
+          "ri_screened_pairs": 13012,
+          "rss_gib": 1.4443511962890625,
+          "serial_seconds": 197.8790532919993,
+          "significant_pair_fraction": 0.4784513211812915,
+          "significant_shell_pairs": 27088,
+          "skipped": false
+        },
+        "32": {
+          "basis": "cc-pvtz",
+          "cost": 6958848,
+          "cosx_full_tensor_calls": 0,
+          "estimated_dense_working_set_gib": 0.205322265625,
+          "expected_nao": 1856,
+          "jk_seconds": 758.1489682089996,
+          "molecules": 32,
+          "nao": 1856,
+          "natm": 96,
+          "nelectron": 320,
+          "nshells": 672,
+          "parallel_workers": 4,
+          "ri_screened_pairs": 29886,
+          "rss_gib": 3.068145751953125,
+          "significant_pair_fraction": 0.3205618057029647,
+          "significant_shell_pairs": 72488,
+          "skipped": false
+        },
+        "64": {
+          "basis": "cc-pvtz",
+          "cost": 37045248,
+          "estimated_dense_working_set_gib": 0.8212890625,
+          "estimated_seconds": 4035.9864949265316,
+          "expected_nao": 3712,
+          "molecules": 64,
+          "nao": 3712,
+          "natm": 192,
+          "nelectron": 640,
+          "nshells": 1344,
+          "parallel_workers": 4,
+          "significant_pair_fraction": 0.2134714108691804,
+          "significant_shell_pairs": 192944,
+          "skip_reason": "estimated get_jk time 4035.986 s exceeds the remaining 2484.960 s",
+          "skipped": true
+        }
+      },
+      "df_tol": 1e-09,
+      "grid_ang": 110,
+      "grid_rad": 30,
+      "jk_scf_executed": false,
+      "monomer": {
+        "all_finite": true,
+        "cosx_full_tensor_calls": 0,
+        "cosx_max_abs": 0.0002624149375152151,
+        "nao": 58,
+        "nshells": 21
+      }
+    },
+    "metrics": {
+      "all_finite": true,
+      "cosx_full_tensor_calls": 0,
+      "cosx_monomer_max_abs": 0.0002624149375152151,
+      "estimated_seconds_128": 18197.58335700683,
+      "estimated_seconds_64": 4035.9864949265316,
+      "j_asymmetry_16": 0.0,
+      "j_parallel_16_max_abs": 0.0,
+      "jk_16_s": 141.74172295799872,
+      "jk_32_s": 758.1489682089996,
+      "k_asymmetry_16": 0.0,
+      "k_parallel_16_max_abs": 0.0,
+      "memory_128_gib": 3.28515625,
+      "memory_16_gib": 0.05133056640625,
+      "memory_32_gib": 0.205322265625,
+      "memory_64_gib": 0.8212890625,
+      "monomer_nao": 58,
+      "nao_128": 7424,
+      "nao_16": 928,
+      "nao_32": 1856,
+      "nao_64": 3712,
+      "nao_mismatch_max": 0,
+      "ri_j_16_max_abs": 4.219758409362839e-08,
+      "rss_16_gib": 1.4443511962890625,
+      "significant_pair_fraction_128": 0.12035807257079105,
+      "significant_pair_fraction_16": 0.4784513211812915,
+      "significant_pair_fraction_32": 0.3205618057029647,
+      "significant_pair_fraction_64": 0.2134714108691804,
+      "skipped_128": true,
+      "skipped_16": false,
+      "skipped_32": false,
+      "skipped_64": true
+    },
+    "passed": false,
+    "reasons": [
+      "ri_j_16_max_abs=4.219758409362839e-08 exceeds tolerance 2e-08",
+      "cosx_monomer_max_abs=0.0002624149375152151 exceeds tolerance 0.0002"
+    ]
+  },
+  "run": {
+    "command": [
+      "/Users/darui/workspace/fieldquantum/.pyscf-env/bin/python3",
+      "harness_engineering/examples/water_cluster_jk_candidate.py"
+    ],
+    "duration_s": 1171.0265566660019,
+    "failure_kind": null,
+    "report_path": "/Users/darui/workspace/fieldquantum/hf/outputs/benchmark/water-cluster-ccpvtz-jk.report.json",
+    "returncode": 0,
+    "status": "completed",
+    "stderr": "get_jk molecules=16 pairs=27088 remaining=3599.3s\nget_jk molecules=32 pairs=72488 remaining=3253.3s\nestimated get_jk time 4035.986 s exceeds the remaining 2484.960 s\nestimated get_jk time 18197.583 s exceeds the remaining 2429.535 s\n",
+    "stdout": ""
+  },
+  "task": {
+    "cases": [
+      {
+        "basis": "cc-pvtz",
+        "molecules": 16,
+        "name": "water16-ccpvtz"
+      },
+      {
+        "basis": "cc-pvtz",
+        "molecules": 32,
+        "name": "water32-ccpvtz"
+      },
+      {
+        "basis": "cc-pvtz",
+        "molecules": 64,
+        "name": "water64-ccpvtz"
+      },
+      {
+        "basis": "cc-pvtz",
+        "molecules": 128,
+        "name": "water128-ccpvtz"
+      }
+    ],
+    "command": [
+      "python3",
+      "harness_engineering/examples/water_cluster_jk_candidate.py"
+    ],
+    "correctness_tolerances": {
+      "cosx_full_tensor_calls": 0,
+      "cosx_monomer_max_abs": 0.0002,
+      "j_asymmetry_16": 1e-08,
+      "j_parallel_16_max_abs": 2e-08,
+      "k_asymmetry_16": 1e-08,
+      "k_parallel_16_max_abs": 2e-10,
+      "nao_mismatch_max": 0,
+      "ri_j_16_max_abs": 2e-08
+    },
+    "description": "One RI-J plus COSX get_jk on 16, 32, 64, and 128 water molecules with cc-pVTZ. No SCF. 16 waters must finish and match PySCF density fitting. Larger sizes may be skipped when the estimated time exceeds the remaining task budget.",
+    "env": {},
+    "name": "water-cluster-ccpvtz-jk",
+    "performance": {},
+    "required_metrics": [
+      "nao_16",
+      "nao_32",
+      "nao_64",
+      "nao_128",
+      "nao_mismatch_max",
+      "all_finite",
+      "significant_pair_fraction_16",
+      "significant_pair_fraction_32",
+      "significant_pair_fraction_64",
+      "significant_pair_fraction_128",
+      "memory_16_gib",
+      "memory_32_gib",
+      "memory_64_gib",
+      "memory_128_gib",
+      "ri_j_16_max_abs",
+      "j_parallel_16_max_abs",
+      "k_parallel_16_max_abs",
+      "j_asymmetry_16",
+      "k_asymmetry_16",
+      "cosx_monomer_max_abs",
+      "cosx_full_tensor_calls",
+      "jk_16_s"
+    ],
+    "timeout_s": 3600.0
+  }
+}
