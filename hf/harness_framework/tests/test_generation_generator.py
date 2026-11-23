@@ -47,6 +47,31 @@ class GenerationGeneratorTests(unittest.TestCase):
         return ResponsesGenerator({"model": "test-explicit-model", "transport": transport,
                                    "sleep": lambda seconds: None, **kwargs})
 
+    def test_flat_output_schema_is_converted_and_still_guarded(self):
+        from harness_engineering.generation.generator import FLAT_SCHEMA
+        requests = []
+        flat = {"solution_py": initial_source(), "rationale": "r", "expected_effect": "e"}
+        def transport(request, **kwargs):
+            requests.append(request)
+            return response(flat)
+        result = self.generator(transport, output_schema="flat").generate({"round": 1}, self.root / "flat")
+        self.assertEqual(result["files"][0], {"path": "solution.py", "content": initial_source()})
+        self.assertEqual(requests[0]["text"]["format"]["schema"], FLAT_SCHEMA)
+        self.assertIn("solution_py", requests[0]["input"][0]["content"])
+        # A relay that ignores the schema (observed: "patches") is rejected, not aliased.
+        drifted = {"patches": [{"path": "solution.py", "content": initial_source()}], "rationale": "r", "expected_effect": "e"}
+        with self.assertRaises(GenerationError) as caught:
+            self.generator(lambda request, **kwargs: response(drifted), output_schema="flat").generate(
+                {"round": 1}, self.root / "drift")
+        self.assertEqual(caught.exception.status, "invalid_bundle")
+        guarded = {"solution_py": "import os\n" + initial_source(), "rationale": "r", "expected_effect": "e"}
+        with self.assertRaises(GenerationError) as caught:
+            self.generator(lambda request, **kwargs: response(guarded), output_schema="flat").generate(
+                {"round": 1}, self.root / "guard")
+        self.assertEqual(caught.exception.status, "forbidden_import")
+        with self.assertRaises(GenerationError):
+            self.generator(transport, output_schema="xml")
+
     def test_success_records_strict_request_response_usage_and_public_context(self):
         requests = []
 

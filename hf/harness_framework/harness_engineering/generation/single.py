@@ -321,7 +321,12 @@ class SingleShotRun:
     def _generate(self, spec, generation_config, feedback, previous_source):
         from .generator import GenerationError, ResponsesGenerator, apply_bundle, initial_source
 
-        factory = self.generator_factory or ResponsesGenerator
+        factory = self.generator_factory
+        if factory is None:
+            if generation_config.get("provider", "anthropic") == "anthropic":
+                from .claude_generator import ClaudeGenerator as factory
+            else:
+                factory = ResponsesGenerator
         context = {"public_prompt": _public_prompt(spec), "contract": ACCURACY_CONTRACT,
                    "current_source": previous_source or initial_source(), "round": 1}
         if feedback:
@@ -329,7 +334,8 @@ class SingleShotRun:
         event(self.root, "requesting_single_candidate", model=generation_config.get("model"),
               with_feedback=bool(feedback))
         try:
-            bundle = factory(generation_config).generate(context, self.root / "generation")
+            bundle = factory({k: v for k, v in generation_config.items() if k != "provider"}).generate(
+                context, self.root / "generation")
             atomic_json(self.root / "bundle.json", bundle)
             candidate_dir = self.root / "candidate"
             # The AST/import guard rejects the program; it is not an environment fault.
@@ -408,10 +414,14 @@ class SingleShotRun:
             if key.lower() in {"api_key", "authorization", "token", "secret"}:
                 raise ValueError("API credentials must be provided through an environment variable")
         if candidate_source is None:
-            from .generator import validate_budget
+            provider = generation.setdefault("provider", "anthropic")
+            if provider not in {"anthropic", "openai"}:
+                raise ValueError("provider must be anthropic or openai")
             if not generation.get("model"):
-                raise ValueError("Specify --model or OPENAI_MODEL, or pass --candidate to assess an existing program")
-            validate_budget(generation)
+                raise ValueError("Specify --model, or pass --candidate to assess an existing program")
+            if provider == "openai":
+                from .generator import validate_budget
+                validate_budget(generation)
         feedback, previous_source = None, None
         if previous_run is not None:
             previous = Path(previous_run).resolve()
@@ -527,14 +537,19 @@ def main(argv=None):
                         help="Assess an existing solution.py instead of calling the model")
     parser.add_argument("--previous-run", type=Path, default=None,
                         help="Show the previous run's public diagnostics and source to the model")
-    parser.add_argument("--model", default=os.environ.get("OPENAI_MODEL"))
-    parser.add_argument("--reasoning-effort", default=None)
-    parser.add_argument("--api-base-url", default="https://api.openai.com/v1")
-    parser.add_argument("--api-key-env", default="OPENAI_API_KEY")
-    parser.add_argument("--api-timeout", type=float, default=600)
-    parser.add_argument("--budget-profile", choices=("standard", "extended"), default="standard")
-    parser.add_argument("--max-output-tokens", type=int, default=16384)
-    parser.add_argument("--stream", action="store_true")
+    parser.add_argument("--provider", choices=("anthropic", "openai"), default="anthropic",
+                        help="anthropic: Claude Messages API via the official SDK (default); openai: Responses API")
+    parser.add_argument("--model", default=None, help="Default: claude-opus-5-5 (anthropic) / $OPENAI_MODEL (openai)")
+    parser.add_argument("--reasoning-effort", default=None,
+                        help="anthropic: low|medium|high|xhigh|max (default xhigh); openai: provider-defined")
+    parser.add_argument("--api-base-url", default=None, help="Default: provider's official endpoint")
+    parser.add_argument("--api-key-env", default=None, help="Default: ANTHROPIC_API_KEY / OPENAI_API_KEY")
+    parser.add_argument("--api-timeout", type=float, default=None, help="Seconds (default 1200 anthropic, 600 openai)")
+    parser.add_argument("--budget-profile", choices=("standard", "extended"), default="standard", help="openai only")
+    parser.add_argument("--max-output-tokens", type=int, default=None, help="Default 64000 anthropic, 16384 openai")
+    parser.add_argument("--no-refusal-fallback", action="store_true",
+                        help="anthropic: do not send fallbacks=default (some proxies reject the beta)")
+    parser.add_argument("--stream", action="store_true", help="openai only; anthropic always streams")
     args = parser.parse_args(argv)
     if args.executor_config is None and not args.local_subprocess:
         parser.error("give --executor-config or explicitly choose --local-subprocess")
@@ -545,10 +560,21 @@ def main(argv=None):
             execution["python"] = args.python
     generation = None
     if args.candidate is None:
-        generation = {"model": args.model, "reasoning_effort": args.reasoning_effort, "base_url": args.api_base_url,
-                      "api_key_env": args.api_key_env, "timeout_s": args.api_timeout,
-                      "budget_profile": args.budget_profile, "max_output_tokens": args.max_output_tokens,
-                      "max_retries": 2, "streaming": args.stream}
+        if args.provider == "anthropic":
+            generation = {"provider": "anthropic", "model": args.model or "claude-opus-5-5",
+                          "reasoning_effort": args.reasoning_effort or "xhigh",
+                          "api_key_env": args.api_key_env or "ANTHROPIC_API_KEY",
+                          "timeout_s": args.api_timeout or 1200, "max_output_tokens": args.max_output_tokens or 64000,
+                          "max_retries": 2, "refusal_fallback": not args.no_refusal_fallback}
+            if args.api_base_url:
+                generation["base_url"] = args.api_base_url
+        else:
+            generation = {"provider": "openai", "model": args.model or os.environ.get("OPENAI_MODEL"),
+                          "reasoning_effort": args.reasoning_effort,
+                          "base_url": args.api_base_url or "https://api.openai.com/v1",
+                          "api_key_env": args.api_key_env or "OPENAI_API_KEY", "timeout_s": args.api_timeout or 600,
+                          "budget_profile": args.budget_profile, "max_output_tokens": args.max_output_tokens or 16384,
+                          "max_retries": 2, "streaming": args.stream, "output_schema": "flat"}
     try:
         result = SingleShotRun(args.output).run(args.task, execution_config=execution, generation_config=generation,
                                                 candidate_source=args.candidate, previous_run=args.previous_run)

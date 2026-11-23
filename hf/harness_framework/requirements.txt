@@ -1,1 +1,2 @@
 -r ../requirements.txt
+anthropic>=2.12  # Claude generator (generate single --provider anthropic)

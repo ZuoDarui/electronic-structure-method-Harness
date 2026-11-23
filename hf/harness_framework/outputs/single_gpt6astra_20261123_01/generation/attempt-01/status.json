@@ -1,0 +1,25 @@
+{
+  "status": "invalid_bundle",
+  "reason": "PatchBundle fields must be files, rationale and expected_effect",
+  "attempt": 1,
+  "retry": false,
+  "usage": {
+    "input_tokens": 2927,
+    "output_tokens": 21706,
+    "total_tokens": 24633,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "http_status": null,
+  "elapsed_seconds": 514.2219650830084,
+  "transport_metadata": {},
+  "budget_profile": "extended",
+  "requested_timeout_seconds": 1200.0,
+  "requested_max_output_tokens": 32768,
+  "reported_output_tokens": 21706,
+  "budget_within_limit": true
+}

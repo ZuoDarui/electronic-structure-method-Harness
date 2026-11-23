@@ -1,0 +1,23 @@
+{
+  "api_usage": {
+    "input_tokens": 2927,
+    "output_tokens": 21706,
+    "total_tokens": 24633
+  },
+  "finished_at": "2026-11-23T10:16:04.426293+00:00",
+  "generation_error": {
+    "reason": "PatchBundle fields must be files, rationale and expected_effect",
+    "status": "invalid_bundle"
+  },
+  "mode": "generated",
+  "model": "gpt-6-astra",
+  "previous_run": null,
+  "reasoning_effort": "max",
+  "reasons": [
+    "PatchBundle fields must be files, rationale and expected_effect"
+  ],
+  "schema": "rhf-single-shot-accuracy/1",
+  "scope": "Accuracy only: one program, CPU/NumPy, small molecules, PySCF references. No speed, GPU or large-system assessment.",
+  "status": "generation_failed",
+  "task": "rhf-small-accuracy-v1"
+}

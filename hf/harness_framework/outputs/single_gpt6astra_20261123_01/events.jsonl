@@ -1,0 +1,32 @@
+{"case_id": "h2-sto3g-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:19.460854+00:00"}
+{"case_id": "h2-sto3g-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:19.939482+00:00"}
+{"case_id": "h2-stretched-631g-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:20.275710+00:00"}
+{"case_id": "h2-stretched-631g-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:20.606509+00:00"}
+{"case_id": "heh-cation-631g-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:20.941684+00:00"}
+{"case_id": "heh-cation-631g-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:21.281371+00:00"}
+{"case_id": "he-ccpvdz-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:21.619072+00:00"}
+{"case_id": "he-ccpvdz-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:21.949411+00:00"}
+{"case_id": "be-631g-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:22.283015+00:00"}
+{"case_id": "be-631g-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:22.621929+00:00"}
+{"case_id": "lih-631g-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:22.967440+00:00"}
+{"case_id": "lih-631g-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:23.314425+00:00"}
+{"case_id": "hf-631g-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:23.667059+00:00"}
+{"case_id": "hf-631g-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:24.007437+00:00"}
+{"case_id": "water-631gs-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:24.350844+00:00"}
+{"case_id": "water-631gs-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:24.708256+00:00"}
+{"case_id": "water-ccpvdz-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:25.060269+00:00"}
+{"case_id": "water-ccpvdz-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:25.453219+00:00"}
+{"case_id": "ammonia-sto3g-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:25.813008+00:00"}
+{"case_id": "ammonia-sto3g-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:26.159181+00:00"}
+{"case_id": "methane-631g-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:26.517673+00:00"}
+{"case_id": "methane-631g-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:26.880685+00:00"}
+{"case_id": "n2-ccpvdz-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:27.229457+00:00"}
+{"case_id": "n2-ccpvdz-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:27.640875+00:00"}
+{"case_id": "co-631g-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:27.998746+00:00"}
+{"case_id": "co-631g-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:28.361618+00:00"}
+{"case_id": "ethylene-sto3g-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:28.714148+00:00"}
+{"case_id": "ethylene-sto3g-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:29.078293+00:00"}
+{"case_id": "formaldehyde-631g-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:29.424502+00:00"}
+{"case_id": "formaldehyde-631g-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:07:29.826745+00:00"}
+{"event": "requesting_single_candidate", "model": "gpt-6-astra", "time": "2026-11-23T10:07:30.193392+00:00", "with_feedback": false}
+{"event": "single_shot_finished", "reasons": ["PatchBundle fields must be files, rationale and expected_effect"], "status": "generation_failed", "time": "2026-11-23T10:16:04.427702+00:00"}

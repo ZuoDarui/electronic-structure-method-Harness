@@ -84,6 +84,17 @@ PATCH_SCHEMA = {
 }
 
 
+# Flat alternative for services that do not enforce nested/array constraints
+# of strict JSON schema (observed: a relay returned "patches" for "files").
+# The single file is a plain string; validate_bundle applies the same rules.
+FLAT_SCHEMA = {
+    "type": "object", "additionalProperties": False,
+    "properties": {"solution_py": {"type": "string"}, "rationale": {"type": "string"},
+                   "expected_effect": {"type": "string"}},
+    "required": ["solution_py", "rationale", "expected_effect"],
+}
+
+
 class GenerationError(RuntimeError):
     def __init__(self, status: str, reason: str, usage: dict | None = None):
         super().__init__(reason)
@@ -263,6 +274,9 @@ class ResponsesGenerator:
             raise GenerationError("config_error", f"Required API credential environment variable {key_env} is missing")
         self.budget_profile, self.max_output_tokens, self.timeout_s = validate_budget(config)
         self.max_retries = config.get("max_retries", 2)
+        self.output_schema = config.get("output_schema", "patch")
+        if self.output_schema not in {"patch", "flat"}:
+            raise GenerationError("config_error", "output_schema must be patch or flat")
         self.streaming = config.get("streaming", False)
         if type(self.streaming) is not bool:
             raise GenerationError("config_error", "streaming must be a boolean")
@@ -366,12 +380,16 @@ class ResponsesGenerator:
             "extensions or producing a verbose explanation. The controller rejects "
             "responses whose reported total output exceeds this limit.\n"
         )
+        flat = self.output_schema == "flat"
+        shape = ("\nReturn one JSON object with exactly the fields solution_py (the complete solution.py "
+                 "source), rationale and expected_effect.\n") if flat else ""
         request = {"model": self.model, "store": False,
                 "max_output_tokens": self.max_output_tokens,
-                "input": [{"role": "system", "content": SYSTEM_PROMPT + "\n" + CONTRACT + budget_instruction},
+                "input": [{"role": "system", "content": SYSTEM_PROMPT + "\n" + CONTRACT + budget_instruction + shape},
                           {"role": "user", "content": content}],
-                "text": {"format": {"type": "json_schema", "name": "rhf_patch_bundle",
-                                    "strict": True, "schema": PATCH_SCHEMA}}}
+                "text": {"format": {"type": "json_schema",
+                                    "name": "rhf_solution" if flat else "rhf_patch_bundle",
+                                    "strict": True, "schema": FLAT_SCHEMA if flat else PATCH_SCHEMA}}}
         if self.reasoning_effort is not None:
             # Preserve the requested model/effort; provider rejections are
             # reported verbatim by status, never worked around by downgrading.
@@ -409,6 +427,12 @@ class ResponsesGenerator:
             bundle = _json_object(chunks[0])
         except (ValueError, TypeError) as exc:
             raise GenerationError("invalid_json", "Structured output is not valid JSON", usage) from exc
+        if self.output_schema == "flat":
+            if not isinstance(bundle, dict) or set(bundle) != {"solution_py", "rationale", "expected_effect"}:
+                raise GenerationError("invalid_bundle",
+                                      "Structured output fields must be solution_py, rationale and expected_effect", usage)
+            bundle = {"files": [{"path": "solution.py", "content": bundle["solution_py"]}],
+                      "rationale": bundle["rationale"], "expected_effect": bundle["expected_effect"]}
         try:
             return validate_bundle(bundle)
         except GenerationError as exc:

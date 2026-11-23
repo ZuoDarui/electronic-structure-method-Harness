@@ -1,0 +1,48 @@
+{
+  "status": "completed",
+  "attempt": 1,
+  "usage": {
+    "input_tokens": 2949,
+    "output_tokens": 21108,
+    "total_tokens": 24057,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "response_id": "interaction_ef53c560-f76",
+  "elapsed_seconds": 480.51980637499946,
+  "transport_metadata": {
+    "mode": "responses_json",
+    "diagnostic_records": 8,
+    "diagnostics_truncated": false,
+    "discarded_partial_record": false,
+    "phase": "body_complete",
+    "phase_timings": {
+      "worker_started": 1e-06,
+      "request_ready": 8.5e-05,
+      "connect_started": 0.003655,
+      "connected": 0.511656,
+      "request_sent": 0.511981,
+      "response_headers": 480.232439,
+      "first_byte": 480.235431,
+      "body_complete": 480.443839
+    },
+    "stream_bytes": 13667,
+    "event_count": 0,
+    "event_types": {},
+    "first_event": null,
+    "last_event": null,
+    "http_status": 200,
+    "content_type": "application/json",
+    "wait_stage": "completed",
+    "transport_elapsed_seconds": 480.5010664589936
+  },
+  "budget_profile": "extended",
+  "requested_timeout_seconds": 1200.0,
+  "requested_max_output_tokens": 32768,
+  "reported_output_tokens": 21108,
+  "budget_within_limit": true
+}

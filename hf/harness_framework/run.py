@@ -19,7 +19,7 @@ CPU_TEST_MODULES = (
     'test_generation_json_transport', 'test_generation_science',
     'test_generation_executor', 'test_generation_namespace',
     'test_generation_campaign', 'test_generation_campaign_review',
-    'test_generation_single',
+    'test_generation_single', 'test_generation_claude',
     'test_harness_engineering', 'test_framework_layout',
 )
 

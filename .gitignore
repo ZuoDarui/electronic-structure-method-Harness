@@ -7,9 +7,14 @@ __pycache__/
 secrets/
 *.npz
 hf/outputs/
+# Keep only the human-readable evidence of single-shot runs.
 hf/harness_framework/outputs/*
-!hf/harness_framework/outputs/single_shot_reference_20261123/
-hf/harness_framework/outputs/single_shot_reference_20261123/*
-!hf/harness_framework/outputs/single_shot_reference_20261123/report.md
-!hf/harness_framework/outputs/single_shot_reference_20261123/result.json
-!hf/harness_framework/outputs/single_shot_reference_20261123/events.jsonl
+!hf/harness_framework/outputs/single_*/
+hf/harness_framework/outputs/single_*/*
+!hf/harness_framework/outputs/single_*/report.md
+!hf/harness_framework/outputs/single_*/result.json
+!hf/harness_framework/outputs/single_*/events.jsonl
+!hf/harness_framework/outputs/single_*/candidate/
+!hf/harness_framework/outputs/single_*/accepted/
+!hf/harness_framework/outputs/single_*/generation/
+hf/harness_framework/outputs/single_*/generation/attempt-*/request.json

@@ -73,6 +73,18 @@ PYTHON=/Users/darui/workspace/fieldquantum/.pyscf-env/bin/python   # 集群上�
 
 用 `tests/fixtures/rhf_numpy_solution.py`（参考实现）在本机验证：30/30 通过，最大能量误差 1.6e-12 Eh，全程约 19 秒。原有的 `generate run/resume/evaluate` 多阶段流程保持不变。
 
+### 生成模型：Claude（默认）
+
+`generate single` 默认使用 Claude（官方 `anthropic` Python SDK，Messages API）：模型 `claude-opus-5-5`，自适应思考，`effort` 默认 `xhigh`，流式输出，`max_tokens` 64000。结构化输出用 JSON schema 约束，固定返回 `{solution_py, rationale, expected_effect}` 三个字段，再经过与原来相同的 `validate_bundle` 导入和 AST 检查。请求默认带上 `fallbacks: "default"`（beta `server-side-fallback-2026-07-01`），被安全策略拒绝时由服务端自动换用推荐模型重试；如果走不支持这个 beta 的代理，用 `--no-refusal-fallback` 关闭。密钥只从环境变量读取（默认 `ANTHROPIC_API_KEY`），不会写入任何证据文件。
+
+```bash
+ANTHROPIC_API_KEY="$(cat ~/secrets/anthropic_api_key)" "$PYTHON" run.py generate single \
+  --output outputs/single_claude_01 --local-subprocess --python "$PYTHON"
+# 可选：--model claude-fable-5-1  --reasoning-effort max  --api-base-url https://<代理>/  --api-key-env NAME
+```
+
+`--provider openai` 保留原来的 Responses API 路径（需要 `--model` 和 `OPENAI_API_KEY`）。
+
 ## 启动、恢复与复核
 
 从 `harness/generation/executor.local.example.json` 或 `executor.ssh.example.json` 复制执行配置，填入实际镜像、GPU 和 SSH 信息。SSH 使用批处理密钥登录及严格主机密钥检查；可通过 `ssh_options` 指定私钥和单独的 known-hosts 文件，不能在配置里放密码、API 密钥或私钥内容。

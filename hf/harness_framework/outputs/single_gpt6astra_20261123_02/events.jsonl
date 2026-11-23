@@ -1,0 +1,93 @@
+{"case_id": "h2-sto3g-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:32.543300+00:00"}
+{"case_id": "h2-sto3g-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:32.871438+00:00"}
+{"case_id": "h2-stretched-631g-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:33.206895+00:00"}
+{"case_id": "h2-stretched-631g-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:33.541213+00:00"}
+{"case_id": "heh-cation-631g-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:33.878325+00:00"}
+{"case_id": "heh-cation-631g-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:34.215169+00:00"}
+{"case_id": "he-ccpvdz-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:34.553992+00:00"}
+{"case_id": "he-ccpvdz-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:34.884524+00:00"}
+{"case_id": "be-631g-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:35.217950+00:00"}
+{"case_id": "be-631g-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:35.552041+00:00"}
+{"case_id": "lih-631g-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:35.892888+00:00"}
+{"case_id": "lih-631g-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:36.239909+00:00"}
+{"case_id": "hf-631g-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:36.588594+00:00"}
+{"case_id": "hf-631g-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:36.931977+00:00"}
+{"case_id": "water-631gs-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:37.276570+00:00"}
+{"case_id": "water-631gs-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:37.632542+00:00"}
+{"case_id": "water-ccpvdz-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:37.982113+00:00"}
+{"case_id": "water-ccpvdz-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:38.374106+00:00"}
+{"case_id": "ammonia-sto3g-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:38.734073+00:00"}
+{"case_id": "ammonia-sto3g-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:39.077274+00:00"}
+{"case_id": "methane-631g-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:39.422405+00:00"}
+{"case_id": "methane-631g-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:39.779204+00:00"}
+{"case_id": "n2-ccpvdz-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:40.131244+00:00"}
+{"case_id": "n2-ccpvdz-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:40.541835+00:00"}
+{"case_id": "co-631g-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:40.901606+00:00"}
+{"case_id": "co-631g-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:41.275796+00:00"}
+{"case_id": "ethylene-sto3g-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:41.625616+00:00"}
+{"case_id": "ethylene-sto3g-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:41.990556+00:00"}
+{"case_id": "formaldehyde-631g-exact", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:42.340271+00:00"}
+{"case_id": "formaldehyde-631g-df", "event": "preparing_pyscf_reference", "time": "2026-11-23T10:22:42.748981+00:00"}
+{"event": "requesting_single_candidate", "model": "gpt-6-astra", "time": "2026-11-23T10:22:43.125862+00:00", "with_feedback": false}
+{"event": "candidate_generated", "rationale": "Implements the supplied CPU-only contract using exact and blocked-DF contractions, overlap-aware Roothaan iterations, and stabilized Pulay DIIS. Final fixed-density canonicalization removes extrapolated-Fock artifacts; convergence requires both energy stability and the physical commutator residual within the hard cycle cap.", "sha256": "0e4bd2b1918997106fda430cb240b48f6708d00ea7b6c733bc68a9395f99a54a", "time": "2026-11-23T10:30:43.655306+00:00"}
+{"case_id": "h2-sto3g-exact", "event": "executing_case", "nao": 2, "time": "2026-11-23T10:30:43.656690+00:00"}
+{"case_id": "h2-sto3g-exact", "energy_error": 4.440892098500626e-16, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:43.853813+00:00"}
+{"case_id": "h2-sto3g-df", "event": "executing_case", "nao": 2, "time": "2026-11-23T10:30:43.853940+00:00"}
+{"case_id": "h2-sto3g-df", "energy_error": 2.220446049250313e-16, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:43.997493+00:00"}
+{"case_id": "h2-stretched-631g-exact", "event": "executing_case", "nao": 4, "time": "2026-11-23T10:30:43.997624+00:00"}
+{"case_id": "h2-stretched-631g-exact", "energy_error": 1.5543122344752192e-15, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:44.143298+00:00"}
+{"case_id": "h2-stretched-631g-df", "event": "executing_case", "nao": 4, "time": "2026-11-23T10:30:44.143430+00:00"}
+{"case_id": "h2-stretched-631g-df", "energy_error": 1.5543122344752192e-15, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:44.294062+00:00"}
+{"case_id": "heh-cation-631g-exact", "event": "executing_case", "nao": 4, "time": "2026-11-23T10:30:44.294196+00:00"}
+{"case_id": "heh-cation-631g-exact", "energy_error": 8.881784197001252e-16, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:44.445947+00:00"}
+{"case_id": "heh-cation-631g-df", "event": "executing_case", "nao": 4, "time": "2026-11-23T10:30:44.446094+00:00"}
+{"case_id": "heh-cation-631g-df", "energy_error": 0.0, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:44.593670+00:00"}
+{"case_id": "he-ccpvdz-exact", "event": "executing_case", "nao": 5, "time": "2026-11-23T10:30:44.593799+00:00"}
+{"case_id": "he-ccpvdz-exact", "energy_error": 8.881784197001252e-16, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:44.740488+00:00"}
+{"case_id": "he-ccpvdz-df", "event": "executing_case", "nao": 5, "time": "2026-11-23T10:30:44.740628+00:00"}
+{"case_id": "he-ccpvdz-df", "energy_error": 8.881784197001252e-16, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:44.885691+00:00"}
+{"case_id": "be-631g-exact", "event": "executing_case", "nao": 9, "time": "2026-11-23T10:30:44.885830+00:00"}
+{"case_id": "be-631g-exact", "energy_error": 0.0, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:45.033435+00:00"}
+{"case_id": "be-631g-df", "event": "executing_case", "nao": 9, "time": "2026-11-23T10:30:45.033586+00:00"}
+{"case_id": "be-631g-df", "energy_error": 8.881784197001252e-15, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:45.180867+00:00"}
+{"case_id": "lih-631g-exact", "event": "executing_case", "nao": 11, "time": "2026-11-23T10:30:45.181002+00:00"}
+{"case_id": "lih-631g-exact", "energy_error": 5.329070518200751e-15, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:45.326963+00:00"}
+{"case_id": "lih-631g-df", "event": "executing_case", "nao": 11, "time": "2026-11-23T10:30:45.327105+00:00"}
+{"case_id": "lih-631g-df", "energy_error": 5.329070518200751e-15, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:45.475060+00:00"}
+{"case_id": "hf-631g-exact", "event": "executing_case", "nao": 11, "time": "2026-11-23T10:30:45.475222+00:00"}
+{"case_id": "hf-631g-exact", "energy_error": 8.526512829121202e-14, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:45.622920+00:00"}
+{"case_id": "hf-631g-df", "event": "executing_case", "nao": 11, "time": "2026-11-23T10:30:45.623044+00:00"}
+{"case_id": "hf-631g-df", "energy_error": 7.105427357601002e-14, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:45.770463+00:00"}
+{"case_id": "water-631gs-exact", "event": "executing_case", "nao": 18, "time": "2026-11-23T10:30:45.770610+00:00"}
+{"case_id": "water-631gs-exact", "energy_error": 2.842170943040401e-14, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:45.925380+00:00"}
+{"case_id": "water-631gs-df", "event": "executing_case", "nao": 18, "time": "2026-11-23T10:30:45.925548+00:00"}
+{"case_id": "water-631gs-df", "energy_error": 1.1368683772161603e-13, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:46.075777+00:00"}
+{"case_id": "water-ccpvdz-exact", "event": "executing_case", "nao": 24, "time": "2026-11-23T10:30:46.075939+00:00"}
+{"case_id": "water-ccpvdz-exact", "energy_error": 1.1368683772161603e-13, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:46.242632+00:00"}
+{"case_id": "water-ccpvdz-df", "event": "executing_case", "nao": 24, "time": "2026-11-23T10:30:46.242817+00:00"}
+{"case_id": "water-ccpvdz-df", "energy_error": 8.526512829121202e-14, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:46.402800+00:00"}
+{"case_id": "ammonia-sto3g-exact", "event": "executing_case", "nao": 8, "time": "2026-11-23T10:30:46.402937+00:00"}
+{"case_id": "ammonia-sto3g-exact", "energy_error": 5.684341886080802e-14, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:46.548548+00:00"}
+{"case_id": "ammonia-sto3g-df", "event": "executing_case", "nao": 8, "time": "2026-11-23T10:30:46.548671+00:00"}
+{"case_id": "ammonia-sto3g-df", "energy_error": 1.4210854715202004e-14, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:46.696740+00:00"}
+{"case_id": "methane-631g-exact", "event": "executing_case", "nao": 17, "time": "2026-11-23T10:30:46.696918+00:00"}
+{"case_id": "methane-631g-exact", "energy_error": 2.842170943040401e-14, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:46.848187+00:00"}
+{"case_id": "methane-631g-df", "event": "executing_case", "nao": 17, "time": "2026-11-23T10:30:46.848319+00:00"}
+{"case_id": "methane-631g-df", "energy_error": 2.1316282072803006e-14, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:47.001719+00:00"}
+{"case_id": "n2-ccpvdz-exact", "event": "executing_case", "nao": 28, "time": "2026-11-23T10:30:47.001852+00:00"}
+{"case_id": "n2-ccpvdz-exact", "energy_error": 1.5063505998114124e-12, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:47.173963+00:00"}
+{"case_id": "n2-ccpvdz-df", "event": "executing_case", "nao": 28, "time": "2026-11-23T10:30:47.174092+00:00"}
+{"case_id": "n2-ccpvdz-df", "energy_error": 1.3926637620897964e-12, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:47.331895+00:00"}
+{"case_id": "co-631g-exact", "event": "executing_case", "nao": 18, "time": "2026-11-23T10:30:47.332026+00:00"}
+{"case_id": "co-631g-exact", "energy_error": 8.526512829121202e-14, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:47.481502+00:00"}
+{"case_id": "co-631g-df", "event": "executing_case", "nao": 18, "time": "2026-11-23T10:30:47.481647+00:00"}
+{"case_id": "co-631g-df", "energy_error": 8.526512829121202e-14, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:47.633662+00:00"}
+{"case_id": "ethylene-sto3g-exact", "event": "executing_case", "nao": 14, "time": "2026-11-23T10:30:47.633814+00:00"}
+{"case_id": "ethylene-sto3g-exact", "energy_error": 1.1368683772161603e-13, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:47.784377+00:00"}
+{"case_id": "ethylene-sto3g-df", "event": "executing_case", "nao": 14, "time": "2026-11-23T10:30:47.784516+00:00"}
+{"case_id": "ethylene-sto3g-df", "energy_error": 5.684341886080802e-14, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:47.937512+00:00"}
+{"case_id": "formaldehyde-631g-exact", "event": "executing_case", "nao": 22, "time": "2026-11-23T10:30:47.937654+00:00"}
+{"case_id": "formaldehyde-631g-exact", "energy_error": 2.8421709430404007e-13, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:48.098032+00:00"}
+{"case_id": "formaldehyde-631g-df", "event": "executing_case", "nao": 22, "time": "2026-11-23T10:30:48.098179+00:00"}
+{"case_id": "formaldehyde-631g-df", "energy_error": 1.7053025658242404e-13, "event": "case_verified", "status": "passed", "time": "2026-11-23T10:30:48.258133+00:00"}
+{"event": "single_shot_finished", "reasons": [], "status": "accepted", "time": "2026-11-23T10:30:48.260220+00:00"}
